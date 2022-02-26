@@ -45,12 +45,12 @@ contract TnoEats {
         _;
     }
 
-    modifier validParticipant(uint _orderId, address party) {
+    modifier validParticipant(uint _orderId) {
         Order storage currentOrder = orders[_orderId];
         require(
-            currentOrder.client == party
-            || currentOrder.seller == party
-            || currentOrder.deliveryService == party,
+            msg.sender == currentOrder.client
+            || msg.sender == currentOrder.seller
+            || msg.sender == currentOrder.deliveryService,
             "The sender is not involved in the transaction!"
         );
         _;
@@ -159,7 +159,7 @@ contract TnoEats {
         emit CompletedOrder(_currentOrder.id);
     }
 
-    function completeOrder(uint _orderId) external validOrder(_orderId) validParticipant(_orderId, msg.sender) orderProcessing(_orderId) {
+    function completeOrder(uint _orderId) external validOrder(_orderId) validParticipant(_orderId) orderProcessing(_orderId) {
         // TODO: Verify signatures?
         Order storage currentOrder = orders[_orderId];
         if (msg.sender == currentOrder.client) {
@@ -171,7 +171,7 @@ contract TnoEats {
         }
     }
 
-    function refundOrder(uint _orderId) external validOrder(_orderId) validParticipant(_orderId, msg.sender) orderNotStarted(_orderId) {
+    function refundOrder(uint _orderId) external validOrder(_orderId) validParticipant(_orderId) orderNotStarted(_orderId) {
         // For now we only allow not confirmed orders to be canceled
         orders[_orderId].status = OrderStatus.Canceled;
 
@@ -179,7 +179,7 @@ contract TnoEats {
         // TODO: Return funds
     }
 
-    function disputeOrder(uint _orderId) external validOrder(_orderId) validParticipant(_orderId, msg.sender) {
+    function disputeOrder(uint _orderId) external validOrder(_orderId) validParticipant(_orderId) {
         // TODO: Handle dispute
         // TODO: Adjust reputation
     }
