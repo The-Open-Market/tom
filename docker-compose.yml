@@ -1,17 +1,20 @@
 version: '3.2'
 services:
-  truffle:
-    container_name: tno_eats
+  tno-eats:
+    container_name: tno-eats
     build:
       context: .
       dockerfile: Dockerfile
-    command: ganache -h 0.0.0.0
+    working_dir: /home/tno-eats
+    entrypoint: /entrypoint.sh
     stdin_open: true
     tty: true
     ports:
       - "8545:8545"
+      - "8000:80"
     volumes:
       - ./:/home/tno-eats
+      - ./docker/entrypoint.sh:/entrypoint.sh
     networks:
       - shared
 
