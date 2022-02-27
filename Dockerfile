@@ -4,4 +4,4 @@ RUN mkdir /home/tno-eats
 
 WORKDIR /home/tno-eats
 
-RUN npm install -g truffle --silent
+RUN npm install -g truffle ganache --silent

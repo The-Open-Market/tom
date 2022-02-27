@@ -16,10 +16,7 @@ You can attach to any of the containers. To detach run `exit`, however this also
 
 ```bash
 # Attach to the truffle container
-docker attach tno-eats_truffle_1
-
-# Or attach to the ganache container
-docker attach tno-eats_ganache_1
+docker exec -ti tno_eats bash
 ```
 
 Then you can run any truffle commands in the truffle container.
