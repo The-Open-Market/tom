@@ -9,7 +9,11 @@
   },
   "dependencies": {
     "core-js": "^3.8.3",
-    "vue": "^3.2.13"
+    "ipfs-vue": "^0.35.0-rc.6",
+    "vue": "^3.2.31",
+    "vue-router": "^4.0.12",
+    "vue-web3": "^2.1.0",
+    "web3": "^1.7.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
