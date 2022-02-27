@@ -1,0 +1,16 @@
+version: '3.2'
+services:
+  ganache:
+    image: trufflesuite/ganache-cli:v6.12.2
+    ports:
+      - "7545:8545"
+
+  truffle:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: bash
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./:/home/tno-eats

@@ -1,0 +1,23 @@
+{
+  "name": "tno-eats",
+  "version": "1.0.0",
+  "description": "## Development setup",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neat-monte/tno-eats.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/neat-monte/tno-eats/issues"
+  },
+  "homepage": "https://github.com/neat-monte/tno-eats#readme"
+}
