@@ -19,8 +19,11 @@ jobs:
       - name: NodeJS version    
         run: npm --version
 
-      - name: Installing truffle
-        run: npm install truffle -g && npm install
+      - name: Installing truffle and ganache
+        run: npm install truffle ganache -g && npm install
+
+      - name: Running Ganache in background
+        run: ganache -h 0.0.0.0 &
 
       - name: Running Smart Contract Test
         run: CI=true truffle test
