@@ -2,7 +2,7 @@
     <div class="bg-white">
       <div class="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8">
         <ProductList @addToCart="addToCart"/>
-        <ShoppingCart :cartContents="this.cartContents" @increment="increment" @decrement="decrement"/>
+        <ShoppingCart :cartContents="this.cartContents" @increment="increment" @decrement="decrement" @remove="remove"/>
       </div>
     </div>
 </template>
@@ -35,6 +35,9 @@ export default {
       } else {
         this.cartContents.find(entry => entry.id == id)['quantity']--
       }
+    },
+    remove (id) {
+      this.cartContents = this.cartContents.filter(entry => entry.id != id)
     }
   },
   data () {

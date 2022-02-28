@@ -20,7 +20,7 @@
                 </div>
                 <div class="flex flex-col justify-between ml-4 flex-grow">
                 <span class="font-bold text-sm">{{ entry.name }}</span>
-                <a href="#" class="font-semibold hover:text-red-500 text-gray-500 text-xs">Remove</a>
+                <a href="#" @click="remove(entry.id)" class="font-semibold hover:text-red-500 text-gray-500 text-xs">Remove</a>
                 </div>
             </div>
             <div class="flex justify-center w-1/5">
@@ -67,7 +67,8 @@
             <span>Total cost</span>
             <span>€ {{ (Math.round(cartContents.map(x => x.quantity * x.price).reduce((prev, current) => prev + current, 0) * 100) / 100).toFixed(2) }}</span>
           </div>
-          <button class="bg-indigo-500 font-semibold hover:bg-indigo-600 py-3 text-sm text-white uppercase w-full">Place order</button>
+          <button v-if="cartContents && cartContents.length > 0" class="bg-indigo-500 font-semibold hover:bg-indigo-600 py-3 text-sm text-white uppercase w-full">Place order</button>
+            <button v-else class="bg-indigo-500 font-semibold hover:bg-indigo-600 py-3 text-sm text-white uppercase w-full opacity-50 cursor-not-allowed">Place order</button>
         </div>
       </div>
 
@@ -85,6 +86,9 @@ export default {
     decrement (id) {
       this.$emit('decrement', id)
     },
+    remove (id) {
+        this.$emit('remove', id)
+    }
   }
 }
 </script>
