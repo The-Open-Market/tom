@@ -48,26 +48,26 @@
         </div>
         <div class="mt-4">
         <label class="mb-4 block text-sm text-gray-600" for="cus_email">Address</label>
-        <input class="w-full px-2 py-2 text-gray-700 bg-gray-200 rounded" id="cus_email" name="cus_email" type="text" required="" placeholder="Street" aria-label="Email">
-        </div>
-        <div class="mt-4">
-        <label class="hidden text-sm block text-gray-600" for="cus_email">City</label>
-        <input class="w-full px-2 py-2 text-gray-700 bg-gray-200 rounded" id="cus_email" name="cus_email" type="text" required="" placeholder="City" aria-label="Email">
+        <input @change="setAddressKey('street', $event.target.value)" class="w-full px-2 py-2 text-gray-700 bg-gray-200 rounded" id="cus_email" name="cus_email" type="text" required="" placeholder="Street*" aria-label="Email">
         </div>
         <div class="inline-block mt-4 w-1/2 pr-1">
-        <label class="hidden block text-sm text-gray-600" for="cus_email">Country</label>
-        <input class="w-full px-2 py-2 text-gray-700 bg-gray-200 rounded" id="cus_email" name="cus_email" type="text" required="" placeholder="Country" aria-label="Email">
+        <label class="hidden block text-sm text-gray-600" for="cus_email">House nr.</label>
+        <input @change="setAddressKey('hnr', parseInt($event.target.value))" class="w-full px-2 py-2 text-gray-700 bg-gray-200 rounded" id="cus_email" name="cus_email" type="text" required="" placeholder="House nr.*" aria-label="Email">
         </div>
         <div class="inline-block mt-4 -mx-1 pl-1 w-1/2">
-        <label class="hidden block text-sm text-gray-600" for="cus_email">Zip</label>
-        <input class="w-full px-2 py-2 text-gray-700 bg-gray-200 rounded" id="cus_email"  name="cus_email" type="text" required="" placeholder="Zip" aria-label="Email">
+        <label class="hidden block text-sm text-gray-600" for="cus_email">Hnr. add</label>
+        <input @change="setAddressKey('hnr_add', $event.target.value)" class="w-full px-2 py-2 text-gray-700 bg-gray-200 rounded" id="cus_email"  name="cus_email" type="text" required="" placeholder="Hnr. add." aria-label="Email">
+        </div>
+        <div class="mt-4">
+        <label class="hidden text-sm block text-gray-600" for="cus_email">Zip</label>
+        <input @change="setAddressKey('zip', $event.target.value)" class="w-full px-2 py-2 text-gray-700 bg-gray-200 rounded" id="cus_email" name="cus_email" type="text" required="" placeholder="Zip*" aria-label="Email">
         </div>
         <div class="border-t mt-8">
           <div class="flex font-semibold justify-between py-6 text-sm uppercase">
             <span>Total cost</span>
             <span>€ {{ (Math.round(cartContents.map(x => x.quantity * x.price).reduce((prev, current) => prev + current, 0) * 100) / 100).toFixed(2) }}</span>
           </div>
-          <button v-if="cartContents && cartContents.length > 0" class="bg-indigo-500 font-semibold hover:bg-indigo-600 py-3 text-sm text-white uppercase w-full">Place order</button>
+          <button v-if="cartContents && cartContents.length > 0 && hasValidAddress()" class="bg-indigo-500 font-semibold hover:bg-indigo-600 py-3 text-sm text-white uppercase w-full">Place order</button>
             <button v-else class="bg-indigo-500 font-semibold hover:bg-indigo-600 py-3 text-sm text-white uppercase w-full opacity-50 cursor-not-allowed">Place order</button>
         </div>
       </div>
@@ -82,13 +82,27 @@ export default {
   methods: {
     increment (id) {
       this.$emit('increment', id)
+      console.log(this.address)
     },
     decrement (id) {
       this.$emit('decrement', id)
     },
     remove (id) {
         this.$emit('remove', id)
+    },
+    hasValidAddress () {
+        return this.address['street'] && 
+            this.address['zip'] &&
+            this.address['hnr']
+    },
+    setAddressKey(key, value) {
+        this.address[key] = value
     }
-  }
+  },
+  data () {
+    return {
+      address: []
+    }
+  },
 }
 </script>
