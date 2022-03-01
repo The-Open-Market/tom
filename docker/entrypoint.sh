@@ -1,7 +1,17 @@
 #!/bin/bash
 set -e
 
-npm install -g truffle ganache
+if hash truffle 2>/dev/null; then
+  echo "Truffle already installed."
+else
+  npm install -g truffle
+fi
+
+if hash ganache 2>/dev/null; then
+  echo "Ganache already installed."
+else
+  npm install -g ganache
+fi
 
 cd /home/tno-eats/client
 npm install
