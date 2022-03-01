@@ -47,20 +47,20 @@
           <span class="font-semibold text-sm">€ {{ (Math.round(cartContents.map(x => x.quantity * x.price).reduce((prev, current) => prev + current, 0) * 100) / 100).toFixed(2) }}</span>
         </div>
         <div class="mt-4">
-        <label class="mb-4 block text-sm text-gray-600" for="cus_email">Address</label>
-        <input @change="setAddressKey('street', $event.target.value)" class="w-full px-2 py-2 text-gray-700 bg-gray-200 rounded" id="cus_email" name="cus_email" type="text" required="" placeholder="Street*" aria-label="Email">
+        <label class="mb-4 block text-sm text-gray-600" for="street">Address</label>
+        <input @change="setAddressKey('street', $event.target.value)" class="w-full px-2 py-2 text-gray-700 bg-gray-200 rounded" id="street" name="street" type="text" required="" placeholder="Street*" aria-label="Street">
         </div>
         <div class="inline-block mt-4 w-1/2 pr-1">
-        <label class="hidden block text-sm text-gray-600" for="cus_email">House nr.</label>
-        <input @change="setAddressKey('hnr', parseInt($event.target.value))" class="w-full px-2 py-2 text-gray-700 bg-gray-200 rounded" id="cus_email" name="cus_email" type="text" required="" placeholder="House nr.*" aria-label="Email">
+        <label class="hidden block text-sm text-gray-600" for="house_nr">House nr.</label>
+        <input @change="setAddressKey('hnr', parseInt($event.target.value))" class="w-full px-2 py-2 text-gray-700 bg-gray-200 rounded" id="house_nr" name="house_nr" type="text" required="" placeholder="House nr.*" aria-label="House number">
         </div>
         <div class="inline-block mt-4 -mx-1 pl-1 w-1/2">
-        <label class="hidden block text-sm text-gray-600" for="cus_email">Hnr. add</label>
-        <input @change="setAddressKey('hnr_add', $event.target.value)" class="w-full px-2 py-2 text-gray-700 bg-gray-200 rounded" id="cus_email"  name="cus_email" type="text" required="" placeholder="Hnr. add." aria-label="Email">
+        <label class="hidden block text-sm text-gray-600" for="house_nr_add">Hnr. add</label>
+        <input @change="setAddressKey('hnr_add', $event.target.value)" class="w-full px-2 py-2 text-gray-700 bg-gray-200 rounded" id="house_nr_add"  name="house_nr_add" type="text" required="" placeholder="Hnr. add." aria-label="House number addition">
         </div>
         <div class="mt-4">
-        <label class="hidden text-sm block text-gray-600" for="cus_email">Zip</label>
-        <input @change="setAddressKey('zip', $event.target.value)" class="w-full px-2 py-2 text-gray-700 bg-gray-200 rounded" id="cus_email" name="cus_email" type="text" required="" placeholder="Zip*" aria-label="Email">
+        <label class="hidden text-sm block text-gray-600" for="zip">Zip</label>
+        <input @change="setAddressKey('zip', $event.target.value)" class="w-full px-2 py-2 text-gray-700 bg-gray-200 rounded" id="zip" name="zip" type="text" required="" placeholder="Zip*" aria-label="Zip">
         </div>
         <div class="border-t mt-8">
           <div class="flex font-semibold justify-between py-6 text-sm uppercase">
