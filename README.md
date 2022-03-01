@@ -4,7 +4,7 @@
 
 ### Starting docker containers
 
-This starts both containers, ganache and the truffle container.
+This starts a container with ganache, truffle, and the vue webserver.
 
 ```bash
 docker-compose up -d
@@ -16,7 +16,7 @@ You can attach to any of the containers. To detach run `exit`, however this also
 
 ```bash
 # Attach to the truffle container
-docker exec -ti tno_eats bash
+docker exec -ti tno-eats bash
 ```
 
 Then you can run any truffle commands in the truffle container.
