@@ -17,8 +17,8 @@ WORKDIR /home/tno-eats
 RUN npm install -g truffle ganache --silent
 
 WORKDIR /home/tno-eats/client
-COPY package*.json ./
-RUN npm install
+COPY client/package*.json ./
+RUN npm install --silent
 COPY ./client/ .
 RUN npm run build
 RUN cp -a ./dist/. /var/www/html/
