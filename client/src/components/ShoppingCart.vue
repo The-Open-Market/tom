@@ -77,6 +77,8 @@
 </template>
 
 <script>
+//import PaymentsService from '../services/PaymentsService.js'
+
 export default {
   props: ['cartContents'],
   methods: {
@@ -97,6 +99,11 @@ export default {
     },
     setAddressKey(key, value) {
         this.address[key] = value
+    },
+    checkout() {
+        //const service = PaymentsService()
+        //service.checkout('', this.address, this.cartContents)
+        console.log('Checking out')
     }
   },
   data () {
