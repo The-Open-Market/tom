@@ -28,6 +28,10 @@ jobs:
       - name: Running Smart Contract Test
         run: CI=true truffle test
 
+      - name: Installing vue
+        working-directory: client
+        run: npm install
+
       - name: Running Frontend Lint
         working-directory: client
         run: npm run lint
