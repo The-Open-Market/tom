@@ -14,7 +14,7 @@ else
 fi
 
 cd /home/tno-eats/client
-npm install
+npm install --save
 chown -R node:node /home/tno-eats
 
 ganache -h 0.0.0.0 &
