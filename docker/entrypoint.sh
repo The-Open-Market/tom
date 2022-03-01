@@ -1,7 +1,11 @@
 #!/bin/bash
 set -e
 
-rm -f /var/run/apache2/apache2.pid
-apachectl -D FOREGROUND &
-npm --prefix '/home/tno-eats/client' run serve &
-ganache -h 0.0.0.0 
+npm install -g truffle ganache
+
+cd /home/tno-eats/client
+npm install
+chown -R node:node /home/tno-eats
+
+ganache -h 0.0.0.0 &
+npm run serve
