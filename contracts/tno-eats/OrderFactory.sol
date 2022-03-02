@@ -52,6 +52,20 @@ contract OrderFactory is TnoEats {
         _;
     }
 
+    modifier orderInProgress(uint _orderId) {
+        Order storage order = orders[_orderId];
+        require(
+               order.status == OrderStatus.Processing
+            || order.status == OrderStatus.PickedUp
+            || order.status == OrderStatus.Transferred
+            || order.status == OrderStatus.InTransit
+            || order.status == OrderStatus.Received
+            || order.status == OrderStatus.Delivered,
+            "Order is in progress"
+        );
+        _;
+    }
+
     modifier senderIsSeller(uint _orderId) {
         Order storage order = orders[_orderId];
         address sender = _msgSender();
@@ -153,20 +167,6 @@ contract OrderFactory is TnoEats {
             || order.status == OrderStatus.Received
             || order.status == OrderStatus.Delivered,
             "Order is is not in completable"
-        );
-        _;
-    }
-
-    modifier orderInProgress(uint _orderId) {
-        Order storage order = orders[_orderId];
-        require(
-               order.status == OrderStatus.Processing
-            || order.status == OrderStatus.PickedUp
-            || order.status == OrderStatus.Transferred
-            || order.status == OrderStatus.InTransit
-            || order.status == OrderStatus.Received
-            || order.status == OrderStatus.Delivered,
-            "Order is in progress"
         );
         _;
     }

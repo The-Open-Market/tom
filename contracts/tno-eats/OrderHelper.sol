@@ -11,7 +11,7 @@ contract OrderHelper is OrderFactory {
     uint[] memory orderIds = new uint[](clientOrderCount[_owner]);
     uint counter = 0;
     for (uint i = 0; i < orders.length; i++) {
-      if (clientOrderCount[i] == _owner) {
+      if (orderToClient[i] == _owner) {
         orderIds[counter] = i;
         counter++;
       }
