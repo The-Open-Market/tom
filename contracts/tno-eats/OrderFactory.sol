@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./TnoEats.sol";
+import "../access/Ownable.sol";
 
 // TODO: Add docs
-contract OrderFactory is TnoEats {
+contract OrderFactory is Ownable {
     
     // TODO: Add info for the deliveryService
     event OrderIsPlaced(address indexed seller, uint orderId, string orderContentsUrl);
