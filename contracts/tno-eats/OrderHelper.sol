@@ -3,10 +3,17 @@ pragma solidity ^0.8.0;
 
 import "./OrderFactory.sol";
 
-//TODO: add docs
-contract OrderHelper is OrderFactory {
+/**
+ * @title Order querying functionality
+ * @notice This contract provides functions to access information about orders.
+ */
+abstract contract OrderHelper is OrderFactory {
 
-    //TODO: add docs
+    /**
+     * @notice Gets all order ids of the provided address.
+     * @param _owner Order owner address.
+     * @return An integer array containing order ids.
+     */
     function getOrdersByOwner(address _owner) external view returns(uint[] memory) {
     uint[] memory orderIds = new uint[](clientOrderCount[_owner]);
     uint counter = 0;

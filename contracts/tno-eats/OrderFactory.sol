@@ -3,16 +3,19 @@ pragma solidity ^0.8.0;
 
 import "../access/Ownable.sol";
 
-// TODO: Add docs
-contract OrderFactory is Ownable {
+/**
+ * @title Order creation functionality, events, and modifiers
+ * @notice This contract holds orders and allows to create new orders.
+ */
+abstract contract OrderFactory is Ownable {
     
     // TODO: Add info for the deliveryService
-    event OrderIsPlaced(address indexed seller, uint orderId, string orderContentsUrl);
-    event DeliveryServiceAssigned(address indexed deliveryService, uint orderId);
-    event OrderIsProcessing(uint indexed orderId);
-    event OrderIsInTransit(uint indexed orderId);
-    event OrderIsCompleted(uint indexed orderId);
-    event OrderIsCancelled(uint indexed orderId);
+    event OrderPlaced(address indexed seller, uint orderId, string orderContentsUrl);
+    event OrderApproved(uint indexed orderId);
+    event OrderAccepted(address indexed deliveryService, uint orderId);
+    event OrderInTransit(uint indexed orderId);
+    event OrderCompleted(uint indexed orderId);
+    event OrderCancelled(uint indexed orderId);
     
     struct Order {
         OrderStatus status;
@@ -23,8 +26,8 @@ contract OrderFactory is Ownable {
 
     enum OrderStatus {
         Pending,     /* order is submitted by a client                       */
+        Approved,    /* order is approved by a seller                        */
         Accepted,    /* order is accepted by a delivery service              */
-        Processing,  /* order is being processed by a seller                 */
         PickedUp,    /* order is picked up by a delivery service             */
         Transferred, /* order is transferred by a seller to delivery service */
         InTransit,   /* order is being delivered by the delivery service     */
@@ -39,32 +42,6 @@ contract OrderFactory is Ownable {
 
     mapping (uint => address) public orderToClient;
     mapping (address => uint) clientOrderCount;
-
-    modifier activeOrder(uint _orderId) {
-        require(_orderId < orders.length, "Invalid order id");
-        Order storage order = orders[_orderId];
-        require(
-               order.status != OrderStatus.Completed
-            || order.status != OrderStatus.Canceled
-            || order.status != OrderStatus.Disputed,
-            "Order is inactive"
-        );
-        _;
-    }
-
-    modifier orderInProgress(uint _orderId) {
-        Order storage order = orders[_orderId];
-        require(
-               order.status == OrderStatus.Processing
-            || order.status == OrderStatus.PickedUp
-            || order.status == OrderStatus.Transferred
-            || order.status == OrderStatus.InTransit
-            || order.status == OrderStatus.Received
-            || order.status == OrderStatus.Delivered,
-            "Order is in progress"
-        );
-        _;
-    }
 
     modifier senderIsSeller(uint _orderId) {
         Order storage order = orders[_orderId];
@@ -97,7 +74,6 @@ contract OrderFactory is Ownable {
         _;
     }
 
-    // TODO: find better name
     modifier senderIsClientOrDeliveryService(uint _orderId) {
         Order storage order = orders[_orderId];
         address sender = _msgSender();
@@ -121,17 +97,34 @@ contract OrderFactory is Ownable {
         _;
     }
 
-    modifier orderIsCancelable(uint _orderId) {
+    modifier orderIsActive(uint _orderId) {
+        require(_orderId < orders.length, "Invalid order id");
         Order storage order = orders[_orderId];
         require(
-               order.status == OrderStatus.Pending
-            || order.status == OrderStatus.Accepted,
-            "Order is already being prepared"
+               order.status != OrderStatus.Completed
+            || order.status != OrderStatus.Canceled
+            || order.status != OrderStatus.Disputed,
+            "Order is inactive"
         );
         _;
     }
 
-    modifier orderPending(uint _orderId) {
+    modifier orderInProgress(uint _orderId) {
+        Order storage order = orders[_orderId];
+        require(
+               order.status == OrderStatus.Approved
+            || order.status == OrderStatus.Accepted
+            || order.status == OrderStatus.PickedUp
+            || order.status == OrderStatus.Transferred
+            || order.status == OrderStatus.InTransit
+            || order.status == OrderStatus.Received
+            || order.status == OrderStatus.Delivered,
+            "Order is in progress"
+        );
+        _;
+    }
+
+    modifier orderIsPending(uint _orderId) {
         Order storage order = orders[_orderId];
         require(
             order.status == OrderStatus.Pending,
@@ -140,10 +133,10 @@ contract OrderFactory is Ownable {
         _;
     }
 
-    modifier orderAccepted(uint _orderId) {
+    modifier orderIsApproved(uint _orderId) {
         Order storage order = orders[_orderId];
         require(
-            order.status == OrderStatus.Accepted,
+            order.status == OrderStatus.Approved,
             "Order is still pending or in progress"
         );
         _;
@@ -152,7 +145,7 @@ contract OrderFactory is Ownable {
     modifier orderIsTransferable(uint _orderId) {
         Order storage order = orders[_orderId];
         require(
-               order.status == OrderStatus.Processing
+               order.status == OrderStatus.Accepted
             || order.status == OrderStatus.Transferred
             || order.status == OrderStatus.PickedUp,
             "Order is is not in transferable"
@@ -171,12 +164,26 @@ contract OrderFactory is Ownable {
         _;
     }
 
+    modifier orderIsCancelable(uint _orderId) {
+        Order storage order = orders[_orderId];
+        require(
+            order.status == OrderStatus.Pending,
+            "Order is already being prepared"
+        );
+        _;
+    }
+
+    /**
+     * @notice Creates new order and emits an event to signal about new order.
+     * @param _seller The address of the seller
+     * @param _orderInfo Url to the encoded order data stored in IPFS
+     */
     function _createOrder(address _seller, string memory _orderInfo) internal {
         address client = _msgSender();
         orders.push(Order(OrderStatus.Pending, client, _seller, address(0)));
         uint id = orders.length - 1;
         orderToClient[id] = client;
         clientOrderCount[client]++;
-        emit OrderIsPlaced(_seller, id, _orderInfo);
+        emit OrderPlaced(_seller, id, _orderInfo);
     }
 }
