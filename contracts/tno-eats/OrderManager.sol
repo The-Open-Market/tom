@@ -58,9 +58,12 @@ abstract contract OrderManager is OrderFactory {
             order.status = OrderStatus.Transferred;
         } else if (sender == order.deliveryService && order.status == OrderStatus.Accepted) {
             order.status = OrderStatus.PickedUp;
-        } else {
+        } else if (sender == order.seller          && order.status == OrderStatus.PickedUp 
+                || sender == order.deliveryService && order.status == OrderStatus.Transferred) {
             order.status = OrderStatus.InTransit;
             emit OrderInTransit(_orderId);
+        } else {
+            revert("Illegal operation, cannot set order in transit twice with the same account");
         }
     }
 
@@ -77,9 +80,12 @@ abstract contract OrderManager is OrderFactory {
             order.status = OrderStatus.Received;
         } else if (sender == order.deliveryService && order.status == OrderStatus.InTransit) {
             order.status = OrderStatus.Delivered;
-        } else {
+        } else if (sender == order.client          && order.status == OrderStatus.Delivered
+                || sender == order.deliveryService && order.status == OrderStatus.Received) {
             order.status = OrderStatus.Completed;
             emit OrderCompleted(_orderId);
+        } else {
+            revert("Illegal operation, cannot complete order twice with the same account");
         }
     }
 
