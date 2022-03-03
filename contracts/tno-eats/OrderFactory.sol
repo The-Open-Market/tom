@@ -173,6 +173,11 @@ abstract contract OrderFactory is Ownable {
         _;
     }
 
+    modifier validAddress(address _addr) {
+        require(_addr != address(0), "Null address is not valid!");
+        _;
+    }
+
     /**
      * @notice Creates new order and emits an event to signal about new order.
      * @param _seller The address of the seller

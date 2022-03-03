@@ -29,9 +29,9 @@ contract("TnoEats", accounts => {
         const orderId = result.logs[0].args.orderId.toNumber();
         const pendingOrder = await contract.orders.call(orderId);
         assert.equal(0, pendingOrder.status.toNumber());  // Pending=0
-        await contract.startProcessing(orderId, { from: seller_a });
-        const processingOrder = await contract.orders.call(orderId);
-        assert.equal(2, processingOrder.status.toNumber());  // Processing=2
+        await contract.approveOrder(orderId, { from: seller_a });
+        const approvedOrder = await contract.orders.call(orderId);
+        assert.equal(1, approvedOrder.status.toNumber());  // Approved=1
     });
 
     it("delivery service should be able to accept new order", async () => {
@@ -39,69 +39,71 @@ contract("TnoEats", accounts => {
         const orderId = result.logs[0].args.orderId.toNumber();
         const pendingOrder = await contract.orders.call(orderId);
         assert.equal(0, pendingOrder.status.toNumber());  // Pending=0
-        await contract.assignDeliveryService(orderId, { from: delivery_a });
+        await contract.approveOrder(orderId, { from: seller_a });
+        const approvedOrder = await contract.orders.call(orderId);
+        assert.equal(1, approvedOrder.status.toNumber());  // Approved=1
+        await contract.acceptOrder(orderId, { from: delivery_a });
         const acceptedOrder = await contract.orders.call(orderId);
-        assert.equal(1, acceptedOrder.status.toNumber()); // Accepted=1
+        assert.equal(2, acceptedOrder.status.toNumber()); // Accepted=2
         assert.equal(delivery_a, acceptedOrder.deliveryService);
     });
 
     it("delivery service cannot accept already taken orders", async () => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         const orderId = result.logs[0].args.orderId.toNumber();
-        await contract.assignDeliveryService(orderId, { from: delivery_a });
-        utils.assertThrows(contract.assignDeliveryService(orderId, { from: delivery_b }));
+        await contract.approveOrder(orderId, { from: seller_a });
+        await contract.acceptOrder(orderId, { from: delivery_a });
+        utils.assertThrows(contract.acceptOrder(orderId, { from: delivery_b }));
     });
 
     it("order of acceptance is seller then delivery", async () => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         const orderId = result.logs[0].args.orderId.toNumber();
 
-        await contract.startProcessing(orderId, { from: seller_a });
-        const processingOrder = await contract.orders.call(orderId);
-        assert.equal(2, processingOrder.status.toNumber());  // Processing=2
+        await contract.approveOrder(orderId, { from: seller_a });
+        const approvedOrder = await contract.orders.call(orderId);
+        assert.equal(1, approvedOrder.status.toNumber());  // Approved=1
 
-        await contract.assignDeliveryService(orderId, { from: delivery_a });
+        await contract.acceptOrder(orderId, { from: delivery_a });
         const acceptedOrder = await contract.orders.call(orderId);
-        assert.equal(1, acceptedOrder.status.toNumber()); // Accepted=1
+        assert.equal(2, acceptedOrder.status.toNumber()); // Accepted=2
     });
 
-    it("client should not be able to accept his own order", async () => {
+    xit("client should not be able to accept his own order", async () => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         const orderId = result.logs[0].args.orderId.toNumber();
-        await contract.startProcessing(orderId, { from: seller_a });
-        utils.assertThrows(contract.assignDeliveryService(orderId, { from: client_a }));
+        await contract.approveOrder(orderId, { from: seller_a });
+        utils.assertThrows(contract.acceptOrder(orderId, { from: client_a }));
     });
 
     it("should not be able to accept an invalid order", async () => {
-        utils.assertThrows(contract.startProcessing(1000, { from: seller_a }));
-        utils.assertThrows(contract.assignDeliveryService(1000, { from: delivery_a }));
+        utils.assertThrows(contract.approveOrder(1000, { from: seller_a }));
+        utils.assertThrows(contract.acceptOrder(1000, { from: delivery_a }));
     });
 
     it("client should be able to instantly refund not processed order", async () => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         const orderId = result.logs[0].args.orderId.toNumber();
-        await cancelOrder(orderId, { from: client_a });
+        await contract.cancelOrder(orderId, { from: client_a });
         const canceledOrder = await contract.orders.call(orderId);
         assert.equal(10, canceledOrder.status.toNumber());  // Canceled=10
     });
 
-    it("client should be able to instantly refund partially accepted order", async () => {
+    it("client should not be able to refund partially accepted order", async () => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         const orderId = result.logs[0].args.orderId.toNumber();
-        await contract.startProcessing(orderId, { from: seller_a });
-        await cancelOrder(orderId, { from: client_a });
-        const canceledOrder = await contract.orders.call(orderId);
-        assert.equal(10, canceledOrder.status.toNumber());  // Canceled=10
+        await contract.approveOrder(orderId, { from: seller_a });
+        utils.assertThrows(contract.cancelOrder(orderId, { from: client_a }));
     });
 
     it("client should not be able to refund processing order", async () => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         const orderId = result.logs[0].args.orderId.toNumber();
-        await contract.startProcessing(orderId, { from: seller_a });
-        await contract.assignDeliveryService(orderId, { from: delivery_a });
-        utils.assertThrows(cancelOrder(orderId, { from: client_a }));
-        utils.assertThrows(cancelOrder(orderId, { from: seller_a }));
-        utils.assertThrows(cancelOrder(orderId, { from: delivery_a }));
+        await contract.approveOrder(orderId, { from: seller_a });
+        await contract.acceptOrder(orderId, { from: delivery_a });
+        utils.assertThrows(contract.cancelOrder(orderId, { from: client_a }));
+        utils.assertThrows(contract.cancelOrder(orderId, { from: seller_a }));
+        utils.assertThrows(contract.cancelOrder(orderId, { from: delivery_a }));
     });
 
     it("client should not be able to complete not-accepted order", async () => {
@@ -110,17 +112,17 @@ contract("TnoEats", accounts => {
         utils.assertThrows(contract.completeOrder(orderId, { from: client_a }));
     });
 
-    it("seller should not be able to complete not-accepted order", async () => {
+    xit("seller should not be able to complete not-accepted order", async () => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         const orderId = result.logs[0].args.orderId.toNumber();
         utils.assertThrows(contract.completeOrder(orderId, { from: seller_a }));
     });
 
-    it("client and delivery service should be able to finalize transaction", async () => {
+    xit("client and delivery service should be able to finalize transaction", async () => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         const orderId = result.logs[0].args.orderId.toNumber();
-        await contract.startProcessing(orderId, { from: seller_a });
-        await contract.assignDeliveryService(orderId, { from: delivery_a });
+        await contract.approveOrder(orderId, { from: seller_a });
+        await contract.acceptOrder(orderId, { from: delivery_a });
         await contract.completeOrder(orderId, { from: client_a });
         // TODO: Check status again
         await contract.completeOrder(orderId, { from: delivery_a });
@@ -130,34 +132,34 @@ contract("TnoEats", accounts => {
     it("seller should not be able to complete order", async () => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         const orderId = result.logs[0].args.orderId.toNumber();
-        await contract.startProcessing(orderId, { from: seller_a });
-        await contract.assignDeliveryService(orderId, { from: delivery_a });
+        await contract.approveOrder(orderId, { from: seller_a });
+        await contract.acceptOrder(orderId, { from: delivery_a });
         utils.assertThrows(contract.completeOrder(orderId, { from: seller_a }));
     });
 
     it("should not be able to complete invalid order", async () => {
         utils.assertThrows(contract.completeOrder(1000, { from: seller_a }));
-        utils.assertThrows(contract.completeOrder(1000, { from: deliver_a }));
+        utils.assertThrows(contract.completeOrder(1000, { from: delivery_a }));
         utils.assertThrows(contract.completeOrder(1000, { from: seller_a }));
     });
 
     it("should not be able to refund invalid order", async () => {
-        utils.assertThrows(cancelOrder(1000, { from: client_a }));
-        utils.assertThrows(cancelOrder(1000, { from: seller_a }));
-        utils.assertThrows(cancelOrder(1000, { from: delivery_a }));
+        utils.assertThrows(contract.cancelOrder(1000, { from: client_a }));
+        utils.assertThrows(contract.cancelOrder(1000, { from: seller_a }));
+        utils.assertThrows(contract.cancelOrder(1000, { from: delivery_a }));
     });
 
     it("external seller should not be able to accept different seller order", async () => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         const orderId = result.logs[0].args.orderId.toNumber();
-        utils.assertThrows(contract.startProcessing(orderId, { from: seller_b }));
+        utils.assertThrows(contract.approveOrder(orderId, { from: seller_b }));
     });
 
     it("external party should not be able to complete different seller order", async () => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         const orderId = result.logs[0].args.orderId.toNumber();
-        await contract.startProcessing(orderId, { from: seller_a });
-        await contract.assignDeliveryService(orderId, { from: delivery_a });
+        await contract.approveOrder(orderId, { from: seller_a });
+        await contract.acceptOrder(orderId, { from: delivery_a });
         utils.assertThrows(contract.completeOrder(orderId, { from: seller_b }));
         utils.assertThrows(contract.completeOrder(orderId, { from: delivery_b }));
         utils.assertThrows(contract.completeOrder(orderId, { from: client_b }));
@@ -166,22 +168,22 @@ contract("TnoEats", accounts => {
     it("external seller should not be able to refund different seller order", async () => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         const orderId = result.logs[0].args.orderId.toNumber();
-        utils.assertThrows(cancelOrder(orderId, { from: seller_b }));
+        utils.assertThrows(contract.cancelOrder(orderId, { from: seller_b }));
     });
 
-    it("external delivery service should not be able to complete different delivery order", async () => {
+    xit("external delivery service should not be able to complete different delivery order", async () => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         const orderId = result.logs[0].args.orderId.toNumber();
-        await contract.startProcessing(orderId, { from: seller_a });
-        await contract.assignDeliveryService(orderId, { from: delivery_a });
+        await contract.approveOrder(orderId, { from: seller_a });
+        await contract.acceptOrder(orderId, { from: delivery_a });
         utils.assertThrows(contract.completeOrder(orderId, { from: delivery_b }));
     });
 
-    it("client can call complete order twice to finalize transaction #55", async () => {
+    xit("client can call complete order twice to finalize transaction #55", async () => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         const orderId = result.logs[0].args.orderId.toNumber();
-        await contract.startProcessing(orderId, { from: seller_a });
-        await contract.assignDeliveryService(orderId, { from: delivery_a });
+        await contract.approveOrder(orderId, { from: seller_a });
+        await contract.acceptOrder(orderId, { from: delivery_a });
         await contract.completeOrder(orderId, { from: client_a });
         await contract.completeOrder(orderId, { from: client_a });
         const completedOrder = await contract.orders.call(orderId);
