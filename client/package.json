@@ -18,7 +18,9 @@
     "web3": "^1.7.0",
     "web3-providers-http": "^1.7.0",
     "web3-providers-ws": "^1.7.0",
-    "xhr2-cookies": "^1.1.0"
+    "xhr2-cookies": "^1.1.0",
+    "@metamask/detect-provider": "^1.2.0",
+    "ethers": "^5.4.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
