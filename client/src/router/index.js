@@ -3,7 +3,6 @@ import Dashboard from "@/views/Dashboard.vue"
 import Client from "@/views/Client.vue"
 import Seller from "@/views/Seller.vue"
 import Delivery from "@/views/Delivery.vue"
-import Test from "@/views/Test.vue"
 
 const routes = [
   {
@@ -25,12 +24,7 @@ const routes = [
     path: "/client",
     name: "Client",
     component: Client,
-  },
-  {
-    path: "/test",
-    name: "Test",
-    component: Test,
-  },
+  }
 ]
 
 const router = createRouter({

@@ -40,8 +40,8 @@ abstract contract OrderFactory is Ownable {
 
     Order[] public orders;
 
-    mapping (uint => address) public orderToClient;
     mapping (address => uint) clientOrderCount;
+    mapping (address => uint) sellerOrderCount;
 
     modifier senderIsSeller(uint _orderId) {
         Order storage order = orders[_orderId];
@@ -182,8 +182,8 @@ abstract contract OrderFactory is Ownable {
         address client = _msgSender();
         orders.push(Order(OrderStatus.Pending, client, _seller, address(0)));
         uint id = orders.length - 1;
-        orderToClient[id] = client;
         clientOrderCount[client]++;
+        sellerOrderCount[_seller]++;
         emit OrderPlaced(_seller, id, _orderInfo);
     }
 }

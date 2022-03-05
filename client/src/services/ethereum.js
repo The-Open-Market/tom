@@ -26,6 +26,4 @@ const getSmartContract = () =>
     })();
   });
 
-
-
 export { getSmartContract };
