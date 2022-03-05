@@ -8,17 +8,10 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "cipher-base": "^1.0.4",
-    "core-js": "^3.8.3",
-    "eth-lib": "^0.1.29",
-    "ipfs-http-client": "^56.0.1",
     "vue": "^3.2.31",
     "vue-cli": "^2.9.6",
     "vue-router": "^4.0.12",
-    "web3": "^1.7.0",
-    "web3-providers-http": "^1.7.0",
-    "web3-providers-ws": "^1.7.0",
-    "xhr2-cookies": "^1.1.0",
+    "ipfs-http-client": "^56.0.1",
     "@metamask/detect-provider": "^1.2.0",
     "ethers": "^5.4.0"
   },
