@@ -13,7 +13,7 @@ contract("TnoEats", accounts => {
     it("client should be able to start a new order", async () => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         assert.equal(0, result.logs[0].args.orderId.toNumber());
-        // TODO: check for emitted events
+        assert.equal("OrderPlaced", result.logs[0].event);
         const order = await contract.orders.call(0);
         assert.equal(client_a, order.client);
         assert.equal(seller_a, order.seller);
@@ -29,7 +29,8 @@ contract("TnoEats", accounts => {
         const orderId = result.logs[0].args.orderId.toNumber();
         const pendingOrder = await contract.orders.call(orderId);
         assert.equal(0, pendingOrder.status.toNumber());  // Pending=0
-        await contract.approveOrder(orderId, { from: seller_a });
+        const approvedResult = await contract.approveOrder(orderId, { from: seller_a });
+        assert.equal("OrderApproved", approvedResult.logs[0].event);
         const approvedOrder = await contract.orders.call(orderId);
         assert.equal(1, approvedOrder.status.toNumber());  // Approved=1
     });
@@ -42,7 +43,8 @@ contract("TnoEats", accounts => {
         await contract.approveOrder(orderId, { from: seller_a });
         const approvedOrder = await contract.orders.call(orderId);
         assert.equal(1, approvedOrder.status.toNumber());  // Approved=1
-        await contract.acceptOrder(orderId, { from: delivery_a });
+        const acceptedResult = await contract.acceptOrder(orderId, { from: delivery_a });
+        assert.equal("OrderAccepted", acceptedResult.logs[0].event);
         const acceptedOrder = await contract.orders.call(orderId);
         assert.equal(2, acceptedOrder.status.toNumber()); // Accepted=2
         assert.equal(delivery_a, acceptedOrder.deliveryService);
@@ -77,9 +79,10 @@ contract("TnoEats", accounts => {
     it("client should be able to instantly refund not processed order", async () => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         const orderId = result.logs[0].args.orderId.toNumber();
-        await contract.cancelOrder(orderId, { from: client_a });
+        const canceledResult = await contract.cancelOrder(orderId, { from: client_a });
         const canceledOrder = await contract.orders.call(orderId);
         assert.equal(10, canceledOrder.status.toNumber());  // Canceled=10
+        assert.equal("OrderCancelled", canceledResult.logs[0].event);
     });
 
     it("client should not be able to refund partially accepted order", async () => {
@@ -162,9 +165,10 @@ contract("TnoEats", accounts => {
         await contract.transferOrder(orderId, { from: delivery_a });
         const pickedUpOrder = await contract.orders.call(orderId);
         assert.equal(3, pickedUpOrder.status.toNumber());  // PickedUp=3
-        await contract.transferOrder(orderId, { from: seller_a });
+        const inIntransitResult = await contract.transferOrder(orderId, { from: seller_a });
         const intransitOrder = await contract.orders.call(orderId);
         assert.equal(5, intransitOrder.status.toNumber());  // InTransit=5
+        assert.equal("OrderInTransit", inIntransitResult.logs[0].event);
     });
 
     it("seller transfers order then delivery service picks it up", async () => {
@@ -175,9 +179,10 @@ contract("TnoEats", accounts => {
         await contract.transferOrder(orderId, { from: seller_a });
         const transferredOrder = await contract.orders.call(orderId);
         assert.equal(4, transferredOrder.status.toNumber());  // Transferred=4
-        await contract.transferOrder(orderId, { from: delivery_a });
+        const inIntransitResult = await contract.transferOrder(orderId, { from: delivery_a });
         const intransitOrder = await contract.orders.call(orderId);
         assert.equal(5, intransitOrder.status.toNumber());  // InTransit=5
+        assert.equal("OrderInTransit", inIntransitResult.logs[0].event);
     });
 
     it("seller cannot call transfer twice", async () => {
@@ -220,9 +225,10 @@ contract("TnoEats", accounts => {
         await contract.completeOrder(orderId, { from: client_a });
         const receivedOrder = await contract.orders.call(orderId);
         assert.equal(6, receivedOrder.status.toNumber());  // Received=6
-        await contract.completeOrder(orderId, { from: delivery_a });
+        const completedResult = await contract.completeOrder(orderId, { from: delivery_a });
         const completedOrder = await contract.orders.call(orderId);
         assert.equal(8, completedOrder.status.toNumber());  // Completed=8
+        assert.equal("OrderCompleted", completedResult.logs[0].event);
     });
 
     it("delivery service then client should be able to finalize transaction", async () => {
@@ -235,9 +241,10 @@ contract("TnoEats", accounts => {
         await contract.completeOrder(orderId, { from: delivery_a });
         const deliveredOrder = await contract.orders.call(orderId);
         assert.equal(7, deliveredOrder.status.toNumber());  // Delivered=7
-        await contract.completeOrder(orderId, { from: client_a });
+        const completedResult = await contract.completeOrder(orderId, { from: client_a });
         const completedOrder = await contract.orders.call(orderId);
         assert.equal(8, completedOrder.status.toNumber());  // Completed=8
+        assert.equal("OrderCompleted", completedResult.logs[0].event);
     });
 
     it("client cannot call complete order twice to finalize transaction #55", async () => {
