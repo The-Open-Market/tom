@@ -303,7 +303,7 @@ contract("TnoEats", accounts => {
         utils.assertThrows(contract.completeOrder(orderId, { from: delivery_b }));
     });
 
-    xit("client should not be able to accept his own order", async () => {
+    it("client should not be able to accept his own order", async () => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         const orderId = result.logs[0].args.orderId.toNumber();
         await contract.approveOrder(orderId, { from: seller_a });

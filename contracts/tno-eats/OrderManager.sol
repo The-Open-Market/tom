@@ -37,7 +37,7 @@ abstract contract OrderManager is OrderFactory {
      *         The order needs to be approved by the seller.
      * @param _orderId Active order id
      */
-    function acceptOrder(uint _orderId) external orderIsActive(_orderId) orderIsApproved(_orderId) {
+    function acceptOrder(uint _orderId) external orderIsActive(_orderId) orderIsApproved(_orderId) senderIsNotClientOrSeller(_orderId) {
         Order storage order = orders[_orderId];
         // TODO: Check for valid reputation + collateral amount
         order.deliveryService = _msgSender();
