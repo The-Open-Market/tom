@@ -95,7 +95,7 @@ abstract contract OrderManager is OrderFactory {
      *         The order needs to be pending and not yet accepted by the seller.
      * @param _orderId Active order id
      */
-    function cancelOrder(uint _orderId) external orderIsActive(_orderId) orderIsCancelable(_orderId) senderIsClient(_orderId) {
+    function cancelOrder(uint _orderId) external orderIsCancelable(_orderId) senderIsClient(_orderId) {
         Order storage order = orders[_orderId];
         order.status = OrderStatus.Canceled;
         // TODO: Return funds and delivery service collateral if applicable
