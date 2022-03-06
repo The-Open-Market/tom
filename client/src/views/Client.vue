@@ -49,7 +49,7 @@ export default {
 
     const checkout = async (clientAddress) => {
       // TODO: Get seller addresses automatically
-      const sellerAddress = "0x9777474265fa526d7C2271B72c9c81275e44D99d";
+      const sellerAddress = "0x59Ce492d182688239C118AcFEb1A4872Ce3B1231";
       console.log(clientAddress);
       console.log(cartContents);
       await placeOrder(sellerAddress, "this is a link wannabe");
