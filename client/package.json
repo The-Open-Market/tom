@@ -8,12 +8,14 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@metamask/detect-provider": "^1.2.0",
+    "ethers": "^5.4.0",
+    "ipfs-http-client": "^56.0.1",
+    "tweetnacl": "^1.0.3",
+    "tweetnacl-util": "^0.15.1",
     "vue": "^3.2.31",
     "vue-cli": "^2.9.6",
-    "vue-router": "^4.0.12",
-    "ipfs-http-client": "^56.0.1",
-    "@metamask/detect-provider": "^1.2.0",
-    "ethers": "^5.4.0"
+    "vue-router": "^4.0.12"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",
