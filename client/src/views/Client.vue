@@ -10,6 +10,8 @@
 <script>
 import { reactive } from "vue";
 import { placeOrder } from '../services/client';
+import { encryptOrderInfo } from "../services/crypto";
+import { uploadDeliveryInfo } from "../services/ipfs";
 
 import ProductList from '../components/ProductList.vue'
 import ShoppingCart from '../components/ShoppingCart.vue'
@@ -48,11 +50,19 @@ export default {
     }
 
     const checkout = async (clientAddress) => {
+      // TODO: PKI
+      const sellerPublicKey = 'sm0/a19e0Ojgh05dXX7nwL7QiGJ02HiKgZQGiLvW70w=';
+      const clientPublicKey = 'sm0/a19e0Ojgh05dXX7nwL7QiGJ02HiKgZQGiLvW70w=';
+      const clientSecretKey = 'z6bXpb5tnHlTc/B9N53ig455/o0lX3eienBkcHbNLeM=';
+
       // TODO: Get seller addresses automatically
       const sellerAddress = "0x59Ce492d182688239C118AcFEb1A4872Ce3B1231";
-      console.log(clientAddress);
-      console.log(cartContents);
-      await placeOrder(sellerAddress, "this is a link wannabe");
+
+      // TODO: Add all necessary information to be encrypted
+      const orderInfo = { cartContents, clientAddress };
+      const encrypted = await encryptOrderInfo(sellerPublicKey, clientPublicKey, clientSecretKey, orderInfo);
+      const path = await uploadDeliveryInfo(encrypted);
+      await placeOrder(sellerAddress, path);
     }
 
     return {
