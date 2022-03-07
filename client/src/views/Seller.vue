@@ -1,32 +1,17 @@
 <template>
-    <div class="container">
-        <h2 class="text-center mt-5">Order List</h2>
-    </div>
-    <div class="d-flex" v-for="(order, index) in this.orderIds" :key="index">
-        <h3 class="text-center mt-4 text-sm text-gray-700">Order: {{order.id}}
-            <button class="px-6 py-2 mt-3 transition ease-in duration-200 
-            uppercase rounded-full hover:bg-gray-800 hover:text-white border-2 
-            border-gray-900 focus:outline-none"
-            @click="approveOrder(order.id)" v-if="order.status==='Pending'">
-                Approve Order
-            </button>
-            <button class="px-6 py-2 mt-3 uppercase rounded-full border-2 border-gray-900"
-            v-if="order.status==='Approved'">
-            Approved
-            </button>
-        </h3>
-    </div>
+    <OrderTable :orders="this.pendingOrders" />
 </template>
 
 <script>
 import { reactive } from "vue";
 import { getSmartContract } from '../services/ethereum'
+import OrderTable from '../components/OrderTable.vue'
 
 export default {
     name: 'Seller',
 
     setup() {
-        const orderIds = reactive([])
+        const pendingOrders = reactive([])
         const sellerAddress = "0x59Ce492d182688239C118AcFEb1A4872Ce3B1231";    
 
         const approveOrder = async(orderId) => {
@@ -34,15 +19,22 @@ export default {
             await tnoEats.approveOrder(orderId);
             console.log("Seller " + sellerAddress + " approved order " + orderId); 
 
-            orderIds.find(order=>order.id===orderId).status = "Approved";
+            pendingOrders.find(order=>order.id===orderId).status = "Approved";
         }
 
         return {
-            orderIds,
+            pendingOrders,
             approveOrder
         }
     },
+
+    components: {
+        OrderTable
+    },
     
+    // TODO: IPFS integration
+    // TODO: with OrderPlaced query for the orderid and get the orderInfo
+    // TODO: add listener to get newly placed orders so that we don't recheck entire chain from block 0 and need to refresh everytime
     async mounted() {
         const { tnoEats } = await getSmartContract();
         const sellerAddress = "0x59Ce492d182688239C118AcFEb1A4872Ce3B1231";    
@@ -50,7 +42,15 @@ export default {
         let orders = await tnoEats.getOrdersBySeller(sellerAddress);
         console.log("Order ids: " + orders);
         
-        const events = await tnoEats.queryFilter("OrderApproved", 0); // Filter from block 0
+        const events = await tnoEats.queryFilter("OrderApproved", 0); // On mount filter from block 0
+        tnoEats.on('OrderPlaced', (seller, orderId, ipfsUrl) => {
+            console.log(seller)
+            console.log(ipfsUrl)
+            this.pendingOrders.push({
+                id: orderId
+            })
+        })
+
         for(var order in orders){
             let approved = false;
 
@@ -62,10 +62,10 @@ export default {
             }
 
             if(!approved) {
-                this.orderIds.push({id: order, status: "Pending"});
+                this.pendingOrders.push({id: order, status: "Pending"});
             } else {
                 console.log("Order " + order + " already Approved.");
-                this.orderIds.push({id: order, status: "Approved"});
+                this.pendingOrders.push({id: order, status: "Approved"});
             }
         }
     }
