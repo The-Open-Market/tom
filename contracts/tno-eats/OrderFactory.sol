@@ -85,6 +85,17 @@ abstract contract OrderFactory is Ownable {
         _;
     }
 
+    modifier senderIsNotClientOrSeller(uint _orderId) {
+        Order storage order = orders[_orderId];
+        address sender = _msgSender();
+        require(
+               sender != order.client
+            || sender != order.seller,
+            "The sender is client or seller"
+        );
+        _;
+    }
+
     modifier validParticipant(uint _orderId) {
         Order storage order = orders[_orderId];
         address sender = _msgSender();
@@ -170,6 +181,11 @@ abstract contract OrderFactory is Ownable {
             order.status == OrderStatus.Pending,
             "Order is already being prepared"
         );
+        _;
+    }
+
+    modifier validAddress(address _addr) {
+        require(_addr != address(0), "Null address is not valid!");
         _;
     }
 

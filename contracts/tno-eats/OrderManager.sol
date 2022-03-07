@@ -14,7 +14,7 @@ abstract contract OrderManager is OrderFactory {
      * @param _seller The address of the seller
      * @param _orderInfo Url to the encoded order data stored in IPFS
      */
-    function placeOrder(address _seller, string memory _orderInfo) external {
+    function placeOrder(address _seller, string memory _orderInfo) external validAddress(_seller) {
         // TODO: ZIP Codes, distance
         // TODO: Handle collateral of user and amount of purchase
         // TODO: Check for valid reputation + collateral amount
@@ -37,7 +37,7 @@ abstract contract OrderManager is OrderFactory {
      *         The order needs to be approved by the seller.
      * @param _orderId Active order id
      */
-    function acceptOrder(uint _orderId) external orderIsActive(_orderId) orderIsApproved(_orderId) {
+    function acceptOrder(uint _orderId) external orderIsActive(_orderId) orderIsApproved(_orderId) senderIsNotClientOrSeller(_orderId) {
         Order storage order = orders[_orderId];
         // TODO: Check for valid reputation + collateral amount
         order.deliveryService = _msgSender();
@@ -95,7 +95,7 @@ abstract contract OrderManager is OrderFactory {
      *         The order needs to be pending and not yet accepted by the seller.
      * @param _orderId Active order id
      */
-    function cancelOrder(uint _orderId) external orderIsActive(_orderId) orderIsCancelable(_orderId) senderIsClient(_orderId) {
+    function cancelOrder(uint _orderId) external orderIsCancelable(_orderId) senderIsClient(_orderId) {
         Order storage order = orders[_orderId];
         order.status = OrderStatus.Canceled;
         // TODO: Return funds and delivery service collateral if applicable
