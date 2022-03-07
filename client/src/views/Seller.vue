@@ -7,8 +7,12 @@
             <button class="px-6 py-2 mt-3 transition ease-in duration-200 
             uppercase rounded-full hover:bg-gray-800 hover:text-white border-2 
             border-gray-900 focus:outline-none"
-            @click="approveOrder(order.id)">
+            @click="approveOrder(order.id)" v-if="order.status==='Pending'">
                 Approve Order
+            </button>
+            <button class="px-6 py-2 mt-3 uppercase rounded-full border-2 border-gray-900"
+            v-if="order.status==='Approved'">
+            Approved
             </button>
         </h3>
     </div>
@@ -30,9 +34,7 @@ export default {
             await tnoEats.approveOrder(orderId);
             console.log("Seller " + sellerAddress + " approved order " + orderId); 
 
-            // TEMP Checking if approved
-            const events = await tnoEats.queryFilter("OrderApproved", 6);
-            console.log("Approve event: " + events);
+            orderIds.find(order=>order.id===orderId).status = "Approved";
         }
 
         return {
@@ -47,15 +49,24 @@ export default {
 
         let orders = await tnoEats.getOrdersBySeller(sellerAddress);
         console.log("Order ids: " + orders);
-
+        
+        const events = await tnoEats.queryFilter("OrderApproved", 0); // Filter from block 0
         for(var order in orders){
-            /* const events = await tnoEats.queryFilter("OrderApproved", order); */
-            // TODO: This would just not display already approved orders. 
-            /* if(Object.keys(events).length === 0) { */
-                /* console.log(order + " already Approved."); */
-            /* } else { */
-                this.orderIds.push({id: order})
-            /* } */
+            let approved = false;
+
+            // Check if orderId exists in events
+            for(const event of events) {
+               if(parseInt(event.args.orderId._hex, 16) === parseInt(order)) {
+                    approved = true;
+                } 
+            }
+
+            if(!approved) {
+                this.orderIds.push({id: order, status: "Pending"});
+            } else {
+                console.log("Order " + order + " already Approved.");
+                this.orderIds.push({id: order, status: "Approved"});
+            }
         }
     }
 }
