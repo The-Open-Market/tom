@@ -1,36 +1,75 @@
 <template>
-  This is the seller POV.
+    <div class="container">
+        <h2 class="text-center mt-5">Order List</h2>
+    </div>
+    <div class="d-flex" v-for="(order, index) in this.orderIds" :key="index">
+        <h3 class="text-center mt-4 text-sm text-gray-700">Order: {{order.id}}
+            <button class="px-6 py-2 mt-3 transition ease-in duration-200 
+            uppercase rounded-full hover:bg-gray-800 hover:text-white border-2 
+            border-gray-900 focus:outline-none"
+            @click="approveOrder(order.id)" v-if="order.status==='Pending'">
+                Approve Order
+            </button>
+            <button class="px-6 py-2 mt-3 uppercase rounded-full border-2 border-gray-900"
+            v-if="order.status==='Approved'">
+            Approved
+            </button>
+        </h3>
+    </div>
 </template>
 
 <script>
+import { reactive } from "vue";
 import { getSmartContract } from '../services/ethereum'
 
 export default {
-  name: "Seller",
+    name: 'Seller',
 
-  async setup() {
-    const { tnoEats } = await getSmartContract();
+    setup() {
+        const orderIds = reactive([])
+        const sellerAddress = "0x59Ce492d182688239C118AcFEb1A4872Ce3B1231";    
 
-    // let orders = reactive([]);
+        const approveOrder = async(orderId) => {
+            const { tnoEats } = await getSmartContract();
+            await tnoEats.approveOrder(orderId);
+            console.log("Seller " + sellerAddress + " approved order " + orderId); 
 
-    // tnoEats.on("OrderPlaced", (seller, orderId, orderContentsUrl, event) => {
-    //   console.log(seller, orderId, orderContentsUrl, event);
-    // });
+            orderIds.find(order=>order.id===orderId).status = "Approved";
+        }
 
-    // TODO: Get seller addresses automatically
-    // const sellerAddress = "0x9777474265fa526d7C2271B72c9c81275e44D99d";    
-    const clientAddress = "0x3096cc43379D09d411A6f979E00e29f057929579";
-    const events = await tnoEats.queryFilter("OrderPlaced", 0);
-    // const completed = await tnoEats.queryFilter("OrderCompleted", 0);
+        return {
+            orderIds,
+            approveOrder
+        }
+    },
+    
+    async mounted() {
+        const { tnoEats } = await getSmartContract();
+        const sellerAddress = "0x59Ce492d182688239C118AcFEb1A4872Ce3B1231";    
 
-    console.log(events);
+        let orders = await tnoEats.getOrdersBySeller(sellerAddress);
+        console.log("Order ids: " + orders);
+        
+        const events = await tnoEats.queryFilter("OrderApproved", 0); // Filter from block 0
+        for(var order in orders){
+            let approved = false;
 
-    console.log(tnoEats);
+            // Check if orderId exists in events
+            for(const event of events) {
+               if(parseInt(event.args.orderId._hex, 16) === parseInt(order)) {
+                    approved = true;
+                } 
+            }
 
-    let orderIds = await tnoEats.getOrdersByClient(clientAddress);
-
-    console.log("Order ids:");
-    console.log(orderIds);
-  }
+            if(!approved) {
+                this.orderIds.push({id: order, status: "Pending"});
+            } else {
+                console.log("Order " + order + " already Approved.");
+                this.orderIds.push({id: order, status: "Approved"});
+            }
+        }
+    }
 }
 </script>
+<style>
+</style>
