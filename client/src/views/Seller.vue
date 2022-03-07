@@ -1,11 +1,12 @@
 <template>
-    <OrderTable :orders="this.pendingOrders" @approveOrder="approveOrder" @rejectOrder="rejectOrder"/>
+    <OrderTable :orders="this.pendingOrders" @approveOrder="approve" @rejectOrder="reject"/>
 </template>
 
 <script>
 import { reactive } from "vue";
 import { getSmartContract } from '../services/ethereum'
 import OrderTable from '../components/OrderTable.vue'
+import { approveOrder, rejectOrder } from '../services/seller'
 
 export default {
     name: 'Seller',
@@ -13,22 +14,16 @@ export default {
     setup() {
         const pendingOrders = reactive([])
         const approvedOrders = reactive([])
-        const sellerAddress = "0x59Ce492d182688239C118AcFEb1A4872Ce3B1231";    
+//        const sellerAddress = "0x59Ce492d182688239C118AcFEb1A4872Ce3B1231";    
 
-        const approveOrder = async(orderId) => {
-            const { tnoEats } = await getSmartContract();
-            await tnoEats.approveOrder(orderId);
-            console.log("Seller " + sellerAddress + " approved order " + orderId); 
-
+        const approve = async(orderId) => { 
+            await approveOrder(orderId);
             // TODO: Figure out way of having pending and approved arrays
             pendingOrders.find(order=>order.id===orderId).status = "Approved";
         }
 
-        const rejectOrder = async(orderId) => {
-            const { tnoEats } = await getSmartContract();
-            await tnoEats.rejectOrder(orderId);
-            console.log("Seller " + sellerAddress + " rejected order " + orderId); 
-
+        const reject = async(orderId) => {
+            await rejectOrder(orderId);
             // TODO: Maybe remove the rejected orders from view?
             pendingOrders.find(order=>order.id===orderId).status = "Rejected";
         }
@@ -36,8 +31,8 @@ export default {
         return {
             pendingOrders,
             approvedOrders,
-            approveOrder,
-            rejectOrder
+            approve,
+            reject
         }
     },
 
