@@ -4,10 +4,10 @@
 
 <script>
 export default {
-  
+  name: "Delivery",
+
+  setup() {
+    
+  }
 }
 </script>
-
-<style>
-
-</style>

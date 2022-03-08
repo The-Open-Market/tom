@@ -1,7 +1,5 @@
 <template>
-  
     <h2 class="sr-only">Products</h2>
-
     <div class="grid grid-cols-1 gap-y-10 sm:grid-cols-2 gap-x-6 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
       <a v-for="product in products" :key="product.id" href="#" class="group">
         <div class="w-full aspect-w-1 aspect-h-1 bg-gray-200 rounded-lg overflow-hidden xl:aspect-w-7 xl:aspect-h-8">
@@ -26,9 +24,12 @@
 
 <script>
 export default {
-  data () {
-    return {
-      products: [
+  name: "ProductList",
+
+  emits: ["addToCart"],
+
+  setup(_, context) {
+    const products = [
         {
           id: 'cc919e21-ae5b-5e1f-d023-c40ee669520c',
           name: 'TNO pizza',
@@ -41,13 +42,16 @@ export default {
           img: 'https://assets.biggreenegg.eu/app/uploads/2019/03/28145521/topimage-classic-hamburger-2019m04-800x534.jpg',
           price: 7.50
         },
-      ]
-    }
-  },
-  methods: {
-    addToCart (product) {
-      this.$emit('addToCart', product)
-    }
+      ];
+
+    const addToCart = (product) => {
+      context.emit("addToCart", product);
+    };
+
+    return {
+      products,
+      addToCart
+    };
   }
 }
 </script>

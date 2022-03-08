@@ -24,7 +24,7 @@ const routes = [
     path: "/client",
     name: "Client",
     component: Client,
-  },
+  }
 ]
 
 const router = createRouter({

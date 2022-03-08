@@ -67,8 +67,8 @@
             <span>Total cost</span>
             <span>€ {{ (Math.round(cartContents.map(x => x.quantity * x.price).reduce((prev, current) => prev + current, 0) * 100) / 100).toFixed(2) }}</span>
           </div>
-          <button v-if="cartContents && cartContents.length > 0 && hasValidAddress()" class="bg-indigo-500 font-semibold hover:bg-indigo-600 py-3 text-sm text-white uppercase w-full">Place order</button>
-            <button v-else class="bg-indigo-500 font-semibold hover:bg-indigo-600 py-3 text-sm text-white uppercase w-full opacity-50 cursor-not-allowed">Place order</button>
+          <button v-if="cartContents && cartContents.length > 0 && hasValidAddress()" @click="checkout" class="bg-indigo-500 font-semibold hover:bg-indigo-600 py-3 text-sm text-white uppercase w-full">Place order</button>
+          <button v-else class="bg-indigo-500 font-semibold hover:bg-indigo-600 py-3 text-sm text-white uppercase w-full opacity-50 cursor-not-allowed">Place order</button>
         </div>
       </div>
 
@@ -77,39 +77,52 @@
 </template>
 
 <script>
-//import PaymentsService from '../services/PaymentsService.js'
+import { reactive } from "vue";
 
 export default {
-  props: ['cartContents'],
-  methods: {
-    increment (id) {
-      this.$emit('increment', id)
-      console.log(this.address)
-    },
-    decrement (id) {
-      this.$emit('decrement', id)
-    },
-    remove (id) {
-        this.$emit('remove', id)
-    },
-    hasValidAddress () {
-        return this.address['street'] && 
-            this.address['zip'] &&
-            this.address['hnr']
-    },
-    setAddressKey(key, value) {
-        this.address[key] = value
-    },
-    checkout() {
-        //const service = PaymentsService()
-        //service.checkout('', this.address, this.cartContents)
-        console.log('Checking out')
-    }
+  props: {
+    cartContents: []
   },
-  data () {
+
+  emits: ["increment", "decrement", "remove", "checkout"],
+
+  setup(_, context) {
+    let address = reactive([]);
+
+    const increment = (id) => {
+      context.emit('increment', id)
+    };
+
+    const decrement = (id) => {
+      context.emit('decrement', id);
+    };
+
+    const remove = (id) => {
+      context.emit('remove', id);
+    };
+
+    const hasValidAddress = () => {
+        return address['street'] 
+            && address['zip'] 
+            && address['hnr'];
+    };
+
+    const setAddressKey = (key, value) => {
+        address[key] = value;
+    };
+    
+    const checkout = () => {
+      context.emit('checkout', address);
+    };
+
     return {
-      address: []
-    }
-  },
+      increment,
+      decrement,
+      remove,
+      hasValidAddress,
+      setAddressKey,
+      checkout
+    };
+  }
 }
 </script>
