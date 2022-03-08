@@ -15,7 +15,7 @@ fi
 
 cd /home/tno-eats
 ganache -h 0.0.0.0 -m "intact satisfy device divert math audit pitch coffee secret skill prefer brass" &
-truffle migrate
+truffle migrate --reset
 
 cd /home/tno-eats/client
 npm install --save

@@ -1,36 +1,90 @@
 <template>
-  This is the seller POV.
+    <OrderTable :orders="this.pendingOrders" @approveOrder="approve" @rejectOrder="reject"/>
 </template>
 
 <script>
+import { reactive } from "vue";
 import { getSmartContract } from '../services/ethereum'
+import OrderTable from '../components/OrderTable.vue'
+import { approveOrder, rejectOrder } from '../services/seller'
 
 export default {
-  name: "Seller",
+    name: 'Seller',
 
-  async setup() {
-    const { tnoEats } = await getSmartContract();
+    setup() {
+        const pendingOrders = reactive([])
+        const approvedOrders = reactive([])
+//        const sellerAddress = "0x59Ce492d182688239C118AcFEb1A4872Ce3B1231";    
 
-    // let orders = reactive([]);
+        const approve = async(orderId) => { 
+            await approveOrder(orderId);
+            // TODO: Figure out way of having pending and approved arrays
+            pendingOrders.find(order=>order.id===orderId).status = "Approved";
+        }
 
-    // tnoEats.on("OrderPlaced", (seller, orderId, orderContentsUrl, event) => {
-    //   console.log(seller, orderId, orderContentsUrl, event);
-    // });
+        const reject = async(orderId) => {
+            await rejectOrder(orderId);
+            // TODO: Maybe remove the rejected orders from view?
+            pendingOrders.find(order=>order.id===orderId).status = "Rejected";
+        }
 
-    // TODO: Get seller addresses automatically
-    // const sellerAddress = "0x9777474265fa526d7C2271B72c9c81275e44D99d";    
-    const clientAddress = "0x3096cc43379D09d411A6f979E00e29f057929579";
-    const events = await tnoEats.queryFilter("OrderPlaced", 0);
-    // const completed = await tnoEats.queryFilter("OrderCompleted", 0);
+        return {
+            pendingOrders,
+            approvedOrders,
+            approve,
+            reject
+        }
+    },
 
-    console.log(events);
+    components: {
+        OrderTable
+    },
+    
+    async mounted() {
+        const { tnoEats } = await getSmartContract();
+        const sellerAddress = "0x59Ce492d182688239C118AcFEb1A4872Ce3B1231";    
+        let orders = await tnoEats.getOrdersBySeller(sellerAddress);
 
-    console.log(tnoEats);
+        const OrderApprovedEvents = await tnoEats.queryFilter("OrderApproved", 0); // On mount filter from block 0
+        const OrderPlacedEvents = await tnoEats.queryFilter("OrderPlaced", 0);
+        tnoEats.on('OrderPlaced', (seller, orderId, ipfsUrl) => {
+            console.log("Order Placed event listener " + orderId);
+            if(!this.pendingOrders.some(pendingOrder => pendingOrder.id === parseInt(orderId._hex, 16))) {
+                this.pendingOrders.push({
+                    id: parseInt(orderId._hex, 16),
+                    status: "Pending",
+                    ipfsUrl: ipfsUrl
+                })
+            }
+        })
 
-    let orderIds = await tnoEats.getOrdersByClient(clientAddress);
+        // TODO: Refactor this, probably a better way of doing this
+        for(var order in orders){
+            let approved = false;
+            let ipfsUrl = "PLACEHOLDER";
 
-    console.log("Order ids:");
-    console.log(orderIds);
-  }
+            // Check if orderId exists in OrderApprovedOrderApprovedEvents
+            for(const event of OrderApprovedEvents) {
+               if(parseInt(event.args.orderId._hex, 16) === parseInt(order)) {
+                    approved = true;
+                } 
+            }
+              // Get the ipfsURL from the placedOrderEvents
+            for(const event of OrderPlacedEvents) {
+               if(parseInt(event.args.orderId._hex, 16) === parseInt(order)) {
+                    ipfsUrl = event.args.orderContentsUrl;
+                } 
+            }
+
+            if(!approved && !this.pendingOrders.some(pendingOrder => pendingOrder.id === parseInt(order))) {
+                this.pendingOrders.push({id: parseInt(order), status: "Pending", ipfsUrl: ipfsUrl});
+            } else if (!this.pendingOrders.some(pendingOrder => pendingOrder.id === parseInt(order))) {
+                console.log("Order " + order + " already Approved.");
+                this.pendingOrders.push({id: parseInt(order), status: "Approved", ipfsUrl: ipfsUrl});
+            }
+        }
+    }
 }
 </script>
+<style>
+</style>

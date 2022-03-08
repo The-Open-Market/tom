@@ -101,4 +101,17 @@ abstract contract OrderManager is OrderFactory {
         // TODO: Return funds and delivery service collateral if applicable
         emit OrderCancelled(_orderId);
     }
+
+    /**
+     * @notice An order is rejected by the seller.
+     *         The order needs to be pending and not yet be accepted by the seller.
+     * @param _orderId Pending order id
+     */
+    function rejectOrder(uint _orderId) external orderIsPending(_orderId) senderIsSeller(_orderId) {
+        Order storage order = orders[_orderId];
+        order.status = OrderStatus.Rejected;
+
+        // TODO: Return funds to client
+        emit OrderRejected(_orderId);
+    }
 }
