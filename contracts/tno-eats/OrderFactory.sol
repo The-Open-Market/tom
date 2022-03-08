@@ -11,7 +11,7 @@ abstract contract OrderFactory is Ownable {
     
     // TODO: Add info for the deliveryService
     event OrderPlaced(address indexed seller, uint orderId, string orderContentsUrl);
-    event OrderApproved(uint indexed orderId);
+    event OrderApproved(uint indexed orderId, string sellerZipCode, string clientZipCode);
     event OrderRejected(uint indexed orderId);
     event OrderAccepted(address indexed deliveryService, uint orderId);
     event OrderInTransit(uint indexed orderId);
@@ -44,6 +44,7 @@ abstract contract OrderFactory is Ownable {
 
     mapping (address => uint) clientOrderCount;
     mapping (address => uint) sellerOrderCount;
+    mapping (address => uint) deliveryServiceOrderCount;
 
     modifier senderIsSeller(uint _orderId) {
         Order storage order = orders[_orderId];

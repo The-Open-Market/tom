@@ -26,10 +26,10 @@ abstract contract OrderManager is OrderFactory {
      *         Can be called only by the seller and the order needs to be pending.
      * @param _orderId Active order id
      */
-    function approveOrder(uint _orderId) external orderIsActive(_orderId) orderIsPending(_orderId) senderIsSeller(_orderId) {
+    function approveOrder(uint _orderId, string memory sellerZipCode, string memory clientZipCode) external orderIsActive(_orderId) orderIsPending(_orderId) senderIsSeller(_orderId) {
         Order storage order = orders[_orderId];
         order.status = OrderStatus.Approved;
-        emit OrderApproved(_orderId);
+        emit OrderApproved(_orderId, sellerZipCode, clientZipCode);
     }
 
     /**
@@ -40,9 +40,11 @@ abstract contract OrderManager is OrderFactory {
     function acceptOrder(uint _orderId) external orderIsActive(_orderId) orderIsApproved(_orderId) senderIsNotClientOrSeller(_orderId) {
         Order storage order = orders[_orderId];
         // TODO: Check for valid reputation + collateral amount
-        order.deliveryService = _msgSender();
+        address deliveryService = _msgSender();
+        order.deliveryService = deliveryService;
         order.status = OrderStatus.Accepted;
-        emit OrderAccepted(order.deliveryService, _orderId);
+        deliveryServiceOrderCount[deliveryService]++;
+        emit OrderAccepted(deliveryService, _orderId);
     }
 
     /**
