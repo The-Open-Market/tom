@@ -1,1 +1,1 @@
-import { getSmartContract } from './ethereum';
+//import { getSmartContract } from './ethereum';
