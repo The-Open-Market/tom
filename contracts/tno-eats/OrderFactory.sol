@@ -10,34 +10,38 @@ import "../access/Ownable.sol";
 abstract contract OrderFactory is Ownable {
     
     // TODO: Add info for the deliveryService
-    event OrderPlaced(address indexed seller, uint orderId, string orderContentsUrl);
-    event OrderApproved(uint indexed orderId, string sellerZipCode, string clientZipCode);
-    event OrderRejected(uint indexed orderId);
-    event OrderAccepted(address indexed deliveryService, uint orderId);
-    event OrderInTransit(uint indexed orderId);
-    event OrderCompleted(uint indexed orderId);
-    event OrderCancelled(uint indexed orderId);
+    event OrderPending(uint id, address indexed client, address indexed seller, string orderContentsUrl);
+    event OrderApproved(uint indexed id, address indexed client, address indexed seller, string sellerZipCode, string clientZipCode);
+    event OrderRejected(uint id, address indexed client);
+    event OrderAccepted(uint id, address indexed client, address indexed seller, address indexed deliveryService);
+    event OrderInTransit(uint indexed id);
+    event OrderCompleted(uint indexed id);
+    event OrderCancelled(uint indexed id);
     
     struct Order {
+        uint id;
         OrderStatus status;
         address client;
         address seller;
         address deliveryService;
+        string orderContentsUrl;
+        string originZipCode;
+        string destinationZipCode;
     }
 
     enum OrderStatus {
-        Pending,     /* order is submitted by a client                       */
-        Approved,    /* order is approved by a seller                        */
-        Rejected,    /* order is rejected by a seller                        */
-        Accepted,    /* order is accepted by a delivery service              */
-        PickedUp,    /* order is picked up by a delivery service             */
-        Transferred, /* order is transferred by a seller to delivery service */
-        InTransit,   /* order is being delivered by the delivery service     */
-        Received,    /* order is received by a client                        */
-        Delivered,   /* order is delivered by a delivery service             */
-        Completed,   /* order is sucessfully completed                       */
-        Disputed,    /* order is disputed by one of the parties              */
-        Canceled     /* order is cancelled before reaching Processing status */
+        Pending,     /* 0  order is submitted by a client                       */
+        Approved,    /* 1  order is approved by a seller                        */
+        Rejected,    /* 2  order is rejected by a seller                        */
+        Accepted,    /* 3  order is accepted by a delivery service              */
+        PickedUp,    /* 4  order is picked up by a delivery service             */
+        Transferred, /* 5  order is transferred by a seller to delivery service */
+        InTransit,   /* 6  order is being delivered by the delivery service     */
+        Received,    /* 7  order is received by a client                        */
+        Delivered,   /* 8  order is delivered by a delivery service             */
+        Completed,   /* 9  order is sucessfully completed                       */
+        Disputed,    /* 10 order is disputed by one of the parties              */
+        Canceled     /* 11 order is cancelled before reaching Processing status */
     }
 
     Order[] public orders;
@@ -199,10 +203,10 @@ abstract contract OrderFactory is Ownable {
      */
     function _createOrder(address _seller, string memory _orderInfo) internal {
         address client = _msgSender();
-        orders.push(Order(OrderStatus.Pending, client, _seller, address(0)));
-        uint id = orders.length - 1;
+        uint id = orders.length;
+        orders.push(Order(id, OrderStatus.Pending, client, _seller, address(0), "", "", ""));
         clientOrderCount[client]++;
         sellerOrderCount[_seller]++;
-        emit OrderPlaced(_seller, id, _orderInfo);
+        emit OrderPending(id, client, _seller, _orderInfo);
     }
 }

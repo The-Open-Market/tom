@@ -9,6 +9,7 @@
 
 <script>
 import { reactive } from "vue";
+import { getOrdersByClient } from '../services/smartContract';
 import { placeOrder } from '../services/client';
 import { encryptOrderInfo } from "../services/crypto";
 import { uploadDeliveryInfo } from "../services/ipfs";
@@ -73,6 +74,13 @@ export default {
       remove,
       checkout
     }
+  },
+
+  async mounted() {
+    const address = "0x3096cc43379D09d411A6f979E00e29f057929579";
+    const orders = await getOrdersByClient(address);
+
+    console.log(orders);
   },
 
   components: {

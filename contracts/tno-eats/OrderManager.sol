@@ -29,7 +29,9 @@ abstract contract OrderManager is OrderFactory {
     function approveOrder(uint _orderId, string memory sellerZipCode, string memory clientZipCode) external orderIsActive(_orderId) orderIsPending(_orderId) senderIsSeller(_orderId) {
         Order storage order = orders[_orderId];
         order.status = OrderStatus.Approved;
-        emit OrderApproved(_orderId, sellerZipCode, clientZipCode);
+        order.originZipCode = sellerZipCode;
+        order.destinationZipCode = clientZipCode;
+        emit OrderApproved(_orderId, order.client, order.seller, sellerZipCode, clientZipCode);
     }
 
     /**
@@ -44,7 +46,7 @@ abstract contract OrderManager is OrderFactory {
         order.deliveryService = deliveryService;
         order.status = OrderStatus.Accepted;
         deliveryServiceOrderCount[deliveryService]++;
-        emit OrderAccepted(deliveryService, _orderId);
+        emit OrderAccepted(_orderId, order.client, order.seller, deliveryService);
     }
 
     /**
@@ -114,6 +116,6 @@ abstract contract OrderManager is OrderFactory {
         order.status = OrderStatus.Rejected;
 
         // TODO: Return funds to client
-        emit OrderRejected(_orderId);
+        emit OrderRejected(_orderId, order.client);
     }
 }

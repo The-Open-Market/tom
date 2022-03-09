@@ -13,7 +13,7 @@ contract("TnoEats", accounts => {
     it("client should be able to start a new order", async () => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         assert.equal(0, result.logs[0].args.orderId.toNumber());
-        assert.equal("OrderPlaced", result.logs[0].event);
+        assert.equal("OrderPending", result.logs[0].event);
         const order = await contract.orders.call(0);
         assert.equal(client_a, order.client);
         assert.equal(seller_a, order.seller);

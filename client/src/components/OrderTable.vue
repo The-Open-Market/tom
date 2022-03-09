@@ -1,21 +1,4 @@
 <template>
-  <!--<div class="container">
-        <h2 class="text-center mt-5">Order List</h2>
-    </div>
-    <div class="d-flex" v-for="(order, index) in this.orderIds" :key="index">
-        <h3 class="text-center mt-4 text-sm text-gray-700">Order: {{order.id}}
-            <button class="px-6 py-2 mt-3 transition ease-in duration-200 
-            uppercase rounded-full hover:bg-gray-800 hover:text-white border-2 
-            border-gray-900 focus:outline-none"
-            @click="approveOrder(order.id)" v-if="order.status==='Pending'">
-                Approve Order
-            </button>
-            <button class="px-6 py-2 mt-3 uppercase rounded-full border-2 border-gray-900"
-            v-if="order.status==='Approved'">
-            Approved
-            </button>
-        </h3>
-    </div>-->
   <div class="bg-white">
     <div
       class="max-w-2xl mx-auto py-16 px-4 sm:py-24 sm:px-6 lg:max-w-7xl lg:px-8"
@@ -62,10 +45,7 @@
                       Status
                     </th>
                     <th scope="col" class="relative px-6 py-3">
-                      <span class="sr-only">Accept</span>
-                    </th>
-                    <th scope="col" class="relative px-6 py-3">
-                      <span class="sr-only">Reject</span>
+                      <span class="sr-only">Actions</span>
                     </th>
                   </tr>
                 </thead>
@@ -85,42 +65,44 @@
                       <div class="text-sm text-gray-500">TNO</div>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">∞</td>
-                    <td class="px-6 py-4 whitespace-nowrap" v-if="order.status==='Pending'">
+                    <td class="px-6 py-4 whitespace-nowrap" v-if="order.status === 0">
                       <span
                         class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800"
                       > Pending
                       </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap" v-if="order.status==='Approved'">
+                    <td class="px-6 py-4 whitespace-nowrap" v-if="order.status === 1">
                       <span
                         class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"
                       > Approved
                       </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap" v-if="order.status==='Rejected'">
+                    <td class="px-6 py-4 whitespace-nowrap" v-if="order.status === 2">
                       <span
                         class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800"
                       > Rejected
                       </span>
                     </td>
-                    <td
-                      class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium"
-                    >
-                      <button
-                        type="button"
+                    <td v-if="isSeller" class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button v-if="order.status === 0" type="button"
                         class="text-green-700 hover:text-white transition-colors duration-200 border border-green-700 hover:bg-gren-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800"
-                      @click="approveOrder(order.id)" :disabled="order.status==='Approved' || order.status==='Rejected'">
-                        Accept
+                        @click="approveOrder(order.id)" :disabled="order.status >= 1"
+                      >
+                          Approve
+                      </button>
+                      <button v-if="order.status === 0" type="button"
+                          class="opacity-50 cursor-not-allowed text-red-700 hover:text-white transition-colors duration-200 border border-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-800"
+                          @click="rejectOrder(order.id)" :disabled="order.status >= 1"
+                      >
+                        Reject
                       </button>
                     </td>
-                    <td
-                      class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium"
-                    >
-                      <button
-                        type="button"
-                        class="text-red-700 hover:text-white transition-colors duration-200 border border-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-800"
-                      @click="rejectOrder(order.id)" :disabled="order.status==='Approved' || order.status==='Rejected'">
-                        Reject
+                    <td v-else>
+                      <button v-if="order.status !== 3" type="button"
+                          class="text-red-700 hover:text-white transition-colors duration-200 border border-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 dark:border-red-500 dark:text-red-500 dark:hover:text-white dark:hover:bg-red-600 dark:focus:ring-red-800"
+                          @click="acceptOrder(order.id)" :disabled="order.status === 3"
+                      >
+                          Accept
                       </button>
                     </td>
                   </tr>
@@ -141,25 +123,33 @@
 export default {
   name: "OrderTable",
 
-  emits: ["approveOrder", "rejectOrder"],
+  emits: ["approveOrder", "rejectOrder", "acceptOrder"],
 
   props: {
     orders: [],
+    isSeller: {
+      type: Boolean,
+      default: true
+    }
   },
-
+  
   setup(_, context) {
-
-    const approveOrder = (order) => {
-      context.emit("approveOrder", order);
+    const approveOrder = (orderId) => {
+      context.emit("approveOrder", orderId);
     };
 
-    const rejectOrder = (order) => {
-      context.emit("rejectOrder", order);
+    const rejectOrder = (orderId) => {
+      context.emit("rejectOrder", orderId);
+    };
+
+    const acceptOrder = (orderId) => {
+      context.emit("acceptOrder", orderId);
     };
 
     return {
-        approveOrder,
-        rejectOrder
+      acceptOrder,
+      approveOrder,
+      rejectOrder
     }
   }
  
