@@ -5,9 +5,10 @@ const acceptOrder = async (orderId) => {
       const { tnoEats } = await getSmartContract();
       const acceptOrderTx = await tnoEats.acceptOrder(orderId);
       await acceptOrderTx.wait();
-      console.log("Accepted order " + orderId);
+      return true;
   } catch (error) {
       console.log(error);
+      return false;
   }
 }
 
@@ -16,9 +17,10 @@ const pickupOrder = async (orderId) => {
       const { tnoEats } = await getSmartContract();
       const transferOrderTx = await tnoEats.transferOrder(orderId);
       await transferOrderTx.wait();
-      console.log("Picked-up order " + orderId);
+      return true;
   } catch (error) {
       console.log(error);
+      return false;
   }
 }
 
@@ -27,9 +29,10 @@ const deliverOrder = async (orderId) => {
       const { tnoEats } = await getSmartContract();
       const completeOrderTx = await tnoEats.completeOrder(orderId);
       await completeOrderTx.wait();
-      console.log("Accepted order " + orderId);
+      return true;
   } catch (error) {
       console.log(error);
+      return false;
   }
 }
 

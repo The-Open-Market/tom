@@ -8,14 +8,14 @@
 </template>
 
 <script>
-import { reactive } from "vue";
-import { getOrdersByClient } from '../services/smartContract';
-import { placeOrder } from '../services/client';
-import { encryptOrderInfo } from "../services/crypto";
-import { uploadDeliveryInfo } from "../services/ipfs";
+import ProductList from '@/components/client/ProductList.vue'
+import ShoppingCart from '@/components/client/ShoppingCart.vue'
 
-import ProductList from '../components/ProductList.vue'
-import ShoppingCart from '../components/ShoppingCart.vue'
+import { reactive } from "vue";
+import { getOrdersByClient } from '@/services/smartContract';
+import { placeOrder } from '@/services/client';
+import { encryptOrderInfo } from "@/services/crypto";
+import { uploadDeliveryInfo } from "@/services/ipfs";
 
 export default {
   name: "Client",

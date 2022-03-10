@@ -6,8 +6,10 @@ const placeOrder = async (seller, orderInfo) => {
         console.log(tnoEats);
         const placeOrderTx = await tnoEats.placeOrder(seller, orderInfo);
         await placeOrderTx.wait();
+        return true;
     } catch (error) {
         console.log(error);
+        return false;
     }
 }
 

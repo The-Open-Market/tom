@@ -1,15 +1,35 @@
 <template>
-  <OrderTable :orders="approvedOrders" :isSeller="false"/>
-  <OrderTable :orders="currentOrders" :isSeller="false" @acceptOrder="accept"/>
+  <div class="flex flex-col space-y-4">
+    <CardGrid title="Current orders">
+      <OrderCard v-for="order in currentOrders" :key="order.id" :order="order">
+        <template v-slot:contents>
+          <p>TODO: add map integration</p>
+        </template>
+      </OrderCard>
+    </CardGrid>
+    <CardGrid title="Approved orders">
+      <OrderCard v-for="order in approvedOrders" :key="order.id" :order="order">
+        <template v-slot:contents>
+          <p>TODO: add map integration</p>
+        </template>
+        <template v-slot:controls>
+          <Button text="Accept" styles="blue" @click="accept(order.id)"/>
+        </template>
+      </OrderCard>
+    </CardGrid>
+  </div>
 </template>
 
 <script>
-import OrderTable from '../components/OrderTable.vue'
+import OrderCard from '@/components/shared/OrderCard.vue';
+import Button from '@/components/shared/Button.vue';
+import CardGrid from '@/components/shared/CardGrid.vue';
 
 import { reactive, onMounted } from 'vue';
-import { getSmartContract } from '../services/ethereum';
-import { getOrdersByDeliveryService, getApprovedOrders } from '../services/smartContract';
-import { acceptOrder, pickupOrder, deliverOrder } from '../services/deliveryService';
+import { OrderStatus } from '@/services/order';
+import { getSmartContract } from '@/services/ethereum';
+import { getOrdersByDeliveryService, getApprovedOrders } from '@/services/smartContract';
+import { acceptOrder, pickupOrder, deliverOrder } from '@/services/deliveryService';
 
 export default {
   name: "Delivery",
@@ -20,9 +40,12 @@ export default {
     const approvedOrders = reactive([]);
 
     const accept = async(orderId) => { 
-      await acceptOrder(orderId);
-      currentOrders.push(approvedOrders.find(order => order.id === orderId));
-      approvedOrders.remove(approvedOrders.findIndex(order => order.id === orderId));
+      if (await acceptOrder(orderId)) {
+        const index = approvedOrders.findIndex(order => order.id === orderId);
+        approvedOrders[index].status = OrderStatus.Accepted;
+        currentOrders.push(approvedOrders.find(order => order.id === orderId));
+        approvedOrders.splice(index, 1);
+      }
     };
 
     const pickup = async(orderId) => { 
@@ -36,7 +59,7 @@ export default {
     const onOrderApproved = (id, client, seller, sellerZipCode, clientZipCode) => {
       approvedOrders.push({
         id: parseInt(id._hex, 16),
-        status: 1,
+        status: OrderStatus.Approved,
         client,
         seller,
         sellerZipCode,
@@ -55,19 +78,22 @@ export default {
       const address = "0x15f5319b330D8Da1E3a3852Fabcc60BFBA062919";
       const orders = await getOrdersByDeliveryService(address);
 
-      // TODO: replace with enum type
-      for (const order in orders.filter(order => order.status >= 3)) {
-        currentOrders.push(order);
-      }
+      orders.filter(order => {
+        if (order.status.value >= OrderStatus.Accepted.value) {
+          currentOrders.push(order);
+        }
+      });
 
-      for (const order in await getApprovedOrders()) {
-        approvedOrders.push(order);
+      const appOrders = await getApprovedOrders();
+
+      console.log(appOrders);
+
+      for (const index in appOrders) {
+        approvedOrders.push(appOrders[index]);
       }
 
       const { tnoEats } = await getSmartContract();
-      // Watch new approved orders
       tnoEats.on('OrderApproved', this.onOrderApproved);
-      // Remove orders accepted by other deliverers
       tnoEats.on('orderAccepted', this.onOrderAccepted)
     });
 
@@ -88,7 +114,9 @@ export default {
   },
 
   components: {
-    OrderTable
+    CardGrid,
+    OrderCard,
+    Button
   }
 }
 </script>

@@ -1,14 +1,43 @@
 <template>
-    <OrderTable :orders="approvedOrders" :isSeller="true"/>
-    <OrderTable :orders="pendingOrders" :isSeller="true" @approveOrder="approve" @rejectOrder="reject"/>
+    <div class="flex flex-col space-y-4">
+        <CardGrid title="Pending orders">
+            <OrderCard v-for="order in pendingOrders" :key="order.id" :order="order">
+                <template v-slot:contents>
+                    <p>TODO: add contents from IPFS</p>
+                </template>
+                <template v-slot:controls>
+                    <Button text="Reject" styles="red" @click="reject(order.id)"/>
+                    <Button text="Approve" styles="green" @click="approve(order.id)"/>
+                </template>
+            </OrderCard>
+        </CardGrid>
+        <CardGrid title="Approved orders">
+            <OrderCard v-for="order in approvedOrders" :key="order.id" :order="order">
+                <template v-slot:contents>
+                    <p>TODO: add contents from IPFS</p>
+                </template>
+            </OrderCard>
+        </CardGrid>
+        <CardGrid title="Rejected orders">
+            <OrderCard v-for="order in rejectedOrders" :key="order.id" :order="order">
+                <template v-slot:contents>
+                    <p>TODO: add contents from IPFS</p>
+                </template>
+            </OrderCard>
+        </CardGrid>
+    </div>
 </template>
 
 <script>
+import OrderCard from '@/components/shared/OrderCard.vue';
+import Button from '@/components/shared/Button.vue';
+import CardGrid from '@/components/shared/CardGrid.vue';
+
 import { reactive, onMounted } from "vue";
-import { getOrdersBySeller } from '../services/smartContract';
-import { getSmartContract } from '../services/ethereum'
-import OrderTable from '../components/OrderTable.vue'
-import { approveOrder, rejectOrder } from '../services/seller'
+import { OrderStatus } from '@/services/order';
+import { getOrdersBySeller } from '@/services/smartContract';
+import { getSmartContract } from '@/services/ethereum';
+import { approveOrder, rejectOrder } from '@/services/seller';
 
 export default {
     name: 'Seller',
@@ -19,21 +48,27 @@ export default {
         const rejectedOrders = reactive([]);
 
         const approve = async(orderId) => { 
-            await approveOrder(orderId);
-            approvedOrders.push(pendingOrders.find(order => order.id === orderId));
-            pendingOrders.remove(pendingOrders.findIndex(order => order.id === orderId));
+            if (await approveOrder(orderId)) {
+                const index = pendingOrders.findIndex(order => order.id === orderId);
+                pendingOrders[index].status = OrderStatus.Approved;
+                approvedOrders.push(pendingOrders.find(order => order.id === orderId));
+                pendingOrders.splice(index, 1);
+            }
         }
 
         const reject = async(orderId) => {
-            await rejectOrder(orderId);
-            rejectedOrders.push(pendingOrders.find(order => order.id === orderId));
-            pendingOrders.remove(pendingOrders.findIndex(order => order.id === orderId));
+            if (await rejectOrder(orderId)) {
+                const index = pendingOrders.findIndex(order => order.id === orderId);
+                pendingOrders[index].status = OrderStatus.Rejected;
+                rejectedOrders.push(pendingOrders.find(order => order.id === orderId));
+                pendingOrders.splice(index, 1);
+            }
         }
 
         const onOrderPending = (id, client, seller, ipfsUrl) => {
             pendingOrders.push({
                 id: parseInt(id._hex, 16),
-                status: 0,
+                status: OrderStatus.Pending,
                 client,
                 seller,
                 ipfsUrl
@@ -43,19 +78,16 @@ export default {
         onMounted(async () => {
             const address = "0x59Ce492d182688239C118AcFEb1A4872Ce3B1231";    
             const orders = await getOrdersBySeller(address);
-            
-            // TODO: replace status with enum
-            for (const order in orders.filter(order => order.status === 0)) {
-                pendingOrders.push(order);
-            }
 
-            for (const order in orders.filter(order => order.status === 1)) {
-                approvedOrders.push(order);
-            }
-
-            for (const order in orders.filter(order => order.status === 2)) {
-                rejectedOrders.push(order);
-            }
+            orders.filter(order => {
+                if (order.status.value === OrderStatus.Pending.value) {
+                    pendingOrders.push(order);
+                } else if (order.status.value === OrderStatus.Approved.value) {
+                    approvedOrders.push(order);
+                } else if (order.status.value === OrderStatus.Rejected.value) {
+                    rejectedOrders.push(order);
+                }
+            });
 
             const { tnoEats } = await getSmartContract();
             tnoEats.on('OrderPending', onOrderPending);
@@ -72,7 +104,9 @@ export default {
     },
 
     components: {
-        OrderTable
+        CardGrid,
+        OrderCard,
+        Button,
     },
 }
 </script>

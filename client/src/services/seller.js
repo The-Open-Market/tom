@@ -5,9 +5,10 @@ const approveOrder = async (orderId) => {
         const { tnoEats } = await getSmartContract();
         const approveOrderTx = await tnoEats.approveOrder(orderId, "DummySellerZip", "DummyClientZip");
         await approveOrderTx.wait();
-        console.log("Approved order " + orderId);
+        return true;
     } catch (error) {
         console.log(error);
+        return false;
     }
 }
 
@@ -16,9 +17,10 @@ const rejectOrder = async (orderId) => {
         const { tnoEats } = await getSmartContract();
         const rejectOrderTx = await tnoEats.rejectOrder(orderId);
         await rejectOrderTx.wait();
-        console.log("Rejected order " + orderId); 
+        return true;
     } catch (error) {
         console.log(error);
+        return false;
     }
 }
 
