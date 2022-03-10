@@ -31,7 +31,7 @@
       </OrderCard>
       <OrderCard :order="order3">
         <template v-slot:contents>
-          <p>This a canceled order</p>
+          <p>This a cancelled order</p>
         </template>
       </OrderCard>
       <OrderCard :order="order4">
@@ -71,7 +71,7 @@ export default {
 
     const order3 = {
       id: 3,
-      status: OrderStatus.Canceled
+      status: OrderStatus.Cancelled
     }
 
     const order4 = {

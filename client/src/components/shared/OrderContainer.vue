@@ -1,7 +1,7 @@
 <template>
   <div class="tno-grid-column">
-    <h1 class="mb-2">{{title}}</h1>
-    <div :class="'grid ' + (isRow ? 'grid-cols-4 grid-flow-row' : 'grid-cols-1') + ' gap-4'">
+    <h1 class="mb-2 uppercase">{{title}}</h1>
+    <div :class="'grid ' + (isRow ? 'grid-cols-3 grid-flow-row' : 'grid-cols-1') + ' gap-4'">
       <slot></slot>
     </div>
   </div>

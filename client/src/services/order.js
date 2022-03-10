@@ -10,7 +10,7 @@ const OrderStatus = Object.freeze({
   Delivered:   { value: 8, name: "Delivered", color: "green" },
   Completed:   { value: 9, name: "Completed", color: "blue" },
   Disputed:    { value: 10, name: "Disputed", color: "orange" },
-  Canceled:    { value: 11, name: "Cancelled", color: "red" }
+  Cancelled:    { value: 11, name: "Cancelled", color: "red" }
 })
 
 const OrderStatusMap = {
@@ -25,7 +25,7 @@ const OrderStatusMap = {
   8: OrderStatus.Delivered,
   9: OrderStatus.Completed,
   10: OrderStatus.Disputed,
-  11: OrderStatus.Canceled
+  11: OrderStatus.Cancelled
 }
 
 export { OrderStatus, OrderStatusMap }

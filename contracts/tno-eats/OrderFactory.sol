@@ -11,12 +11,16 @@ abstract contract OrderFactory is Ownable {
     
     // TODO: Add info for the deliveryService
     event OrderPending(uint id, address indexed client, address indexed seller, string orderContentsUrl);
-    event OrderApproved(uint indexed id, address indexed client, address indexed seller, string sellerZipCode, string clientZipCode);
-    event OrderRejected(uint id, address indexed client);
+    event OrderApproved(uint id, address indexed client, address indexed seller, string sellerZipCode, string clientZipCode);
+    event OrderRejected(uint id, address indexed client, address indexed seller);
     event OrderAccepted(uint id, address indexed client, address indexed seller, address indexed deliveryService);
-    event OrderInTransit(uint indexed id);
-    event OrderCompleted(uint indexed id);
-    event OrderCancelled(uint indexed id);
+    event OrderPickedUp(uint id, address indexed client, address indexed seller, address indexed deliveryService);
+    event OrderTransferred(uint id, address indexed client, address indexed seller, address indexed deliveryService);
+    event OrderInTransit(uint id, address indexed client, address indexed seller, address indexed deliveryService);
+    event OrderDelivered(uint id, address indexed client, address indexed seller, address indexed deliveryService);
+    event OrderReceived(uint id, address indexed client, address indexed seller, address indexed deliveryService);
+    event OrderCompleted(uint id, address indexed client, address indexed seller, address indexed deliveryService);
+    event OrderCancelled(uint id, address indexed client, address indexed seller);
     
     struct Order {
         uint id;
@@ -41,7 +45,7 @@ abstract contract OrderFactory is Ownable {
         Delivered,   /* 8  order is delivered by a delivery service             */
         Completed,   /* 9  order is sucessfully completed                       */
         Disputed,    /* 10 order is disputed by one of the parties              */
-        Canceled     /* 11 order is cancelled before reaching Processing status */
+        Cancelled     /* 11 order is cancelled before reaching Processing status */
     }
 
     Order[] public orders;
@@ -120,7 +124,7 @@ abstract contract OrderFactory is Ownable {
         Order storage order = orders[_orderId];
         require(
                order.status != OrderStatus.Completed
-            || order.status != OrderStatus.Canceled
+            || order.status != OrderStatus.Cancelled
             || order.status != OrderStatus.Disputed,
             "Order is inactive"
         );

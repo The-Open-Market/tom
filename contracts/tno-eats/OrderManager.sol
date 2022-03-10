@@ -60,12 +60,14 @@ abstract contract OrderManager is OrderFactory {
         address sender = _msgSender();
         if (sender == order.seller && order.status == OrderStatus.Accepted) {
             order.status = OrderStatus.Transferred;
+            emit OrderTransferred(_orderId, order.client, order.seller, order.deliveryService);
         } else if (sender == order.deliveryService && order.status == OrderStatus.Accepted) {
             order.status = OrderStatus.PickedUp;
+            emit OrderPickedUp(_orderId, order.client, order.seller, order.deliveryService);
         } else if (sender == order.seller          && order.status == OrderStatus.PickedUp 
                 || sender == order.deliveryService && order.status == OrderStatus.Transferred) {
             order.status = OrderStatus.InTransit;
-            emit OrderInTransit(_orderId);
+            emit OrderInTransit(_orderId, order.client, order.seller, order.deliveryService);
         } else {
             revert("Illegal operation, cannot set order in transit twice with the same account");
         }
@@ -82,12 +84,14 @@ abstract contract OrderManager is OrderFactory {
         address sender = _msgSender();
         if (sender == order.client && order.status == OrderStatus.InTransit) {
             order.status = OrderStatus.Received;
+            emit OrderReceived(_orderId, order.client, order.seller, order.deliveryService);
         } else if (sender == order.deliveryService && order.status == OrderStatus.InTransit) {
             order.status = OrderStatus.Delivered;
+            emit OrderDelivered(_orderId, order.client, order.seller, order.deliveryService);
         } else if (sender == order.client          && order.status == OrderStatus.Delivered
                 || sender == order.deliveryService && order.status == OrderStatus.Received) {
             order.status = OrderStatus.Completed;
-            emit OrderCompleted(_orderId);
+            emit OrderCompleted(_orderId, order.client, order.seller, order.deliveryService);
         } else {
             revert("Illegal operation, cannot complete order twice with the same account");
         }
@@ -101,9 +105,9 @@ abstract contract OrderManager is OrderFactory {
      */
     function cancelOrder(uint _orderId) external orderIsCancelable(_orderId) senderIsClient(_orderId) {
         Order storage order = orders[_orderId];
-        order.status = OrderStatus.Canceled;
+        order.status = OrderStatus.Cancelled;
         // TODO: Return funds and delivery service collateral if applicable
-        emit OrderCancelled(_orderId);
+        emit OrderCancelled(_orderId, order.client, order.seller);
     }
 
     /**
@@ -116,6 +120,6 @@ abstract contract OrderManager is OrderFactory {
         order.status = OrderStatus.Rejected;
 
         // TODO: Return funds to client
-        emit OrderRejected(_orderId, order.client);
+        emit OrderRejected(_orderId, order.client, order.seller);
     }
 }

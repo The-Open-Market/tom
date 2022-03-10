@@ -24,4 +24,16 @@ const rejectOrder = async (orderId) => {
     }
 }
 
-export { approveOrder, rejectOrder }
+const transferOrder = async (orderId) => {
+    try {
+        const { tnoEats } = await getSmartContract();
+        const transferOrderTx = await tnoEats.transferOrder(orderId);
+        await transferOrderTx.wait();
+        return true;
+    } catch (error) {
+        console.log(error);
+        return false;
+    }
+}
+
+export { approveOrder, rejectOrder, transferOrder }
