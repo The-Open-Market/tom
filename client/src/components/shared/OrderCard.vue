@@ -11,7 +11,7 @@
     <div>
       <slot name="contents"></slot>
     </div>
-    <div class="flex flex-wrap justify-end space-x-4 space-y-2 pt-4">
+    <div class="flex flex-wrap justify-end space-x-4 pt-4">
       <slot name="controls">
         No controls are available
       </slot>

@@ -1,8 +1,10 @@
 <template>
   <div class="tno-grid-column">
-    <h1 class="mb-2 uppercase">{{title}}</h1>
+    <h1 class="mb-4 uppercase font-medium">{{title}}</h1>
     <div :class="'grid ' + (isRow ? 'grid-cols-3 grid-flow-row' : 'grid-cols-1') + ' gap-4'">
-      <slot></slot>
+      <slot>
+        No exisitng orders...
+      </slot>
     </div>
   </div>
 </template>

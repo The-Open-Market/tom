@@ -1,5 +1,5 @@
 <template>
-  <OrderContainer title="Active orders" flow="row">
+  <OrderContainer title="My orders" flow="row">
     <OrderCard v-for="order in orders" :key="order.id" :order="order">
       <template v-slot:contents>
         <p>TODO: add contents from IPFS</p>
