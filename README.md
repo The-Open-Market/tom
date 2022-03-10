@@ -1,5 +1,7 @@
 # tno-eats
 
+![Smart Contract Test](https://github.com/neat-monte/tno-eats/actions/workflows/main.yml/badge.svg)
+
 ## Development setup
 
 ### Starting docker containers

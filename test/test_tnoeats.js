@@ -2,6 +2,22 @@ const TnoEats = artifacts.require("TnoEats");
 const utils = require("./utils");
 
 contract("TnoEats", accounts => {
+    // This is copied from the smart contract, enums are returned as integer
+    const ORDER_STATUSES = [
+        'Pending',     /* order is submitted by a client                       */
+        'Approved',    /* order is approved by a seller                        */
+        'Rejected',    /* order is rejected by a seller                        */
+        'Accepted',    /* order is accepted by a delivery service              */
+        'PickedUp',    /* order is picked up by a delivery service             */
+        'Transferred', /* order is transferred by a seller to delivery service */
+        'InTransit',   /* order is being delivered by the delivery service     */
+        'Received',    /* order is received by a client                        */
+        'Delivered',   /* order is delivered by a delivery service             */
+        'Completed',   /* order is sucessfully completed                       */
+        'Disputed',    /* order is disputed by one of the parties              */
+        'Canceled'     /* order is cancelled before reaching Processing status */
+    ];
+
     const [seller_a, seller_b, delivery_a, delivery_b, client_a, client_b] = accounts;
     const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
     let contract;
@@ -28,25 +44,25 @@ contract("TnoEats", accounts => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         const orderId = result.logs[0].args.orderId.toNumber();
         const pendingOrder = await contract.orders.call(orderId);
-        assert.equal(0, pendingOrder.status.toNumber());  // Pending=0
+        assert.equal('Pending', ORDER_STATUSES[pendingOrder.status.toNumber()]);
         const approvedResult = await contract.approveOrder(orderId, { from: seller_a });
         assert.equal("OrderApproved", approvedResult.logs[0].event);
         const approvedOrder = await contract.orders.call(orderId);
-        assert.equal(1, approvedOrder.status.toNumber());  // Approved=1
+        assert.equal('Approved', ORDER_STATUSES[approvedOrder.status.toNumber()]);
     });
 
     it("delivery service should be able to accept new order", async () => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
         const orderId = result.logs[0].args.orderId.toNumber();
         const pendingOrder = await contract.orders.call(orderId);
-        assert.equal(0, pendingOrder.status.toNumber());  // Pending=0
+        assert.equal('Pending', ORDER_STATUSES[pendingOrder.status.toNumber()]);
         await contract.approveOrder(orderId, { from: seller_a });
         const approvedOrder = await contract.orders.call(orderId);
-        assert.equal(1, approvedOrder.status.toNumber());  // Approved=1
+        assert.equal('Approved', ORDER_STATUSES[approvedOrder.status.toNumber()]);
         const acceptedResult = await contract.acceptOrder(orderId, { from: delivery_a });
         assert.equal("OrderAccepted", acceptedResult.logs[0].event);
         const acceptedOrder = await contract.orders.call(orderId);
-        assert.equal(2, acceptedOrder.status.toNumber()); // Accepted=2
+        assert.equal('Accepted', ORDER_STATUSES[acceptedOrder.status.toNumber()]);
         assert.equal(delivery_a, acceptedOrder.deliveryService);
     });
 
@@ -64,11 +80,11 @@ contract("TnoEats", accounts => {
 
         await contract.approveOrder(orderId, { from: seller_a });
         const approvedOrder = await contract.orders.call(orderId);
-        assert.equal(1, approvedOrder.status.toNumber());  // Approved=1
+        assert.equal('Approved', ORDER_STATUSES[approvedOrder.status.toNumber()]);
 
         await contract.acceptOrder(orderId, { from: delivery_a });
         const acceptedOrder = await contract.orders.call(orderId);
-        assert.equal(2, acceptedOrder.status.toNumber()); // Accepted=2
+        assert.equal('Accepted', ORDER_STATUSES[acceptedOrder.status.toNumber()]);
     });
 
     it("should not be able to accept an invalid order", async () => {
@@ -81,7 +97,7 @@ contract("TnoEats", accounts => {
         const orderId = result.logs[0].args.orderId.toNumber();
         const canceledResult = await contract.cancelOrder(orderId, { from: client_a });
         const canceledOrder = await contract.orders.call(orderId);
-        assert.equal(10, canceledOrder.status.toNumber());  // Canceled=10
+        assert.equal('Canceled', ORDER_STATUSES[canceledOrder.status.toNumber()]);
         assert.equal("OrderCancelled", canceledResult.logs[0].event);
     });
 
@@ -164,10 +180,10 @@ contract("TnoEats", accounts => {
         await contract.acceptOrder(orderId, { from: delivery_a });
         await contract.transferOrder(orderId, { from: delivery_a });
         const pickedUpOrder = await contract.orders.call(orderId);
-        assert.equal(3, pickedUpOrder.status.toNumber());  // PickedUp=3
+        assert.equal('PickedUp', ORDER_STATUSES[pickedUpOrder.status.toNumber()]);
         const inIntransitResult = await contract.transferOrder(orderId, { from: seller_a });
         const intransitOrder = await contract.orders.call(orderId);
-        assert.equal(5, intransitOrder.status.toNumber());  // InTransit=5
+        assert.equal('InTransit', ORDER_STATUSES[intransitOrder.status.toNumber()]);
         assert.equal("OrderInTransit", inIntransitResult.logs[0].event);
     });
 
@@ -178,10 +194,10 @@ contract("TnoEats", accounts => {
         await contract.acceptOrder(orderId, { from: delivery_a });
         await contract.transferOrder(orderId, { from: seller_a });
         const transferredOrder = await contract.orders.call(orderId);
-        assert.equal(4, transferredOrder.status.toNumber());  // Transferred=4
+        assert.equal('Transferred', ORDER_STATUSES[transferredOrder.status.toNumber()]);
         const inIntransitResult = await contract.transferOrder(orderId, { from: delivery_a });
         const intransitOrder = await contract.orders.call(orderId);
-        assert.equal(5, intransitOrder.status.toNumber());  // InTransit=5
+        assert.equal('InTransit', ORDER_STATUSES[intransitOrder.status.toNumber()]);
         assert.equal("OrderInTransit", inIntransitResult.logs[0].event);
     });
 
@@ -224,10 +240,10 @@ contract("TnoEats", accounts => {
         await contract.transferOrder(orderId, { from: seller_a });
         await contract.completeOrder(orderId, { from: client_a });
         const receivedOrder = await contract.orders.call(orderId);
-        assert.equal(6, receivedOrder.status.toNumber());  // Received=6
+        assert.equal('Received', ORDER_STATUSES[receivedOrder.status.toNumber()]);
         const completedResult = await contract.completeOrder(orderId, { from: delivery_a });
         const completedOrder = await contract.orders.call(orderId);
-        assert.equal(8, completedOrder.status.toNumber());  // Completed=8
+        assert.equal('Completed', ORDER_STATUSES[completedOrder.status.toNumber()]);
         assert.equal("OrderCompleted", completedResult.logs[0].event);
     });
 
@@ -240,10 +256,10 @@ contract("TnoEats", accounts => {
         await contract.transferOrder(orderId, { from: seller_a });
         await contract.completeOrder(orderId, { from: delivery_a });
         const deliveredOrder = await contract.orders.call(orderId);
-        assert.equal(7, deliveredOrder.status.toNumber());  // Delivered=7
+        assert.equal('Delivered', ORDER_STATUSES[deliveredOrder.status.toNumber()]);
         const completedResult = await contract.completeOrder(orderId, { from: client_a });
         const completedOrder = await contract.orders.call(orderId);
-        assert.equal(8, completedOrder.status.toNumber());  // Completed=8
+        assert.equal('Completed', ORDER_STATUSES[completedOrder.status.toNumber()]);
         assert.equal("OrderCompleted", completedResult.logs[0].event);
     });
 
