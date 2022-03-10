@@ -1,6 +1,6 @@
 <template>
-    <div class="flex flex-col space-y-4">
-        <CardGrid title="Pending orders">
+    <OrderGrid :nrColumns="3">
+        <OrderContainer title="Pending orders">
             <OrderCard v-for="order in pendingOrders" :key="order.id" :order="order">
                 <template v-slot:contents>
                     <p>TODO: add contents from IPFS</p>
@@ -10,28 +10,30 @@
                     <Button text="Approve" styles="green" @click="approve(order.id)"/>
                 </template>
             </OrderCard>
-        </CardGrid>
-        <CardGrid title="Approved orders">
+        </OrderContainer>
+        <OrderContainer title="Approved orders">
             <OrderCard v-for="order in approvedOrders" :key="order.id" :order="order">
                 <template v-slot:contents>
                     <p>TODO: add contents from IPFS</p>
                 </template>
             </OrderCard>
-        </CardGrid>
-        <CardGrid title="Rejected orders">
-            <OrderCard v-for="order in rejectedOrders" :key="order.id" :order="order">
-                <template v-slot:contents>
-                    <p>TODO: add contents from IPFS</p>
-                </template>
-            </OrderCard>
-        </CardGrid>
-    </div>
+        </OrderContainer>
+    </OrderGrid>
+
+    <OrderContainer title="Rejected orders" flow="row">
+        <OrderCard v-for="order in rejectedOrders" :key="order.id" :order="order">
+            <template v-slot:contents>
+                <p>TODO: add contents from IPFS</p>
+            </template>
+        </OrderCard>
+    </OrderContainer>
 </template>
 
 <script>
 import OrderCard from '@/components/shared/OrderCard.vue';
 import Button from '@/components/shared/Button.vue';
-import CardGrid from '@/components/shared/CardGrid.vue';
+import OrderGrid from '@/components/shared/OrderGrid.vue';
+import OrderContainer from '@/components/shared/OrderContainer.vue';
 
 import { reactive, onMounted } from "vue";
 import { OrderStatus } from '@/services/order';
@@ -104,7 +106,8 @@ export default {
     },
 
     components: {
-        CardGrid,
+        OrderGrid,
+        OrderContainer,
         OrderCard,
         Button,
     },
