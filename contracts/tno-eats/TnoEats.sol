@@ -12,4 +12,7 @@ import "./OrderDispute.sol";
 contract TnoEats is OrderHelper, OrderManager, OrderDispute {
 
     // TODO: Add constructor and make it ownable
+    constructor(address _euroToken) {
+
+    }
 }
