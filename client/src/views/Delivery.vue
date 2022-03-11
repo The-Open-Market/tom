@@ -88,7 +88,7 @@ export default {
     
     const onOrderApproved = (id, client, seller, sellerZipCode, clientZipCode) => {
       const orderId = parseInt(id._hex, 16);
-      if(orders.every(order => order.id !== orderId)) {
+      if (orders.every(order => order.id !== orderId)) {
         orders.push({
           id: orderId,
           status: OrderStatus.Approved,

@@ -3,7 +3,7 @@
     <h1 class="mb-4 uppercase font-medium">{{title}}</h1>
     <div :class="'grid ' + (isRow ? 'grid-cols-3 grid-flow-row' : 'grid-cols-1') + ' gap-4'">
       <slot>
-        No exisitng orders...
+        No existing orders...
       </slot>
     </div>
   </div>

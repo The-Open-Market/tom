@@ -98,7 +98,7 @@ export default {
 
     const onOrderPending = (id, client, seller, ipfsUrl) => {
       const orderId = parseInt(id._hex, 16);
-      if(orders.every(order => order.id !== orderId)) {
+      if (orders.every(order => order.id !== orderId)) {
         orders.push({
           id: orderId,
           status: OrderStatus.Pending,
