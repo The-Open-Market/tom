@@ -28,6 +28,9 @@ jobs:
       - name: Running Smart Contract Test
         run: CI=true truffle test
 
+      - name: Coverage Smart Contract Test
+        run: CI=true truffle run coverage
+
       - name: Deploying Smart Contract
         run: truffle migrate --reset
 

@@ -14,7 +14,7 @@ else
 fi
 
 cd /home/tno-eats
-ganache -h 0.0.0.0 -m "intact satisfy device divert math audit pitch coffee secret skill prefer brass" &
+ganache -h 0.0.0.0 -m "intact satisfy device divert math audit pitch coffee secret skill prefer brass" -l 10000000 &
 truffle migrate --reset
 
 cd /home/tno-eats/client

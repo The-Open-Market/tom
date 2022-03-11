@@ -10,40 +10,49 @@ import "../access/Ownable.sol";
 abstract contract OrderFactory is Ownable {
     
     // TODO: Add info for the deliveryService
-    event OrderPlaced(address indexed seller, uint orderId, string orderContentsUrl);
-    event OrderApproved(uint indexed orderId);
-    event OrderRejected(uint indexed orderId);
-    event OrderAccepted(address indexed deliveryService, uint orderId);
-    event OrderInTransit(uint indexed orderId);
-    event OrderCompleted(uint indexed orderId);
-    event OrderCancelled(uint indexed orderId);
+    event OrderPending(uint id, address indexed client, address indexed seller, string orderContentsUrl);
+    event OrderApproved(uint id, address indexed client, address indexed seller, string sellerZipCode, string clientZipCode);
+    event OrderRejected(uint id, address indexed client, address indexed seller);
+    event OrderAccepted(uint id, address indexed client, address indexed seller, address indexed deliveryService);
+    event OrderPickedUp(uint id, address indexed client, address indexed seller, address indexed deliveryService);
+    event OrderTransferred(uint id, address indexed client, address indexed seller, address indexed deliveryService);
+    event OrderInTransit(uint id, address indexed client, address indexed seller, address indexed deliveryService);
+    event OrderDelivered(uint id, address indexed client, address indexed seller, address indexed deliveryService);
+    event OrderReceived(uint id, address indexed client, address indexed seller, address indexed deliveryService);
+    event OrderCompleted(uint id, address indexed client, address indexed seller, address indexed deliveryService);
+    event OrderCancelled(uint id, address indexed client, address indexed seller);
     
     struct Order {
+        uint id;
         OrderStatus status;
         address client;
         address seller;
         address deliveryService;
+        string orderContentsUrl;
+        string originZipCode;
+        string destinationZipCode;
     }
 
     enum OrderStatus {
-        Pending,     /* order is submitted by a client                       */
-        Approved,    /* order is approved by a seller                        */
-        Rejected,    /* order is rejected by a seller                        */
-        Accepted,    /* order is accepted by a delivery service              */
-        PickedUp,    /* order is picked up by a delivery service             */
-        Transferred, /* order is transferred by a seller to delivery service */
-        InTransit,   /* order is being delivered by the delivery service     */
-        Received,    /* order is received by a client                        */
-        Delivered,   /* order is delivered by a delivery service             */
-        Completed,   /* order is sucessfully completed                       */
-        Disputed,    /* order is disputed by one of the parties              */
-        Canceled     /* order is cancelled before reaching Processing status */
+        Pending,     /* 0  order is submitted by a client                       */
+        Approved,    /* 1  order is approved by a seller                        */
+        Rejected,    /* 2  order is rejected by a seller                        */
+        Accepted,    /* 3  order is accepted by a delivery service              */
+        PickedUp,    /* 4  order is picked up by a delivery service             */
+        Transferred, /* 5  order is transferred by a seller to delivery service */
+        InTransit,   /* 6  order is being delivered by the delivery service     */
+        Received,    /* 7  order is received by a client                        */
+        Delivered,   /* 8  order is delivered by a delivery service             */
+        Completed,   /* 9  order is sucessfully completed                       */
+        Disputed,    /* 10 order is disputed by one of the parties              */
+        Cancelled     /* 11 order is cancelled before reaching Processing status */
     }
 
     Order[] public orders;
 
     mapping (address => uint) clientOrderCount;
     mapping (address => uint) sellerOrderCount;
+    mapping (address => uint) deliveryServiceOrderCount;
 
     modifier senderIsSeller(uint _orderId) {
         Order storage order = orders[_orderId];
@@ -115,7 +124,7 @@ abstract contract OrderFactory is Ownable {
         Order storage order = orders[_orderId];
         require(
                order.status != OrderStatus.Completed
-            || order.status != OrderStatus.Canceled
+            || order.status != OrderStatus.Cancelled
             || order.status != OrderStatus.Disputed,
             "Order is inactive"
         );
@@ -198,10 +207,10 @@ abstract contract OrderFactory is Ownable {
      */
     function _createOrder(address _seller, string memory _orderInfo) internal {
         address client = _msgSender();
-        orders.push(Order(OrderStatus.Pending, client, _seller, address(0)));
-        uint id = orders.length - 1;
+        uint id = orders.length;
+        orders.push(Order(id, OrderStatus.Pending, client, _seller, address(0), "", "", ""));
         clientOrderCount[client]++;
         sellerOrderCount[_seller]++;
-        emit OrderPlaced(_seller, id, _orderInfo);
+        emit OrderPending(id, client, _seller, _orderInfo);
     }
 }

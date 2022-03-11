@@ -1,16 +1,16 @@
 <template>
-  <div id="app">
-    <NavBar />
+  <NavBar />
+  <main class="container mx-auto px-2 pt-6">
     <router-view />
-  </div>
+  </main>
 </template>
 
 <script type="text/javascript">
-import NavBar from "@/components/NavBar.vue";
+import NavBar from "@/components/shared/NavBar.vue";
 
 export default {
   components: {
-    NavBar, // register component
+    NavBar,
   },
 };
 </script>

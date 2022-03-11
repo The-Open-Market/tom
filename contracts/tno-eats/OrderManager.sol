@@ -26,10 +26,12 @@ abstract contract OrderManager is OrderFactory {
      *         Can be called only by the seller and the order needs to be pending.
      * @param _orderId Active order id
      */
-    function approveOrder(uint _orderId) external orderIsActive(_orderId) orderIsPending(_orderId) senderIsSeller(_orderId) {
+    function approveOrder(uint _orderId, string memory sellerZipCode, string memory clientZipCode) external orderIsActive(_orderId) orderIsPending(_orderId) senderIsSeller(_orderId) {
         Order storage order = orders[_orderId];
         order.status = OrderStatus.Approved;
-        emit OrderApproved(_orderId);
+        order.originZipCode = sellerZipCode;
+        order.destinationZipCode = clientZipCode;
+        emit OrderApproved(_orderId, order.client, order.seller, sellerZipCode, clientZipCode);
     }
 
     /**
@@ -40,9 +42,11 @@ abstract contract OrderManager is OrderFactory {
     function acceptOrder(uint _orderId) external orderIsActive(_orderId) orderIsApproved(_orderId) senderIsNotClientOrSeller(_orderId) {
         Order storage order = orders[_orderId];
         // TODO: Check for valid reputation + collateral amount
-        order.deliveryService = _msgSender();
+        address deliveryService = _msgSender();
+        order.deliveryService = deliveryService;
         order.status = OrderStatus.Accepted;
-        emit OrderAccepted(order.deliveryService, _orderId);
+        deliveryServiceOrderCount[deliveryService]++;
+        emit OrderAccepted(_orderId, order.client, order.seller, deliveryService);
     }
 
     /**
@@ -56,12 +60,14 @@ abstract contract OrderManager is OrderFactory {
         address sender = _msgSender();
         if (sender == order.seller && order.status == OrderStatus.Accepted) {
             order.status = OrderStatus.Transferred;
+            emit OrderTransferred(_orderId, order.client, order.seller, order.deliveryService);
         } else if (sender == order.deliveryService && order.status == OrderStatus.Accepted) {
             order.status = OrderStatus.PickedUp;
+            emit OrderPickedUp(_orderId, order.client, order.seller, order.deliveryService);
         } else if (sender == order.seller          && order.status == OrderStatus.PickedUp 
                 || sender == order.deliveryService && order.status == OrderStatus.Transferred) {
             order.status = OrderStatus.InTransit;
-            emit OrderInTransit(_orderId);
+            emit OrderInTransit(_orderId, order.client, order.seller, order.deliveryService);
         } else {
             revert("Illegal operation, cannot set order in transit twice with the same account");
         }
@@ -78,12 +84,14 @@ abstract contract OrderManager is OrderFactory {
         address sender = _msgSender();
         if (sender == order.client && order.status == OrderStatus.InTransit) {
             order.status = OrderStatus.Received;
+            emit OrderReceived(_orderId, order.client, order.seller, order.deliveryService);
         } else if (sender == order.deliveryService && order.status == OrderStatus.InTransit) {
             order.status = OrderStatus.Delivered;
+            emit OrderDelivered(_orderId, order.client, order.seller, order.deliveryService);
         } else if (sender == order.client          && order.status == OrderStatus.Delivered
                 || sender == order.deliveryService && order.status == OrderStatus.Received) {
             order.status = OrderStatus.Completed;
-            emit OrderCompleted(_orderId);
+            emit OrderCompleted(_orderId, order.client, order.seller, order.deliveryService);
         } else {
             revert("Illegal operation, cannot complete order twice with the same account");
         }
@@ -97,9 +105,9 @@ abstract contract OrderManager is OrderFactory {
      */
     function cancelOrder(uint _orderId) external orderIsCancelable(_orderId) senderIsClient(_orderId) {
         Order storage order = orders[_orderId];
-        order.status = OrderStatus.Canceled;
+        order.status = OrderStatus.Cancelled;
         // TODO: Return funds and delivery service collateral if applicable
-        emit OrderCancelled(_orderId);
+        emit OrderCancelled(_orderId, order.client, order.seller);
     }
 
     /**
@@ -112,6 +120,6 @@ abstract contract OrderManager is OrderFactory {
         order.status = OrderStatus.Rejected;
 
         // TODO: Return funds to client
-        emit OrderRejected(_orderId);
+        emit OrderRejected(_orderId, order.client, order.seller);
     }
 }
