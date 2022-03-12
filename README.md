@@ -14,13 +14,13 @@ bootnode -nodekey boot.key -verbosity 9 -addr :30310
 Mining node with http
 
 ```bash
-geth --datadir "node1" --syncmode 'full' --port 30311 --allow-insecure-unlock --http --http.addr="0.0.0.0" --http.api="eth,web3,net,admin,personal,miner" --http.corsdomain="*" --bootnodes "enode://38b65ead58d04bf638908d7993f0d82444bd09fec3f72b61e84dd557f102dc463c359d9ab9c7e408eb48a9876fb92f612c21cf0860f3cb1cc53020fe083b3f38@127.0.0.1:0?discport=30310" --networkid 42069 --unlock '0x39C2F8Fa93d176363c20A5bFe52d9E392dB14aD5' --password 'node1/password.dat' --mine
+geth --datadir "node1" --syncmode 'full' --port 30311 --allow-insecure-unlock --http --http.addr="0.0.0.0" --http.api="eth,web3,net,admin,personal,miner" --http.corsdomain="*" --bootnodes "enode://38b65ead58d04bf638908d7993f0d82444bd09fec3f72b61e84dd557f102dc463c359d9ab9c7e408eb48a9876fb92f612c21cf0860f3cb1cc53020fe083b3f38@127.0.0.1:0?discport=30310" --networkid 42069 --unlock '0x39C2F8Fa93d176363c20A5bFe52d9E392dB14aD5' --password 'node1/password.dat' --mine --miner.threads=1
 ```
 
 Mining node 
 
 ```bash
-geth --datadir "node2" --syncmode 'full' --port 30312 --allow-insecure-unlock --bootnodes "enode://38b65ead58d04bf638908d7993f0d82444bd09fec3f72b61e84dd557f102dc463c359d9ab9c7e408eb48a9876fb92f612c21cf0860f3cb1cc53020fe083b3f38@127.0.0.1:0?discport=30310" --networkid 42069 --unlock '0x666668DEb000a9cc8D4Ccc8a449BC944Dae8bc74' --password 'node2/password.dat' --mine
+geth --datadir "node2" --syncmode 'full' --port 30312 --allow-insecure-unlock --bootnodes "enode://38b65ead58d04bf638908d7993f0d82444bd09fec3f72b61e84dd557f102dc463c359d9ab9c7e408eb48a9876fb92f612c21cf0860f3cb1cc53020fe083b3f38@127.0.0.1:0?discport=30310" --networkid 42069 --unlock '0x666668DEb000a9cc8D4Ccc8a449BC944Dae8bc74' --password 'node2/password.dat' --mine --miner.threads=1
 ```
 
 ### with docker

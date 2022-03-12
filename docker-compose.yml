@@ -1,82 +1,80 @@
 version: '3.2'
 services:
-  # tno-eats:
-  #   container_name: tno-eats
-  #   image: node:16.14 depends_on:
-  #     - geth-bootnode
-  #   working_dir: /home/tno-eats
-  #   entrypoint: /entrypoint.sh
+  tno-eats:
+    container_name: tno-eats
+    image: node:16.14
+    working_dir: /home/tno-eats
+    entrypoint: /entrypoint.sh
+    stdin_open: true
+    tty: true
+    network_mode: host
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/home/tno-eats
+      - ./docker/entrypoint.sh:/entrypoint.sh
+
+  # geth-bootnode:
+  #   hostname: geth-bootnode
+  #   image: ethereum/client-go:alltools-stable
+  #   working_dir: /home
+  #   entrypoint: /bootnode.sh
   #   stdin_open: true
   #   tty: true
   #   ports:
-  #     - "8000:8000"
+  #     - 30310:30310
   #   volumes:
-  #     - ./:/home/tno-eats
-  #     - ./docker/entrypoint.sh:/entrypoint.sh
+  #     - ./boot.key:/home/boot.key
+  #     - ./docker/bootnode.sh:/bootnode.sh
   #   networks:
   #     - shared
 
-  geth-bootnode:
-    hostname: geth-bootnode
-    image: ethereum/client-go:alltools-stable
-    working_dir: /home
-    entrypoint: /bootnode.sh
-    stdin_open: true
-    tty: true
-    ports:
-      - 30310:30310
-    volumes:
-      - ./boot.key:/home/boot.key
-      - ./docker/bootnode.sh:/bootnode.sh
-    networks:
-      - shared
+  # node1:
+  #   hostname: geth-node1
+  #   image: ethereum/client-go:stable
+  #   depends_on:
+  #     - geth-bootnode
+  #   ports:
+  #     - 30311:30311
+  #     - 8545:8545
+  #   command:
+  #     --datadir /home/node1
+  #     --syncmode 'full'
+  #     --port 30311
+  #     --allow-insecure-unlock
+  #     --http
+  #     --http.addr="0.0.0.0"
+  #     --http.api="eth,web3,net,admin,personal,miner"
+  #     --http.corsdomain="*"
+  #     --bootnodes enode://38b65ead58d04bf638908d7993f0d82444bd09fec3f72b61e84dd557f102dc463c359d9ab9c7e408eb48a9876fb92f612c21cf0860f3cb1cc53020fe083b3f38@127.0.0.1:0?discport=30310
+  #     --networkid 42069
+  #     --unlock '0x39C2F8Fa93d176363c20A5bFe52d9E392dB14aD5'
+  #     --password '/home/node1/password.dat'
+  #     --mine
+  #   volumes:
+  #     - ./node1/:/home/node1
+  #   networks:
+  #     - shared
 
-  node1:
-    hostname: geth-node1
-    image: ethereum/client-go:stable
-    depends_on:
-      - geth-bootnode
-    ports:
-      - 30311:30311
-      - 8545:8545
-    command:
-      --datadir /home/node1
-      --syncmode 'full'
-      --port 30311
-      --allow-insecure-unlock
-      --http
-      --http.addr="0.0.0.0"
-      --http.api="eth,web3,net,admin,personal,miner"
-      --http.corsdomain="*"
-      --bootnodes enode://38b65ead58d04bf638908d7993f0d82444bd09fec3f72b61e84dd557f102dc463c359d9ab9c7e408eb48a9876fb92f612c21cf0860f3cb1cc53020fe083b3f38@127.0.0.1:0?discport=30310
-      --networkid 42069
-      --unlock '0x39C2F8Fa93d176363c20A5bFe52d9E392dB14aD5'
-      --password '/home/node1/password.dat'
-      --mine
-    volumes:
-      - ./node1/:/home/node1
-    networks:
-      - shared
-
-  node2:
-    hostname: geth-node2
-    image: ethereum/client-go:stable
-    depends_on:
-      - geth-bootnode
-    command:
-      --datadir /home/node2
-      --syncmode 'full'
-      --port 30312
-      --allow-insecure-unlock
-      --bootnodes enode://38b65ead58d04bf638908d7993f0d82444bd09fec3f72b61e84dd557f102dc463c359d9ab9c7e408eb48a9876fb92f612c21cf0860f3cb1cc53020fe083b3f38@127.0.0.1:0?discport=30310
-      --networkid 42069
-      --unlock '0x666668DEb000a9cc8D4Ccc8a449BC944Dae8bc74'
-      --password '/home/node2/password.dat'
-      --mine
-    volumes:
-      - ./node2/:/home/node2
-    networks:
-      - shared
+  # node2:
+  #   hostname: geth-node2
+  #   image: ethereum/client-go:stable
+  #   depends_on:
+  #     - geth-bootnode
+  #   command:
+  #     --datadir /home/node2
+  #     --syncmode 'full'
+  #     --port 30312
+  #     --allow-insecure-unlock
+  #     --bootnodes enode://38b65ead58d04bf638908d7993f0d82444bd09fec3f72b61e84dd557f102dc463c359d9ab9c7e408eb48a9876fb92f612c21cf0860f3cb1cc53020fe083b3f38@127.0.0.1:0?discport=30310
+  #     --networkid 42069
+  #     --unlock '0x666668DEb000a9cc8D4Ccc8a449BC944Dae8bc74'
+  #     --password '/home/node2/password.dat'
+  #     --mine
+  #   volumes:
+  #     - ./node2/:/home/node2
+  #   networks:
+  #     - shared
 
 networks:
   shared:
