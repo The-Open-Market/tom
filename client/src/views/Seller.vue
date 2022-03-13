@@ -2,7 +2,7 @@
   <OrderContainer title="Pending" flow="row">
     <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Pending.value)" :key="order.id" :order="order">
       <template v-slot:contents>
-        <p>TODO: add contents from IPFS</p>
+        <OrderInfo :order="order" />
       </template>
       <template v-slot:controls>
         <Button text="Reject" styles="red" @click="reject(order.id)"/>
@@ -14,7 +14,7 @@
   <OrderContainer title="Approved" flow="row" class="mt-12">
     <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Approved.value)" :key="order.id" :order="order">
       <template v-slot:contents>
-        <p>TODO: add contents from IPFS</p>
+        <OrderInfo :order="order" />
       </template>
     </OrderCard>
   </OrderContainer>
@@ -23,7 +23,7 @@
     <OrderContainer title="Accepted">
       <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Accepted.value)" :key="order.id" :order="order">
         <template v-slot:contents>
-          <p>TODO: add contents from IPFS</p>
+          <OrderInfo :order="order" />
         </template>
         <template v-slot:controls>
           <Button text="Transfer" styles="blue" @click="transfer(order.id)"/>
@@ -33,7 +33,7 @@
     <OrderContainer title="In transit">
       <OrderCard v-for="order in orders.filter(order => OrderStatus.PickedUp.value <= order.status.value && order.status.value <= OrderStatus.InTransit.value)" :key="order.id" :order="order">
         <template v-slot:contents>
-          <p>TODO: add contents from IPFS</p>
+          <OrderInfo :order="order" />
         </template>
         <template v-slot:controls v-if="order.status.value === OrderStatus.PickedUp.value">
           <Button text="Transfer" styles="blue" @click="transfer(order.id)"/>
@@ -43,7 +43,7 @@
     <OrderContainer title="Completed">
       <OrderCard v-for="order in orders.filter(order => OrderStatus.Received.value <= order.status.value && order.status.value <= OrderStatus.Completed.value)" :key="order.id" :order="order">
         <template v-slot:contents>
-          <p>TODO: add contents from IPFS</p>
+          <OrderInfo :order="order" />
         </template>
       </OrderCard>
     </OrderContainer>
@@ -52,7 +52,7 @@
   <OrderContainer title="Rejected and cancelled" flow="row" class="mt-12">
     <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Rejected.value || order.status.value === OrderStatus.Cancelled.value)" :key="order.id" :order="order">
       <template v-slot:contents>
-        <p>TODO: add contents from IPFS</p>
+          <OrderInfo :order="order" />
       </template>
     </OrderCard>
   </OrderContainer>
@@ -63,6 +63,7 @@ import OrderCard from '@/components/shared/OrderCard.vue';
 import Button from '@/components/shared/Button.vue';
 import OrderGrid from '@/components/shared/OrderGrid.vue';
 import OrderContainer from '@/components/shared/OrderContainer.vue';
+import OrderInfo from '@/components/shared/OrderInfo.vue';
 
 import { reactive, onMounted } from "vue";
 import { OrderStatus } from '@/services/order';
@@ -193,6 +194,7 @@ export default {
     OrderContainer,
     OrderCard,
     Button,
+    OrderInfo,
   },
 }
 </script>

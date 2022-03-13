@@ -2,7 +2,7 @@
   <OrderContainer title="My orders" flow="row">
     <OrderCard v-for="order in orders" :key="order.id" :order="order">
       <template v-slot:contents>
-        <p>TODO: add contents from IPFS</p>
+        <OrderInfo :order="order" />
       </template>
       <template v-slot:controls v-if="order.status.value === OrderStatus.Pending.value">
         <Button text="Cancel" styles="red" @click="cancel(order.id)"/>
@@ -25,6 +25,7 @@ import ShoppingCart from '@/components/client/ShoppingCart.vue'
 import OrderCard from '@/components/shared/OrderCard.vue';
 import Button from '@/components/shared/Button.vue';
 import OrderContainer from '@/components/shared/OrderContainer.vue';
+import OrderInfo from '@/components/shared/OrderInfo.vue';
 
 import { reactive, onMounted } from "vue";
 import { OrderStatus } from '@/services/order';
@@ -206,7 +207,8 @@ export default {
     ShoppingCart,
     OrderContainer,
     OrderCard,
-    Button
+    Button,
+    OrderInfo,
   },
 }
 </script>
