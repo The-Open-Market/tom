@@ -69,6 +69,8 @@ import { OrderStatus } from '@/services/order';
 import { getOrdersBySeller } from '@/services/smartContract';
 import { getSmartContract } from '@/services/ethereum';
 import { approveOrder, rejectOrder, transferOrder } from '@/services/seller';
+import { decryptOrderInfo } from "@/services/crypto";
+import { downloadDeliveryInfo } from "@/services/ipfs";
 
 export default {
   name: 'Seller',
@@ -76,37 +78,48 @@ export default {
   setup() {
     const orders = reactive([]);
 
-    const approve = async(orderId) => { 
+    const approve = async (orderId) => {
       if (await approveOrder(orderId)) {
         const index = orders.findIndex(order => order.id === orderId);
         orders[index].status = OrderStatus.Approved;
       }
     }
 
-    const reject = async(orderId) => {
+    const reject = async (orderId) => {
       if (await rejectOrder(orderId)) {
         const index = orders.findIndex(order => order.id === orderId);
         orders[index].status = OrderStatus.Rejected;
       }
     }
 
-    const transfer = async(orderId) => {
+    const transfer = async (orderId) => {
       if (await transferOrder(orderId)) {
         const index = orders.findIndex(order => order.id === orderId);
         orders[index].status = OrderStatus.Transferred;
       }
     }
 
-    const onOrderPending = (id, client, seller, ipfsUrl) => {
+    const addOrders = async (myOrders) => {
+      const sellerSecretKey = 'z6bXpb5tnHlTc/B9N53ig455/o0lX3eienBkcHbNLeM=';
+
+      for (const order of myOrders) {
+        const downloadedInfo = await downloadDeliveryInfo(order.orderContentsUrl);
+        const orderInformation = await decryptOrderInfo(JSON.parse(downloadedInfo), sellerSecretKey);
+        order.orderInformation = orderInformation;
+        orders.push(order);
+      }
+    }
+
+    const onOrderPending = async (id, client, seller, ipfsUrl) => {
       const orderId = parseInt(id._hex, 16);
       if (orders.every(order => order.id !== orderId)) {
-        orders.push({
+        await addOrders([{
           id: orderId,
           status: OrderStatus.Pending,
           client,
           seller,
-          ipfsUrl
-        });
+          orderContentsUrl: ipfsUrl
+        }]);
       }
     }
 
@@ -132,7 +145,7 @@ export default {
     onMounted(async () => {
       const address = "0x59Ce492d182688239C118AcFEb1A4872Ce3B1231";
       const myOrders = await getOrdersBySeller(address);
-      orders.push(...myOrders);
+      await addOrders(myOrders);
 
       const { tnoEats } = await getSmartContract();
 

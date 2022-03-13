@@ -31,8 +31,8 @@ import { OrderStatus } from '@/services/order';
 import { getOrdersByClient } from '@/services/smartContract';
 import { getSmartContract } from '@/services/ethereum';
 import { placeOrder, cancelOrder, receiveOrder } from '@/services/client';
-import { encryptOrderInfo } from "@/services/crypto";
-import { uploadDeliveryInfo } from "@/services/ipfs";
+import { encryptOrderInfo, decryptOrderInfo } from "@/services/crypto";
+import { uploadDeliveryInfo, downloadDeliveryInfo } from "@/services/ipfs";
 
 export default {
   name: "Client",
@@ -82,30 +82,42 @@ export default {
       await placeOrder(sellerAddress, path);
     }
 
-    const cancel = async(orderId) => {
+    const cancel = async (orderId) => {
       if (await cancelOrder(orderId)) {
         const index = orders.findIndex(order => order.id === orderId);
         orders[index].status = OrderStatus.Cancelled;
       }
     }
 
-    const receive = async(orderId) => {
+    const receive = async (orderId) => {
       if (await receiveOrder(orderId)) {
         const index = orders.findIndex(order => order.id === orderId);
         orders[index].status = OrderStatus.Received;
       }
     }
 
+    const addOrders = async (myOrders) => {
+      const sellerSecretKey = 'z6bXpb5tnHlTc/B9N53ig455/o0lX3eienBkcHbNLeM=';
+
+      for (const order of myOrders) {
+        // TODO: Do not use sellerSecretKey to decrypt
+        const downloadedInfo = await downloadDeliveryInfo(order.orderContentsUrl);
+        const orderInformation = await decryptOrderInfo(JSON.parse(downloadedInfo), sellerSecretKey);
+        order.orderInformation = orderInformation;
+        orders.push(order);
+      }
+    }
+
     const onOrderPending = (id, client, seller, ipfsUrl) => {
       const orderId = parseInt(id._hex, 16);
       if (orders.every(order => order.id !== orderId)) {
-        orders.push({
+        addOrders([{
           id: orderId,
           status: OrderStatus.Pending,
           client,
           seller,
-          ipfsUrl
-        });
+          orderContentsUrl: ipfsUrl
+        }]);
       }
     }
 
@@ -137,7 +149,7 @@ export default {
     onMounted(async () => {
       const address = "0x3096cc43379D09d411A6f979E00e29f057929579";
       const myOrders = await getOrdersByClient(address);
-      orders.push(...myOrders);
+      addOrders(myOrders);
 
       const { tnoEats } = await getSmartContract();
 
