@@ -1,3 +1,3 @@
 #!/bin/sh
 
-bootnode -nodekey boot.key -verbosity 9 -addr :30310
+bootnode -nodekey boot.key --verbosity 3 -addr :30310
