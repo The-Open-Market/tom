@@ -9,7 +9,10 @@ const mapOrders = (orderArrays) => {
       status: OrderStatusMap[orderArrays[key].status],
       client: orderArrays[key].client,
       seller: orderArrays[key].seller,
-      deliveryService: orderArrays[key].deliveryService
+      deliveryService: orderArrays[key].deliveryService,
+      orderContentsUrl: orderArrays[key].orderContentsUrl,
+      originZipCode: orderArrays[key].originZipCode,
+      destinationZipCode: orderArrays[key].destinationZipCode,
     });
   }
   return orders;

@@ -208,7 +208,7 @@ abstract contract OrderFactory is Ownable {
     function _createOrder(address _seller, string memory _orderInfo) internal {
         address client = _msgSender();
         uint id = orders.length;
-        orders.push(Order(id, OrderStatus.Pending, client, _seller, address(0), "", "", ""));
+        orders.push(Order(id, OrderStatus.Pending, client, _seller, address(0), _orderInfo, "", ""));
         clientOrderCount[client]++;
         sellerOrderCount[_seller]++;
         emit OrderPending(id, client, _seller, _orderInfo);
