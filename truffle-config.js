@@ -19,7 +19,6 @@
  */
 
 const HDWalletProvider = require('@truffle/hdwallet-provider');
-console.log(HDWalletProvider)
 const fs = require('fs');
 const secrets = JSON.parse(fs.readFileSync(".secrets.json").toString().trim());
 

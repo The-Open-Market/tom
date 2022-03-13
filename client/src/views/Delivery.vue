@@ -55,8 +55,8 @@ import OrderContainer from '@/components/shared/OrderContainer.vue';
 
 import { reactive, onMounted } from 'vue';
 import { OrderStatus } from '@/services/order';
-import { getSmartContract } from '@/services/ethereum';
-import { getOrdersByDeliveryService, getApprovedOrders } from '@/services/smartContract';
+import { getSmartContract, getSignerAddress } from '@/services/ethereum';
+import { getOrdersByDeliveryService, getApprovedOrders } from '@/services/tnoEats';
 import { acceptOrder, pickupOrder, deliverOrder } from '@/services/deliveryService';
 
 export default {
@@ -115,12 +115,11 @@ export default {
     };
 
     onMounted(async () => {
-      const address = "0x15f5319b330D8Da1E3a3852Fabcc60BFBA062919";
+      const address = await getSignerAddress();
       const myOrders = await getOrdersByDeliveryService(address);
       orders.push(...myOrders);
       const approvedOrders = await getApprovedOrders();
       orders.push(...approvedOrders);
-      console.log(orders);
       const { tnoEats } = await getSmartContract();
 
       tnoEats.on("OrderApproved", onOrderApproved);

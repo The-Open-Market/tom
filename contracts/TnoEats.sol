@@ -11,8 +11,11 @@ import "./OrderDispute.sol";
  */
 contract TnoEats is OrderHelper, OrderManager, OrderDispute {
 
-    // TODO: Add constructor and make it ownable
-    constructor(address _euroToken) {
+    constructor(address _eurTnoContract) {
+        eurTnoContract = _eurTnoContract;
+    }
 
+    function changeEurTnoAddress(address _eurTnoContract) external onlyOwner {
+        eurTnoContract = _eurTnoContract;
     }
 }

@@ -43,7 +43,6 @@
           </div>
         </div>
       </div>
-      
     </div>
   </div>
 </nav>
@@ -51,6 +50,6 @@
 
 <script>
 export default {
-  name: "NavBar",
+  name: "NavBar"
 };
 </script>

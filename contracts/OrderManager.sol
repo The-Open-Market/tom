@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./OrderFactory.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title Order managing functionality
@@ -14,10 +15,11 @@ abstract contract OrderManager is OrderFactory {
      * @param _seller The address of the seller
      * @param _orderInfo Url to the encoded order data stored in IPFS
      */
-    function placeOrder(address _seller, string memory _orderInfo) external validAddress(_seller) {
+    function placeOrder(address _seller, string memory _orderInfo, uint _amount) external validAddress(_seller) {
         // TODO: Handle collateral of user and amount of purchase
         // TODO: Check for valid reputation + collateral amount
-        _createOrder(_seller, _orderInfo);
+        IERC20(eurTnoContract).transferFrom(_msgSender(), address(this), _amount);  // TODO: Check if successful
+        _createOrder(_seller, _orderInfo, _amount);
     }
 
     /**
@@ -90,6 +92,7 @@ abstract contract OrderManager is OrderFactory {
         } else if (sender == order.client          && order.status == OrderStatus.Delivered
                 || sender == order.deliveryService && order.status == OrderStatus.Received) {
             order.status = OrderStatus.Completed;
+            IERC20(eurTnoContract).transfer(order.seller, order.amount);
             emit OrderCompleted(_orderId, order.client, order.seller, order.deliveryService);
         } else {
             revert("Illegal operation, cannot complete order twice with the same account");
@@ -105,7 +108,7 @@ abstract contract OrderManager is OrderFactory {
     function cancelOrder(uint _orderId) external orderIsCancelable(_orderId) senderIsClient(_orderId) {
         Order storage order = orders[_orderId];
         order.status = OrderStatus.Cancelled;
-        // TODO: Return funds and delivery service collateral if applicable
+        IERC20(eurTnoContract).transfer(order.client, order.amount);
         emit OrderCancelled(_orderId, order.client, order.seller);
     }
 
@@ -117,8 +120,7 @@ abstract contract OrderManager is OrderFactory {
     function rejectOrder(uint _orderId) external orderIsPending(_orderId) senderIsSeller(_orderId) {
         Order storage order = orders[_orderId];
         order.status = OrderStatus.Rejected;
-
-        // TODO: Return funds to client
+        IERC20(eurTnoContract).transfer(order.client, order.amount);
         emit OrderRejected(_orderId, order.client, order.seller);
     }
 }

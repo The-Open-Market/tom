@@ -23,6 +23,7 @@ abstract contract OrderFactory is Ownable {
     
     struct Order {
         uint id;
+        uint amount;
         OrderStatus status;
         address client;
         address seller;
@@ -52,6 +53,8 @@ abstract contract OrderFactory is Ownable {
     mapping (address => uint) clientOrderCount;
     mapping (address => uint) sellerOrderCount;
     mapping (address => uint) deliveryServiceOrderCount;
+
+    address eurTnoContract;
 
     modifier senderIsSeller(uint _orderId) {
         Order storage order = orders[_orderId];
@@ -204,10 +207,10 @@ abstract contract OrderFactory is Ownable {
      * @param _seller The address of the seller
      * @param _orderInfo Url to the encoded order data stored in IPFS
      */
-    function _createOrder(address _seller, string memory _orderInfo) internal {
+    function _createOrder(address _seller, string memory _orderInfo, uint _amount) internal {
         address client = _msgSender();
         uint id = orders.length;
-        orders.push(Order(id, OrderStatus.Pending, client, _seller, address(0), _orderInfo, "", ""));
+        orders.push(Order(id, _amount, OrderStatus.Pending, client, _seller, address(0), _orderInfo, "", ""));
         clientOrderCount[client]++;
         sellerOrderCount[_seller]++;
         emit OrderPending(id, client, _seller, _orderInfo);

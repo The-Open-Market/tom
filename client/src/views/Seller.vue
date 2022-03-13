@@ -67,8 +67,8 @@ import OrderInfo from '@/components/shared/OrderInfo.vue';
 
 import { reactive, onMounted } from "vue";
 import { OrderStatus } from '@/services/order';
-import { getOrdersBySeller } from '@/services/smartContract';
-import { getSmartContract } from '@/services/ethereum';
+import { getOrdersBySeller } from '@/services/tnoEats';
+import { getSmartContract, getSignerAddress } from '@/services/ethereum';
 import { approveOrder, rejectOrder, transferOrder } from '@/services/seller';
 import { decryptOrderInfo } from "@/services/crypto";
 import { downloadDeliveryInfo } from "@/services/ipfs";
@@ -144,7 +144,7 @@ export default {
     }
 
     onMounted(async () => {
-      const address = "0x59Ce492d182688239C118AcFEb1A4872Ce3B1231";
+      const address = await getSignerAddress();
       const myOrders = await getOrdersBySeller(address);
       await addOrders(myOrders);
 
