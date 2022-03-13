@@ -13,8 +13,14 @@ else
   npm install -g ganache
 fi
 
+if hash yarn 2>/dev/null; then
+  echo "Yarn already installed."
+else
+  npm install -g yarn
+fi
+
 cd /home/tno-eats
-npm install --save
+yarn
 ganache -h 0.0.0.0 -m "intact satisfy device divert math audit pitch coffee secret skill prefer brass" -l 10000000 &
 truffle migrate --reset
 

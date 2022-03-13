@@ -135,3 +135,5 @@ dist
 .DS_Store
 .idea
 .vscode
+
+.secrets.json

@@ -15,7 +15,6 @@ abstract contract OrderManager is OrderFactory {
      * @param _orderInfo Url to the encoded order data stored in IPFS
      */
     function placeOrder(address _seller, string memory _orderInfo) external validAddress(_seller) {
-        // TODO: ZIP Codes, distance
         // TODO: Handle collateral of user and amount of purchase
         // TODO: Check for valid reputation + collateral amount
         _createOrder(_seller, _orderInfo);

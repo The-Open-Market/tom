@@ -8,8 +8,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * @notice This contract holds orders and allows to create new orders.
  */
 abstract contract OrderFactory is Ownable {
-    
-    // TODO: Add info for the deliveryService
+
     event OrderPending(uint id, address indexed client, address indexed seller, string orderContentsUrl);
     event OrderApproved(uint id, address indexed client, address indexed seller, string sellerZipCode, string clientZipCode);
     event OrderRejected(uint id, address indexed client, address indexed seller);
