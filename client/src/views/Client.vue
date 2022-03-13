@@ -2,7 +2,7 @@
   <OrderContainer title="My orders" flow="row">
     <OrderCard v-for="order in orders" :key="order.id" :order="order">
       <template v-slot:contents>
-        <p>TODO: add contents from IPFS</p>
+        <OrderInfo :order="order" />
       </template>
       <template v-slot:controls v-if="order.status.value === OrderStatus.Pending.value">
         <Button text="Cancel" styles="red" @click="cancel(order.id)"/>
@@ -25,14 +25,15 @@ import ShoppingCart from '@/components/client/ShoppingCart.vue'
 import OrderCard from '@/components/shared/OrderCard.vue';
 import Button from '@/components/shared/Button.vue';
 import OrderContainer from '@/components/shared/OrderContainer.vue';
+import OrderInfo from '@/components/shared/OrderInfo.vue';
 
 import { reactive, onMounted } from "vue";
 import { OrderStatus } from '@/services/order';
 import { getOrdersByClient } from '@/services/smartContract';
 import { getSmartContract } from '@/services/ethereum';
 import { placeOrder, cancelOrder, receiveOrder } from '@/services/client';
-import { encryptOrderInfo } from "@/services/crypto";
-import { uploadDeliveryInfo } from "@/services/ipfs";
+import { encryptOrderInfo, decryptOrderInfo } from "@/services/crypto";
+import { uploadDeliveryInfo, downloadDeliveryInfo } from "@/services/ipfs";
 
 export default {
   name: "Client",
@@ -75,37 +76,52 @@ export default {
       const sellerAddress = "0x59Ce492d182688239C118AcFEb1A4872Ce3B1231";
 
       // TODO: Add all necessary information to be encrypted
-      const orderInfo = { cartContents, clientAddress };
+      const orderInfo = {
+        cart: [...cartContents],
+        deliveryAddress: {...clientAddress},
+      };
       const encrypted = await encryptOrderInfo(sellerPublicKey, clientPublicKey, clientSecretKey, orderInfo);
       const path = await uploadDeliveryInfo(encrypted);
 
       await placeOrder(sellerAddress, path);
     }
 
-    const cancel = async(orderId) => {
+    const cancel = async (orderId) => {
       if (await cancelOrder(orderId)) {
         const index = orders.findIndex(order => order.id === orderId);
         orders[index].status = OrderStatus.Cancelled;
       }
     }
 
-    const receive = async(orderId) => {
+    const receive = async (orderId) => {
       if (await receiveOrder(orderId)) {
         const index = orders.findIndex(order => order.id === orderId);
         orders[index].status = OrderStatus.Received;
       }
     }
 
+    const addOrders = async (myOrders) => {
+      const sellerSecretKey = 'z6bXpb5tnHlTc/B9N53ig455/o0lX3eienBkcHbNLeM=';
+
+      for (const order of myOrders) {
+        // TODO: Do not use sellerSecretKey to decrypt
+        const downloadedInfo = await downloadDeliveryInfo(order.orderContentsUrl);
+        const orderInformation = await decryptOrderInfo(JSON.parse(downloadedInfo), sellerSecretKey);
+        order.orderInformation = orderInformation;
+        orders.push(order);
+      }
+    }
+
     const onOrderPending = (id, client, seller, ipfsUrl) => {
       const orderId = parseInt(id._hex, 16);
       if (orders.every(order => order.id !== orderId)) {
-        orders.push({
+        addOrders([{
           id: orderId,
           status: OrderStatus.Pending,
           client,
           seller,
-          ipfsUrl
-        });
+          orderContentsUrl: ipfsUrl
+        }]);
       }
     }
 
@@ -137,7 +153,7 @@ export default {
     onMounted(async () => {
       const address = "0x3096cc43379D09d411A6f979E00e29f057929579";
       const myOrders = await getOrdersByClient(address);
-      orders.push(...myOrders);
+      addOrders(myOrders);
 
       const { tnoEats } = await getSmartContract();
 
@@ -194,7 +210,8 @@ export default {
     ShoppingCart,
     OrderContainer,
     OrderCard,
-    Button
+    Button,
+    OrderInfo,
   },
 }
 </script>
