@@ -76,7 +76,10 @@ export default {
       const sellerAddress = "0x59Ce492d182688239C118AcFEb1A4872Ce3B1231";
 
       // TODO: Add all necessary information to be encrypted
-      const orderInfo = { cartContents, clientAddress };
+      const orderInfo = {
+        cart: [...cartContents],
+        deliveryAddress: {...clientAddress},
+      };
       const encrypted = await encryptOrderInfo(sellerPublicKey, clientPublicKey, clientSecretKey, orderInfo);
       const path = await uploadDeliveryInfo(encrypted);
 
