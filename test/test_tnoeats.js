@@ -184,6 +184,15 @@ contract("TnoEats", accounts => {
         truffleAssert.fails(contract.cancelOrder(orderId, { from: seller_a }));
         truffleAssert.fails(contract.cancelOrder(orderId, { from: delivery_a }));
     });
+    
+    it("deliveryFee should not be higher than the amount in the contract", async () => {
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
+        const orderId = result.logs[0].args.id.toNumber();
+        const deliveryFee = amount + 1;
+        truffleAssert.fails(contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a }));
+    })
 
     it("client should not be able to complete not-accepted order", async () => {
         let amount = 1000;
