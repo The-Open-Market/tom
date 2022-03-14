@@ -27,12 +27,17 @@ abstract contract OrderManager is OrderFactory {
      *         Can be called only by the seller and the order needs to be pending.
      * @param _orderId Active order id
      */
-    function approveOrder(uint _orderId, string memory sellerZipCode, string memory clientZipCode) external orderIsActive(_orderId) orderIsPending(_orderId) senderIsSeller(_orderId) {
+    function approveOrder(uint _orderId, string memory sellerZipCode, string memory clientZipCode, uint _deliveryFee) external orderIsActive(_orderId) orderIsPending(_orderId) senderIsSeller(_orderId) {
         Order storage order = orders[_orderId];
+        // TODO: Stack Too Deep error when using checkDeliveryFee modifier 
+        require(
+            _deliveryFee <= order.amount
+        );
         order.status = OrderStatus.Approved;
         order.originZipCode = sellerZipCode;
         order.destinationZipCode = clientZipCode;
-        emit OrderApproved(_orderId, order.client, order.seller, sellerZipCode, clientZipCode);
+        order.deliveryFee = _deliveryFee;
+        emit OrderApproved(_orderId, order.client, order.seller, sellerZipCode, clientZipCode, _deliveryFee);
     }
 
     /**
@@ -92,7 +97,8 @@ abstract contract OrderManager is OrderFactory {
         } else if (sender == order.client          && order.status == OrderStatus.Delivered
                 || sender == order.deliveryService && order.status == OrderStatus.Received) {
             order.status = OrderStatus.Completed;
-            IERC20(eurTnoContract).transfer(order.seller, order.amount);
+            IERC20(eurTnoContract).transfer(order.seller, order.amount - order.deliveryFee);
+            IERC20(eurTnoContract).transfer(order.deliveryService, order.deliveryFee);
             emit OrderCompleted(_orderId, order.client, order.seller, order.deliveryService);
         } else {
             revert("Illegal operation, cannot complete order twice with the same account");

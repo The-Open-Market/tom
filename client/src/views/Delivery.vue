@@ -86,7 +86,7 @@ export default {
       }
     };
     
-    const onOrderApproved = (id, client, seller, sellerZipCode, clientZipCode) => {
+    const onOrderApproved = (id, client, seller, sellerZipCode, clientZipCode, deliveryFee) => {
       const orderId = parseInt(id._hex, 16);
       if (orders.every(order => order.id !== orderId)) {
         orders.push({
@@ -95,7 +95,8 @@ export default {
           client,
           seller,
           sellerZipCode,
-          clientZipCode
+          clientZipCode,
+          deliveryFee,
         });
       }
     };

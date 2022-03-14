@@ -14,6 +14,7 @@ const mapOrders = (orderArrays) => {
       originZipCode: orderArrays[key].originZipCode,
       destinationZipCode: orderArrays[key].destinationZipCode,
       amount: orderArrays[key].amount,
+      deliveryFee: orderArrays[key].deliveryFee,
     });
   }
   return orders;
