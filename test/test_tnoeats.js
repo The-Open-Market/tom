@@ -1,4 +1,5 @@
-const TnoEats = artifacts.require("TnoEats");
+const EurTno = artifacts.require('EurTno')
+const TnoEats = artifacts.require('TnoEats');
 const truffleAssert = require('truffle-assertions');
 
 contract("TnoEats", accounts => {
@@ -37,13 +38,17 @@ contract("TnoEats", accounts => {
     const [seller_a, seller_b, delivery_a, delivery_b, client_a, client_b] = accounts;
     const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
     let contract;
+    let euroContract;
 
     beforeEach(async () => {
         contract = await TnoEats.deployed();
+        euroContract = await EurTno.deployed();
     });
 
     it("client should be able to start a new order", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         assert.equal(0, result.logs[0].args.id.toNumber());
         truffleAssert.eventEmitted(result, 'OrderPending');
         const order = await contract.orders.call(0);
@@ -57,22 +62,28 @@ contract("TnoEats", accounts => {
     });
 
     it("seller should be able to accept incoming order", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
         const pendingOrder = await contract.orders.call(orderId);
         assert.equal('Pending', ORDER_STATUSES[pendingOrder.status.toNumber()]);
-        const approvedResult = await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        let deliveryFee = 500;
+        const approvedResult = await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         truffleAssert.eventEmitted(approvedResult, 'OrderApproved');
         const approvedOrder = await contract.orders.call(orderId);
         assert.equal('Approved', ORDER_STATUSES[approvedOrder.status.toNumber()]);
     });
 
     it("delivery service should be able to accept new order", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
         const pendingOrder = await contract.orders.call(orderId);
         assert.equal('Pending', ORDER_STATUSES[pendingOrder.status.toNumber()]);
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         const approvedOrder = await contract.orders.call(orderId);
         assert.equal('Approved', ORDER_STATUSES[approvedOrder.status.toNumber()]);
         const acceptedResult = await contract.acceptOrder(orderId, { from: delivery_a });
@@ -83,18 +94,24 @@ contract("TnoEats", accounts => {
     });
 
     it("delivery service cannot accept already taken orders", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         truffleAssert.fails(contract.acceptOrder(orderId, { from: delivery_b }));
     });
 
     it("order of acceptance is seller then delivery", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
 
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         const approvedOrder = await contract.orders.call(orderId);
         assert.equal('Approved', ORDER_STATUSES[approvedOrder.status.toNumber()]);
 
@@ -109,7 +126,9 @@ contract("TnoEats", accounts => {
     });
 
     it("client should be able to instantly refund not processed order", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
         const canceledResult = await contract.cancelOrder(orderId, { from: client_a });
         const canceledOrder = await contract.orders.call(orderId);
@@ -118,7 +137,9 @@ contract("TnoEats", accounts => {
     });
 
     it("seller should be able to reject not processed order", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
         const rejectedResult = await contract.rejectOrder(orderId, { from: seller_a });
         const rejectedOrder = await contract.orders.call(orderId);
@@ -131,7 +152,9 @@ contract("TnoEats", accounts => {
     });
 
     it("external seller should not be able to reject an order", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
         truffleAssert.fails(contract.rejectOrder(orderId, { from: seller_b }));
         const rejectedOrder = await contract.orders.call(orderId);
@@ -139,17 +162,23 @@ contract("TnoEats", accounts => {
     });
 
     it("client/seller should not be able to refund/reject partially accepted order", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         truffleAssert.fails(contract.cancelOrder(orderId, { from: client_a }));
         truffleAssert.fails(contract.rejectOrder(orderId, { from: seller_a }));
     });
 
     it("client should not be able to refund processing order", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         truffleAssert.fails(contract.cancelOrder(orderId, { from: client_a }));
         truffleAssert.fails(contract.cancelOrder(orderId, { from: seller_a }));
@@ -157,22 +186,29 @@ contract("TnoEats", accounts => {
     });
 
     it("client should not be able to complete not-accepted order", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
         truffleAssert.fails(contract.completeOrder(orderId, { from: client_a }));
     });
 
     it("seller should not be able to complete not-accepted order", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
         truffleAssert.fails(contract.completeOrder(orderId, { from: seller_a }));
     });
 
 
     it("seller should not be able to complete order", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         truffleAssert.fails(contract.completeOrder(orderId, { from: seller_a }));
     });
@@ -190,15 +226,20 @@ contract("TnoEats", accounts => {
     });
 
     it("external seller should not be able to accept different seller order", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
         truffleAssert.fails(contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_b }));
     });
 
     it("external party should not be able to complete different seller order", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         truffleAssert.fails(contract.completeOrder(orderId, { from: seller_b }));
         truffleAssert.fails(contract.completeOrder(orderId, { from: delivery_b }));
@@ -206,15 +247,20 @@ contract("TnoEats", accounts => {
     });
 
     it("external seller should not be able to refund different seller order", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
         truffleAssert.fails(contract.cancelOrder(orderId, { from: seller_b }));
     });
 
     it("delivery service picks up order then seller transfers it", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         const pickedupResult = await contract.transferOrder(orderId, { from: delivery_a });
         const pickedUpOrder = await contract.orders.call(orderId);
@@ -227,9 +273,12 @@ contract("TnoEats", accounts => {
     });
 
     it("seller transfers order then delivery service picks it up", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         const transferredResult = await contract.transferOrder(orderId, { from: seller_a });
         const transferredOrder = await contract.orders.call(orderId);
@@ -242,27 +291,36 @@ contract("TnoEats", accounts => {
     });
 
     it("seller cannot call transfer twice", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         await contract.transferOrder(orderId, { from: seller_a });
         truffleAssert.fails(contract.transferOrder(orderId, { from: seller_a }));
     });
 
     it("delivery service cannot call transfer twice", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         await contract.transferOrder(orderId, { from: delivery_a });
         truffleAssert.fails(contract.transferOrder(orderId, { from: delivery_a }));
     });
 
     it("intransit order cannot be canceled", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         await contract.transferOrder(orderId, { from: delivery_a });
         await contract.transferOrder(orderId, { from: seller_a });
@@ -272,9 +330,12 @@ contract("TnoEats", accounts => {
     });
 
     it("client then delivery service should be able to finalize transaction", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         await contract.transferOrder(orderId, { from: delivery_a });
         await contract.transferOrder(orderId, { from: seller_a });
@@ -289,9 +350,12 @@ contract("TnoEats", accounts => {
     });
 
     it("delivery service then client should be able to finalize transaction", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         await contract.transferOrder(orderId, { from: delivery_a });
         await contract.transferOrder(orderId, { from: seller_a });
@@ -306,9 +370,12 @@ contract("TnoEats", accounts => {
     });
 
     it("client cannot call complete order twice to finalize transaction #55", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         await contract.transferOrder(orderId, { from: delivery_a });
         await contract.transferOrder(orderId, { from: seller_a });
@@ -317,9 +384,12 @@ contract("TnoEats", accounts => {
     });
 
     it("delivery service cannot call complete order twice to finalize transaction #55", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         await contract.transferOrder(orderId, { from: delivery_a });
         await contract.transferOrder(orderId, { from: seller_a });
@@ -329,17 +399,23 @@ contract("TnoEats", accounts => {
 
 
     it("client should not be able to transfer his delivery order", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         truffleAssert.fails(contract.transferOrder(orderId, { from: client_a }));
     });
 
     it("external party should not be able to transfer different delivery order", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         truffleAssert.fails(contract.transferOrder(orderId, { from: client_b }));
         truffleAssert.fails(contract.transferOrder(orderId, { from: seller_b }));
@@ -347,9 +423,12 @@ contract("TnoEats", accounts => {
     });
 
     it("seller should not be able to complete the order", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         await contract.transferOrder(orderId, { from: delivery_a });
         await contract.transferOrder(orderId, { from: seller_a });
@@ -357,9 +436,12 @@ contract("TnoEats", accounts => {
     });
 
     it("external party should not be able to complete different delivery order", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         await contract.transferOrder(orderId, { from: delivery_a });
         await contract.transferOrder(orderId, { from: seller_a });
@@ -369,10 +451,12 @@ contract("TnoEats", accounts => {
     });
 
     it("client should not be able to accept his own order", async () => {
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", { from: client_a });
+        let amount = 1000;
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         const orderId = result.logs[0].args.id.toNumber();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a });
+        const deliveryFee = 500;
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
         truffleAssert.fails(contract.acceptOrder(orderId, { from: client_a }));
     });
-
 });
