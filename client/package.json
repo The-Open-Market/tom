@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "@metamask/detect-provider": "^1.2.0",
-    "crypto": "^1.0.1",
     "ethers": "^5.4.0",
     "ipfs-http-client": "^56.0.1",
     "tweetnacl": "^1.0.3",

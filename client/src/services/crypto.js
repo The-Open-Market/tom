@@ -1,11 +1,10 @@
-import { box, randomBytes } from 'tweetnacl';
+import { box, randomBytes, hash } from 'tweetnacl';
 import {
   decodeUTF8,
   encodeUTF8,
   encodeBase64,
   decodeBase64
 } from 'tweetnacl-util';
-import { createHash } from 'crypto';
 
 // Using: https://github.com/dchest/tweetnacl-js/wiki/Examples
 const newNonce = () => randomBytes(box.nonceLength);
@@ -51,12 +50,20 @@ const decrypt = (secretOrSharedKey, messageWithNonce, key) => {
 const encryptOrderInfo = async (sellerPublicKey, clientPublicKey, clientSecretKey, orderInfo) => {
     const shared = box.before(decodeBase64(sellerPublicKey), decodeBase64(clientSecretKey));
     const orderInformation =  encrypt(shared, orderInfo);
-    const hash = createHash('sha256').update(orderInfo['clientAddress']['street']).digest('hex')
+
+    const full_address = orderInfo['clientAddress']['street'] + 
+      orderInfo['clientAddress']['house_nr'] +
+      orderInfo['clientAddress']['house_nr_add'] +
+      orderInfo['clientAddress']['zip'];
+
+    const salt = randomBytes(10);
+    const hashed_address = hash(decodeUTF8(full_address) + salt) + '$' + salt;
+
     return JSON.stringify({
         sellerPublicKey,
         clientPublicKey,
         orderInformation,
-        hash,
+        hashed_address,
     });
 };
 
@@ -65,5 +72,12 @@ const decryptOrderInfo = async ({ clientPublicKey, orderInformation }, sellerSec
     const decrypted = decrypt(shared, orderInformation);
     return decrypted;
 };
+
+const isValidHash = async (clientAddress, hashed_address) => {
+    const hash_part = hashed_address.split('$')[0];
+    const salt = hashed_address.split('$')[1];
+
+    return hash(decodeUTF8(clientAddress) + salt) == hash_part;
+}
 
 export { encryptOrderInfo, decryptOrderInfo };
