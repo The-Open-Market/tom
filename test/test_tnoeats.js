@@ -67,7 +67,9 @@ contract("TnoEats", accounts => {
     }
     
     async function transferOrder() {
-        const orderId = await transferOrder();
+        const orderId = await acceptOrder();
+        await contract.transferOrder(orderId, { from: delivery_a });
+        await contract.transferOrder(orderId, { from: seller_a });
         return orderId;
     }
 
