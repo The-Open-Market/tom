@@ -5,6 +5,7 @@ import {
   encodeBase64,
   decodeBase64
 } from 'tweetnacl-util';
+import { createHash } from 'crypto';
 
 // Using: https://github.com/dchest/tweetnacl-js/wiki/Examples
 const newNonce = () => randomBytes(box.nonceLength);
@@ -50,10 +51,12 @@ const decrypt = (secretOrSharedKey, messageWithNonce, key) => {
 const encryptOrderInfo = async (sellerPublicKey, clientPublicKey, clientSecretKey, orderInfo) => {
     const shared = box.before(decodeBase64(sellerPublicKey), decodeBase64(clientSecretKey));
     const orderInformation =  encrypt(shared, orderInfo);
+    const hash = createHash('sha256').update(orderInfo['clientAddress']['street']).digest('hex')
     return JSON.stringify({
         sellerPublicKey,
         clientPublicKey,
         orderInformation,
+        hash,
     });
 };
 
