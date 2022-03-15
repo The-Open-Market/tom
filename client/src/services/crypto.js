@@ -57,12 +57,13 @@ const encryptOrderInfo = async (sellerPublicKey, clientPublicKey, clientSecretKe
       orderInfo['deliveryAddress']['hnr_add'] +
       orderInfo['deliveryAddress']['zip'];
 
+	// TODO: make hashing bruteforce resistant
     const salt = Uint8Array.from(randomBytes(10));
 	const hashInput = Uint8Array.from(decodeUTF8(fullAddress) + salt)
     const hashedAddress = Buffer.from(hash(hashInput)).toString('hex') + '$' + Buffer.from(salt).toString('base64');
 
 	// DEBUG IF HASH IS VALID
-	//isValidHash(fullAddress, hashedAddress).then((val) => console.log(val ? 'HASH IS VALID' : 'HAS IS INVALID'), (err) => console.log(err));
+	isValidHash(fullAddress, hashedAddress).then((val) => console.log(val ? 'HASH IS VALID' : 'HAS IS INVALID'), (err) => console.log(err));
 
     return JSON.stringify({
         sellerPublicKey,

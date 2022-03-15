@@ -1,6 +1,6 @@
 <template>
   <div>
-    <p>Delivery address: {{ deliveryAddress.street }} {{ deliveryAddress.hnr }}, {{ deliveryAddress.zip }}</p>
+    <p>Delivery address: {{ deliveryAddress.street }} {{ deliveryAddress.hnr }} {{ deliveryAddress.hnr_add }}, {{ deliveryAddress.zip }}</p>
     <p>Order details ({{ items }} item{{ items > 1 ? 's' : '' }}):</p>
     <div v-for="product in cart" :key="product.id">
       <p>{{ product.quantity }}x {{ product.name }}: €{{ parseFloat(product.price).toFixed(2) }}</p>
