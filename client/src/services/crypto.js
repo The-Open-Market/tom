@@ -80,7 +80,7 @@ const decryptOrderInfo = async ({ clientPublicKey, orderInformation }, sellerSec
 
 const isValidHash = async (clientAddress, hashedAddress) => {
     const hashPart = hashedAddress.split('$')[0];
-    const salt = decodeBase64(hashed_address.split('$')[1]);
+    const salt = decodeBase64(hashedAddress.split('$')[1]);
 	const hashInput = Uint8Array.from(encodeBase64(clientAddress) + salt)
 
     return Buffer.from(hash(hashInput)).toString('hex') == hashPart;
