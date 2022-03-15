@@ -52,14 +52,14 @@ const encryptOrderInfo = async (sellerPublicKey, clientPublicKey, clientSecretKe
     const shared = box.before(decodeBase64(sellerPublicKey), decodeBase64(clientSecretKey));
     const orderInformation =  encrypt(shared, orderInfo);
 
-    const full_address = orderInfo['deliveryAddress']['street'] + 
+    const fullAddress = orderInfo['deliveryAddress']['street'] + 
       orderInfo['deliveryAddress']['house_nr'] +
       orderInfo['deliveryAddress']['house_nr_add'] +
       orderInfo['deliveryAddress']['zip'];
 
     const salt = Uint8Array.from(randomBytes(10));
-	const hash_input = Uint8Array.from(encodeBase64(full_address) + salt)
-    const hashed_address = Buffer.from(hash(hash_input)).toString('hex') + '$' + Buffer.from(salt).toString('base64');
+	const hashInput = Uint8Array.from(encodeBase64(fullAddress) + salt)
+    const hashedAddress = Buffer.from(hash(hashInput)).toString('hex') + '$' + Buffer.from(salt).toString('base64');
 
 	// DEBUG IF HASH IS VALID
 	//isValidHash(full_address, hashed_address).then((val) => console.log(val ? 'HASH IS VALID' : 'HAS IS INVALID'), (err) => console.log(err));
@@ -78,12 +78,12 @@ const decryptOrderInfo = async ({ clientPublicKey, orderInformation }, sellerSec
     return decrypted;
 };
 
-const isValidHash = async (clientAddress, hashed_address) => {
-    const hash_part = hashed_address.split('$')[0];
+const isValidHash = async (clientAddress, hashedAddress) => {
+    const hashPart = hashedAddress.split('$')[0];
     const salt = decodeBase64(hashed_address.split('$')[1]);
-	const hash_input = Uint8Array.from(encodeBase64(clientAddress) + salt)
+	const hashInput = Uint8Array.from(encodeBase64(clientAddress) + salt)
 
-    return Buffer.from(hash(hash_input)).toString('hex') == hash_part;
+    return Buffer.from(hash(hashInput)).toString('hex') == hashPart;
 }
 
 export { encryptOrderInfo, decryptOrderInfo };
