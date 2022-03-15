@@ -58,11 +58,11 @@ const encryptOrderInfo = async (sellerPublicKey, clientPublicKey, clientSecretKe
       orderInfo['deliveryAddress']['zip'];
 
     const salt = Uint8Array.from(randomBytes(10));
-	const hashInput = Uint8Array.from(encodeBase64(fullAddress) + salt)
+	const hashInput = Uint8Array.from(decodeUTF8(fullAddress) + salt)
     const hashedAddress = Buffer.from(hash(hashInput)).toString('hex') + '$' + Buffer.from(salt).toString('base64');
 
 	// DEBUG IF HASH IS VALID
-	//isValidHash(full_address, hashed_address).then((val) => console.log(val ? 'HASH IS VALID' : 'HAS IS INVALID'), (err) => console.log(err));
+	//isValidHash(fullAddress, hashedAddress).then((val) => console.log(val ? 'HASH IS VALID' : 'HAS IS INVALID'), (err) => console.log(err));
 
     return JSON.stringify({
         sellerPublicKey,
@@ -81,7 +81,7 @@ const decryptOrderInfo = async ({ clientPublicKey, orderInformation }, sellerSec
 const isValidHash = async (clientAddress, hashedAddress) => {
     const hashPart = hashedAddress.split('$')[0];
     const salt = decodeBase64(hashedAddress.split('$')[1]);
-	const hashInput = Uint8Array.from(encodeBase64(clientAddress) + salt)
+	const hashInput = Uint8Array.from(decodeUTF8(clientAddress) + salt)
 
     return Buffer.from(hash(hashInput)).toString('hex') == hashPart;
 }
