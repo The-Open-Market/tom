@@ -53,8 +53,8 @@ const encryptOrderInfo = async (sellerPublicKey, clientPublicKey, clientSecretKe
     const orderInformation =  encrypt(shared, orderInfo);
 
     const fullAddress = orderInfo['deliveryAddress']['street'] + 
-      orderInfo['deliveryAddress']['house_nr'] +
-      orderInfo['deliveryAddress']['house_nr_add'] +
+      orderInfo['deliveryAddress']['hnr'] +
+      orderInfo['deliveryAddress']['hnr_add'] +
       orderInfo['deliveryAddress']['zip'];
 
     const salt = Uint8Array.from(randomBytes(10));
