@@ -3,7 +3,7 @@ import { getSmartContract } from './ethereum';
 const approveOrder = async (orderId) => {
     try {
         const { tnoEats } = await getSmartContract();
-        const approveOrderTx = await tnoEats.approveOrder(orderId, "DummySellerZip", "DummyClientZip");
+        const approveOrderTx = await tnoEats.approveOrder(orderId, "DummySellerZip", "DummyClientZip", 0);
         await approveOrderTx.wait();
         return true;
     } catch (error) {
