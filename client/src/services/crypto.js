@@ -68,7 +68,7 @@ const encryptOrderInfo = async (sellerPublicKey, clientPublicKey, clientSecretKe
         sellerPublicKey,
         clientPublicKey,
         orderInformation,
-        hashed_address,
+        hashedAddress,
     });
 };
 
