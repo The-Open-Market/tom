@@ -1,6 +1,10 @@
 # Sol
 build/
 
+# geth
+geth/node1/geth/*
+geth/node2/geth/*
+
 # Logs
 logs
 *.log
