@@ -134,10 +134,13 @@ export default {
       orders[index].status = OrderStatus.Rejected;
     }
 
-    const onOrderApproved = (id, client, seller) => {
+    const onOrderApproved = (id, client, seller, sellerZipCode, clientZipCode, deliveryFee) => {
       const orderId = parseInt(id._hex, 16);
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].status = OrderStatus.Approved;
+      orders[index].sellerZipCode = sellerZipCode;
+      orders[index].clientZipCode = clientZipCode;
+      orders[index].deliveryFee = parseFloat(ethers.utils.formatEther(deliveryFee));
     }
 
     const onOrderAccepted = (id, client, seller, deliveryService) => {
@@ -163,7 +166,7 @@ export default {
       const onOrderPendingFilter = tnoEats.filters.OrderPending(null, address, null, null);
       tnoEats.on(onOrderPendingFilter, onOrderPending);
 
-      const onOrderApprovedFilter = tnoEats.filters.OrderApproved(null, address, null);
+      const onOrderApprovedFilter = tnoEats.filters.OrderApproved(null, address, null, null, null, null);
       tnoEats.on(onOrderApprovedFilter, onOrderApproved);
 
       const onOrderRejectedFilter = tnoEats.filters.OrderRejected(null, address, null);
