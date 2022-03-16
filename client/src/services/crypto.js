@@ -49,21 +49,23 @@ const decrypt = (secretOrSharedKey, messageWithNonce, key) => {
 
 
 const encryptOrderInfo = async (sellerPublicKey, clientPublicKey, clientSecretKey, orderInfo) => {
-    const shared = box.before(decodeBase64(sellerPublicKey), decodeBase64(clientSecretKey));
-    const orderInformation =  encrypt(shared, orderInfo);
-
     const fullAddress = orderInfo['deliveryAddress']['street'] + 
       orderInfo['deliveryAddress']['hnr'] +
       orderInfo['deliveryAddress']['hnr_add'] +
       orderInfo['deliveryAddress']['zip'];
 
-	// TODO: make hashing bruteforce resistant
+    // TODO: make hashing bruteforce resistant
     const salt = Uint8Array.from(randomBytes(10));
-	const hashInput = Uint8Array.from(decodeUTF8(fullAddress) + salt)
-    const hashedAddress = Buffer.from(hash(hashInput)).toString('hex') + '$' + Buffer.from(salt).toString('base64');
+    const hashInput = Uint8Array.from(decodeUTF8(fullAddress) + salt);
+    const hashedAddress = Buffer.from(hash(hashInput)).toString('hex');
 
-	// DEBUG IF HASH IS VALID
-	isValidHash(fullAddress, hashedAddress).then((val) => console.log(val ? 'HASH IS VALID' : 'HAS IS INVALID'), (err) => console.log(err));
+    orderInfo['salt'] = salt;
+
+    // DEBUG IF HASH IS VALID
+    isValidHash(fullAddress, salt, hashedAddress).then((val) => console.log(val ? 'HASH IS VALID' : 'HAS IS INVALID'), (err) => console.log(err));
+
+    const shared = box.before(decodeBase64(sellerPublicKey), decodeBase64(clientSecretKey));
+    const orderInformation =  encrypt(shared, orderInfo);
 
     return JSON.stringify({
         sellerPublicKey,
@@ -79,10 +81,9 @@ const decryptOrderInfo = async ({ clientPublicKey, orderInformation }, sellerSec
     return decrypted;
 };
 
-const isValidHash = async (clientAddress, hashedAddress) => {
+const isValidHash = async (clientAddress, salt, hashedAddress) => {
     const hashPart = hashedAddress.split('$')[0];
-    const salt = decodeBase64(hashedAddress.split('$')[1]);
-	const hashInput = Uint8Array.from(decodeUTF8(clientAddress) + salt)
+	  const hashInput = Uint8Array.from(decodeUTF8(clientAddress) + salt);
 
     return Buffer.from(hash(hashInput)).toString('hex') == hashPart;
 }
