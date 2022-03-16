@@ -12,8 +12,6 @@ const getSmartContract = () =>
         provider = new ethers.providers.Web3Provider(provider);
         const signer = provider.getSigner();
 
-        console.log(networkId);
-
         const tnoEats = new Contract(
           TnoEats.networks[networkId].address,
           TnoEats.abi,

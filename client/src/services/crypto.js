@@ -54,15 +54,17 @@ const encryptOrderInfo = async (sellerPublicKey, clientPublicKey, clientSecretKe
       orderInfo['deliveryAddress']['hnr_add'] +
       orderInfo['deliveryAddress']['zip'];
 
+    console.log(fullAddress);
+
     // TODO: make hashing bruteforce resistant
     const salt = Uint8Array.from(randomBytes(10));
     const hashInput = Uint8Array.from(decodeUTF8(fullAddress) + salt);
     const hashedAddress = Buffer.from(hash(hashInput)).toString('hex');
 
-    orderInfo['salt'] = salt;
+    orderInfo['salt'] = encodeBase64(salt);
 
     // DEBUG IF HASH IS VALID
-    isValidHash(fullAddress, salt, hashedAddress).then((val) => console.log(val ? 'HASH IS VALID' : 'HAS IS INVALID'), (err) => console.log(err));
+    isValidHash(fullAddress, orderInfo['salt'], hashedAddress).then((val) => console.log(val ? 'HASH IS VALID' : 'HASH IS INVALID'), (err) => console.log(err));
 
     const shared = box.before(decodeBase64(sellerPublicKey), decodeBase64(clientSecretKey));
     const orderInformation =  encrypt(shared, orderInfo);
@@ -81,11 +83,12 @@ const decryptOrderInfo = async ({ clientPublicKey, orderInformation }, sellerSec
     return decrypted;
 };
 
-const isValidHash = async (clientAddress, salt, hashedAddress) => {
+const isValidHash = async (clientAddress, saltString, hashedAddress) => {
+    const salt = decodeBase64(saltString);
     const hashPart = hashedAddress.split('$')[0];
 	  const hashInput = Uint8Array.from(decodeUTF8(clientAddress) + salt);
 
     return Buffer.from(hash(hashInput)).toString('hex') == hashPart;
 }
 
-export { encryptOrderInfo, decryptOrderInfo };
+export { encryptOrderInfo, decryptOrderInfo, isValidHash };

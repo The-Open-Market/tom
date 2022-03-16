@@ -31,7 +31,7 @@ abstract contract OrderManager is OrderFactory {
         order.status = OrderStatus.Approved;
         order.originZipCode = sellerZipCode;
         order.destinationZipCode = clientZipCode;
-        emit OrderApproved(_orderId, order.client, order.seller, sellerZipCode, clientZipCode);
+        emit OrderApproved(_orderId, order.client, order.seller, sellerZipCode, clientZipCode, order.orderContentsUrl);
     }
 
     /**

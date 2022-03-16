@@ -2,7 +2,7 @@
   <OrderContainer title="Pending" flow="row">
     <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Pending.value)" :key="order.id" :order="order">
       <template v-slot:contents>
-        <OrderInfo :order="order" />
+        <OrderInfo :order="order" pov="seller" />
       </template>
       <template v-slot:controls>
         <Button text="Reject" styles="red" @click="reject(order.id)"/>
@@ -14,7 +14,7 @@
   <OrderContainer title="Approved" flow="row" class="mt-12">
     <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Approved.value)" :key="order.id" :order="order">
       <template v-slot:contents>
-        <OrderInfo :order="order" />
+        <OrderInfo :order="order" pov="seller" />
       </template>
     </OrderCard>
   </OrderContainer>
@@ -23,7 +23,7 @@
     <OrderContainer title="Accepted">
       <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Accepted.value)" :key="order.id" :order="order">
         <template v-slot:contents>
-          <OrderInfo :order="order" />
+          <OrderInfo :order="order" pov="seller" />
         </template>
         <template v-slot:controls>
           <Button text="Transfer" styles="blue" @click="transfer(order.id)"/>
@@ -33,7 +33,7 @@
     <OrderContainer title="In transit">
       <OrderCard v-for="order in orders.filter(order => OrderStatus.PickedUp.value <= order.status.value && order.status.value <= OrderStatus.InTransit.value)" :key="order.id" :order="order">
         <template v-slot:contents>
-          <OrderInfo :order="order" />
+          <OrderInfo :order="order" pov="seller" />
         </template>
         <template v-slot:controls v-if="order.status.value === OrderStatus.PickedUp.value">
           <Button text="Transfer" styles="blue" @click="transfer(order.id)"/>
@@ -43,7 +43,7 @@
     <OrderContainer title="Completed">
       <OrderCard v-for="order in orders.filter(order => OrderStatus.Received.value <= order.status.value && order.status.value <= OrderStatus.Completed.value)" :key="order.id" :order="order">
         <template v-slot:contents>
-          <OrderInfo :order="order" />
+          <OrderInfo :order="order" pov="seller" />
         </template>
       </OrderCard>
     </OrderContainer>
@@ -52,7 +52,7 @@
   <OrderContainer title="Rejected and cancelled" flow="row" class="mt-12">
     <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Rejected.value || order.status.value === OrderStatus.Cancelled.value)" :key="order.id" :order="order">
       <template v-slot:contents>
-          <OrderInfo :order="order" />
+          <OrderInfo :order="order" pov="seller" />
       </template>
     </OrderCard>
   </OrderContainer>
@@ -105,7 +105,7 @@ export default {
 
       for (const order of myOrders) {
         const downloadedInfo = await downloadDeliveryInfo(order.orderContentsUrl);
-        const orderInformation = await decryptOrderInfo(JSON.parse(downloadedInfo), sellerSecretKey);
+        const orderInformation = await decryptOrderInfo(downloadedInfo, sellerSecretKey);
         order.orderInformation = orderInformation;
         orders.push(order);
       }

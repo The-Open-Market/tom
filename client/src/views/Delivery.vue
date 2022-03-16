@@ -1,9 +1,10 @@
 <template>
+  <AddressValidator/>
   <OrderGrid :nrColumns="3" class="mt-12">
     <OrderContainer title="Accepted">
       <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Accepted.value)" :key="order.id" :order="order">
         <template v-slot:contents>
-          <p>TODO: integrate open maps</p>
+          <OrderInfo :order="order" pov="delivery"/>
         </template>
         <template v-slot:controls>
           <Button text="Pick Up" styles="blue" @click="pickup(order.id)"/>
@@ -13,7 +14,7 @@
     <OrderContainer title="In transit">
       <OrderCard v-for="order in orders.filter(order => OrderStatus.PickedUp.value <= order.status.value && order.status.value <= OrderStatus.InTransit.value)" :key="order.id" :order="order">
         <template v-slot:contents>
-          <p>TODO: integrate open maps</p>
+          <OrderInfo :order="order" pov="delivery"/>
         </template>
         <template v-slot:controls v-if="order.status.value === OrderStatus.Transferred.value">
           <Button text="PickUp" styles="blue" @click="pickup(order.id)"/>
@@ -26,7 +27,7 @@
     <OrderContainer title="Completed">
       <OrderCard v-for="order in orders.filter(order => OrderStatus.Received.value <= order.status.value && order.status.value <= OrderStatus.Completed.value)" :key="order.id" :order="order">
         <template v-slot:contents>
-          <p>TODO: integrate open maps</p>
+          <OrderInfo :order="order" pov="delivery"/>
         </template>
         <template v-slot:controls v-if="order.status.value === OrderStatus.Received.value">
           <Button text="Deliver" styles="blue" @click="deliver(order.id)"/>
@@ -38,7 +39,7 @@
   <OrderContainer title="Approved" flow="row" class="mt-12">
     <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Approved.value )" :key="order.id" :order="order">
       <template v-slot:contents>
-        <p>TODO: integrate open maps</p>
+        <OrderInfo :order="order" pov="delivery"/>
       </template>
       <template v-slot:controls>
         <Button text="Accept" styles="green" @click="accept(order.id)"/>
@@ -52,12 +53,15 @@ import OrderCard from '@/components/shared/OrderCard.vue';
 import Button from '@/components/shared/Button.vue';
 import OrderGrid from '@/components/shared/OrderGrid.vue';
 import OrderContainer from '@/components/shared/OrderContainer.vue';
+import AddressValidator from '@/components/deliveryService/AddressValidator.vue';
+import OrderInfo from '@/components/shared/OrderInfo.vue';
 
 import { reactive, onMounted } from 'vue';
 import { OrderStatus } from '@/services/order';
 import { getSmartContract } from '@/services/ethereum';
 import { getOrdersByDeliveryService, getApprovedOrders } from '@/services/smartContract';
 import { acceptOrder, pickupOrder, deliverOrder } from '@/services/deliveryService';
+import { downloadDeliveryInfo } from "@/services/ipfs";
 
 export default {
   name: "Delivery",
@@ -85,18 +89,27 @@ export default {
         orders[index].status = OrderStatus.Delivered;
       }
     };
+
+    const addOrders = async (myOrders) => {
+      for (const order of myOrders) {
+        const { hashedAddress } = await downloadDeliveryInfo(order.orderContentsUrl);
+        order.hashedAddress = hashedAddress;
+        orders.push(order);
+      }
+    }
     
-    const onOrderApproved = (id, client, seller, sellerZipCode, clientZipCode) => {
+    const onOrderApproved = async (id, client, seller, sellerZipCode, clientZipCode, ipfsUrl) => {
       const orderId = parseInt(id._hex, 16);
       if (orders.every(order => order.id !== orderId)) {
-        orders.push({
+        await addOrders([{
           id: orderId,
           status: OrderStatus.Approved,
           client,
           seller,
           sellerZipCode,
-          clientZipCode
-        });
+          clientZipCode,
+          orderContentsUrl: ipfsUrl
+        }]);
       }
     };
 
@@ -117,10 +130,10 @@ export default {
     onMounted(async () => {
       const address = "0x15f5319b330D8Da1E3a3852Fabcc60BFBA062919";
       const myOrders = await getOrdersByDeliveryService(address);
-      orders.push(...myOrders);
+      await addOrders(myOrders);
       const approvedOrders = await getApprovedOrders();
-      orders.push(...approvedOrders);
-      console.log(orders);
+      await addOrders(approvedOrders);
+      
       const { tnoEats } = await getSmartContract();
 
       tnoEats.on("OrderApproved", onOrderApproved);
@@ -159,6 +172,8 @@ export default {
     OrderContainer,
     OrderCard,
     Button,
+    AddressValidator,
+    OrderInfo
   }
 }
 </script>

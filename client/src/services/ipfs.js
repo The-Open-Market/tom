@@ -10,7 +10,9 @@ const uploadDeliveryInfo = async (info) => {
 };
 
 const downloadDeliveryInfo = async (path) => {
-    return (await fetch(`https://ipfs.infura.io/ipfs/${path}`)).text();
+    const response = await fetch(`https://ipfs.infura.io/ipfs/${path}`);
+    const json = await response.text();
+    return JSON.parse(json);
 };
 
 export { uploadDeliveryInfo, downloadDeliveryInfo };

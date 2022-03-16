@@ -11,7 +11,7 @@ abstract contract OrderFactory is Ownable {
     
     // TODO: Add info for the deliveryService
     event OrderPending(uint id, address indexed client, address indexed seller, string orderContentsUrl);
-    event OrderApproved(uint id, address indexed client, address indexed seller, string sellerZipCode, string clientZipCode);
+    event OrderApproved(uint id, address indexed client, address indexed seller, string sellerZipCode, string clientZipCode, string orderContentsUrl);
     event OrderRejected(uint id, address indexed client, address indexed seller);
     event OrderAccepted(uint id, address indexed client, address indexed seller, address indexed deliveryService);
     event OrderPickedUp(uint id, address indexed client, address indexed seller, address indexed deliveryService);
