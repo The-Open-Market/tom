@@ -6,6 +6,7 @@
       </template>
       <template v-slot:controls>
         <Button text="Reject" styles="red" @click="reject(order.id)"/>
+        <input type="number" v-model="order.deliveryFee"/>
         <Button text="Approve" styles="green" @click="approve(order.id)"/>
       </template>
     </OrderCard>
@@ -80,8 +81,9 @@ export default {
     const orders = reactive([]);
 
     const approve = async (orderId) => {
-      if (await approveOrder(orderId)) {
-        const index = orders.findIndex(order => order.id === orderId);
+      const index = orders.findIndex(order => order.id === orderId);
+      const fee = orders[index].deliveryFee;
+      if (await approveOrder(orderId, fee)) {
         orders[index].status = OrderStatus.Approved;
       }
     }

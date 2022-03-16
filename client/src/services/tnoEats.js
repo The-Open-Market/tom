@@ -1,3 +1,4 @@
+import { ethers } from 'ethers';
 import { getSmartContract } from './ethereum';
 import { OrderStatusMap } from '@/services/order';
 
@@ -13,8 +14,8 @@ const mapOrders = (orderArrays) => {
       orderContentsUrl: orderArrays[key].orderContentsUrl,
       originZipCode: orderArrays[key].originZipCode,
       destinationZipCode: orderArrays[key].destinationZipCode,
-      amount: orderArrays[key].amount,
-      deliveryFee: orderArrays[key].deliveryFee,
+      amount: parseFloat(ethers.utils.formatEther(orderArrays[key].amount)),
+      deliveryFee: parseFloat(ethers.utils.formatEther(orderArrays[key].deliveryFee)),
     });
   }
   return orders;

@@ -4,6 +4,7 @@
       <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Accepted.value)" :key="order.id" :order="order">
         <template v-slot:contents>
           <p>TODO: integrate open maps</p>
+          <p>Delivery Reward: €{{ order.deliveryFee }}</p>
         </template>
         <template v-slot:controls>
           <Button text="Pick Up" styles="blue" @click="pickup(order.id)"/>
@@ -14,6 +15,7 @@
       <OrderCard v-for="order in orders.filter(order => OrderStatus.PickedUp.value <= order.status.value && order.status.value <= OrderStatus.InTransit.value)" :key="order.id" :order="order">
         <template v-slot:contents>
           <p>TODO: integrate open maps</p>
+          <p>Delivery Reward: €{{ order.deliveryFee }}</p>
         </template>
         <template v-slot:controls v-if="order.status.value === OrderStatus.Transferred.value">
           <Button text="PickUp" styles="blue" @click="pickup(order.id)"/>
@@ -27,6 +29,7 @@
       <OrderCard v-for="order in orders.filter(order => OrderStatus.Received.value <= order.status.value && order.status.value <= OrderStatus.Completed.value)" :key="order.id" :order="order">
         <template v-slot:contents>
           <p>TODO: integrate open maps</p>
+          <p>Delivery Reward: €{{ order.deliveryFee }}</p>
         </template>
         <template v-slot:controls v-if="order.status.value === OrderStatus.Received.value">
           <Button text="Deliver" styles="blue" @click="deliver(order.id)"/>
@@ -39,6 +42,7 @@
     <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Approved.value )" :key="order.id" :order="order">
       <template v-slot:contents>
         <p>TODO: integrate open maps</p>
+        <p>Delivery Reward: €{{ order.deliveryFee }}</p>
       </template>
       <template v-slot:controls>
         <Button text="Accept" styles="green" @click="accept(order.id)"/>
@@ -53,6 +57,7 @@ import Button from '@/components/shared/Button.vue';
 import OrderGrid from '@/components/shared/OrderGrid.vue';
 import OrderContainer from '@/components/shared/OrderContainer.vue';
 
+import { ethers } from 'ethers';
 import { reactive, onMounted } from 'vue';
 import { OrderStatus } from '@/services/order';
 import { getSmartContract, getSignerAddress } from '@/services/ethereum';

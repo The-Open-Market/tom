@@ -5,6 +5,7 @@
     <div v-for="product in cart" :key="product.id">
       <p>{{ product.quantity }}x {{ product.name }}: €{{ parseFloat(product.price).toFixed(2) }}</p>
     </div>
+    <p v-if="order.status.name !== 'Pending'">Delivery Fee: €{{ order.deliveryFee.toFixed(2) }}</p>
   </div>
 </template>
 
