@@ -51,6 +51,6 @@ export default {
   }
 
   .green, .red, .blue {
-    @apply disabled:bg-gray-500 hover:disabled:cursor-not-allowed text-white font-semibold py-1 px-4 rounded;
+    @apply h-9 disabled:bg-gray-500 hover:disabled:cursor-not-allowed text-white font-semibold py-1 px-4 rounded;
   }
 </style>
