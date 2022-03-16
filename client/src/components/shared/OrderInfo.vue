@@ -7,10 +7,12 @@
     <p v-if="pov !== 'delivery'">Order details: ({{ items }} item{{ items > 1 ? 's' : '' }}):</p>
 
     <p v-if="pov === 'seller'">Salt: {{ salt }}</p>
+
+    <p v-if="order.status.name !== 'Pending'">Delivery Fee: €{{ order.deliveryFee.toFixed(2) }}</p>
     
     <template v-if="pov !== 'delivery'">
       <div v-for="product in cart" :key="product.id">
-        <p>{{ product.quantity }}x {{ product.name }}: €{{ parseFloat(product.price).toFixed(2) }}</p>
+        <p>{{ product.quantity }}x {{ product.name }}: €{{ parseFloat(product.price * product.quantity).toFixed(2) }}</p>
       </div>
     </template>
   </div>

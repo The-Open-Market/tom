@@ -18,10 +18,11 @@
  *
  */
 
-// const HDWalletProvider = require('@truffle/hdwallet-provider');
-//
-// const fs = require('fs');
-// const mnemonic = fs.readFileSync(".secret").toString().trim();
+const HDWalletProvider = require("@truffle/hdwallet-provider");
+const fs = require("fs");
+const secrets = fs.statSync(".secrets.json", { throwIfNoEntry: false })
+  ? JSON.parse(fs.readFileSync(".secrets.json").toString().trim())
+  : {};
 
 module.exports = {
   /**
@@ -42,10 +43,25 @@ module.exports = {
     // options below to some value.
     //
     development: {
-     host: "127.0.0.1",     // Localhost (default: none)
-     port: 8545,            // Standard Ethereum port (default: none)
-     network_id: "*",       // Any network (default: none)
-    }
+        host: "127.0.0.1",     // Localhost (default: none)
+        port: 8545,            // Standard Ethereum port (default: none)
+        network_id: "*",       // Any network (default: none)
+        gas: 6721975,
+        gasPrice: 20000000000,
+        confirmations: 0,
+        timeoutBlocks: 50,
+        skipDryRun: true,
+    },
+    kovan: {
+      networkCheckTimeout: 10000,
+      provider: () => {
+        return new HDWalletProvider(
+          secrets.mnemonic,
+          `wss://kovan.infura.io/ws/v3/${secrets.projectId}`
+        );
+      },
+      network_id: "42",
+    },
     // Another network with more advanced options...
     // advanced: {
     // port: 8777,             // Custom port
@@ -70,7 +86,7 @@ module.exports = {
     // provider: () => new HDWalletProvider(mnemonic, `https://network.io`),
     // network_id: 2111,   // This network is yours, in the cloud.
     // production: true    // Treats this network as if it was a public net. (default: false)
-    // }
+    // }  
   },
 
   // Set default mocha options here, use special reporters etc.

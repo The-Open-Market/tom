@@ -56,10 +56,11 @@ import OrderContainer from '@/components/shared/OrderContainer.vue';
 import AddressValidator from '@/components/deliveryService/AddressValidator.vue';
 import OrderInfo from '@/components/shared/OrderInfo.vue';
 
+import { ethers } from 'ethers';
 import { reactive, onMounted } from 'vue';
 import { OrderStatus } from '@/services/order';
-import { getSmartContract } from '@/services/ethereum';
-import { getOrdersByDeliveryService, getApprovedOrders } from '@/services/smartContract';
+import { getSmartContract, getSignerAddress } from '@/services/ethereum';
+import { getOrdersByDeliveryService, getApprovedOrders } from '@/services/tnoEats';
 import { acceptOrder, pickupOrder, deliverOrder } from '@/services/deliveryService';
 import { downloadDeliveryInfo } from "@/services/ipfs";
 
@@ -98,7 +99,7 @@ export default {
       }
     }
     
-    const onOrderApproved = async (id, client, seller, sellerZipCode, clientZipCode, ipfsUrl) => {
+    const onOrderApproved = async (id, client, seller, sellerZipCode, clientZipCode, deliveryFee, ipfsUrl) => {
       const orderId = parseInt(id._hex, 16);
       if (orders.every(order => order.id !== orderId)) {
         await addOrders([{
@@ -109,12 +110,13 @@ export default {
           sellerZipCode,
           clientZipCode,
           orderContentsUrl: ipfsUrl
+          deliveryFee: parseFloat(ethers.utils.formatEther(deliveryFee)),
         }]);
       }
     };
 
     const onOrderAccepted = (id, client, seller, deliveryService) => {
-      if (deliveryService !== this.address) {
+      if (deliveryService !== address) {
         const orderId = parseInt(id._hex, 16);
         const index = orders.findIndex(order => order.id === orderId);
         orders.splice(index, 1);
@@ -128,12 +130,11 @@ export default {
     };
 
     onMounted(async () => {
-      const address = "0x15f5319b330D8Da1E3a3852Fabcc60BFBA062919";
+      const address = await getSignerAddress();
       const myOrders = await getOrdersByDeliveryService(address);
       await addOrders(myOrders);
       const approvedOrders = await getApprovedOrders();
       await addOrders(approvedOrders);
-      
       const { tnoEats } = await getSmartContract();
 
       tnoEats.on("OrderApproved", onOrderApproved);

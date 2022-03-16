@@ -28,9 +28,11 @@ import OrderContainer from '@/components/shared/OrderContainer.vue';
 import OrderInfo from '@/components/shared/OrderInfo.vue';
 
 import { reactive, onMounted } from "vue";
+import { ethers } from 'ethers';
 import { OrderStatus } from '@/services/order';
-import { getOrdersByClient } from '@/services/smartContract';
-import { getSmartContract } from '@/services/ethereum';
+import { getOrdersByClient } from '@/services/tnoEats';
+import { approveTransaction } from '@/services/eurTno';
+import { getSmartContract, getSignerAddress } from '@/services/ethereum';
 import { placeOrder, cancelOrder, receiveOrder } from '@/services/client';
 import { encryptOrderInfo, decryptOrderInfo } from "@/services/crypto";
 import { uploadDeliveryInfo, downloadDeliveryInfo } from "@/services/ipfs";
@@ -81,8 +83,10 @@ export default {
       };
       const encrypted = await encryptOrderInfo(sellerPublicKey, clientPublicKey, clientSecretKey, orderInfo);
       const path = await uploadDeliveryInfo(encrypted);
-
-      await placeOrder(sellerAddress, path);
+      const total = orderInfo.cart.reduce((a, b) => a + (b.quantity * b.price), 0);
+      const amount = ethers.utils.parseEther(total.toString());
+      await approveTransaction(amount);
+      await placeOrder(sellerAddress, path, amount);
     }
 
     const cancel = async (orderId) => {
@@ -130,10 +134,13 @@ export default {
       orders[index].status = OrderStatus.Rejected;
     }
 
-    const onOrderApproved = (id, client, seller) => {
+    const onOrderApproved = (id, client, seller, sellerZipCode, clientZipCode, deliveryFee) => {
       const orderId = parseInt(id._hex, 16);
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].status = OrderStatus.Approved;
+      orders[index].sellerZipCode = sellerZipCode;
+      orders[index].clientZipCode = clientZipCode;
+      orders[index].deliveryFee = parseFloat(ethers.utils.formatEther(deliveryFee));
     }
 
     const onOrderAccepted = (id, client, seller, deliveryService) => {
@@ -150,7 +157,7 @@ export default {
     }
 
     onMounted(async () => {
-      const address = "0x3096cc43379D09d411A6f979E00e29f057929579";
+      const address = await getSignerAddress();
       const myOrders = await getOrdersByClient(address);
       addOrders(myOrders);
 
@@ -159,7 +166,7 @@ export default {
       const onOrderPendingFilter = tnoEats.filters.OrderPending(null, address, null, null);
       tnoEats.on(onOrderPendingFilter, onOrderPending);
 
-      const onOrderApprovedFilter = tnoEats.filters.OrderApproved(null, address, null);
+      const onOrderApprovedFilter = tnoEats.filters.OrderApproved(null, address, null, null, null, null);
       tnoEats.on(onOrderApprovedFilter, onOrderApproved);
 
       const onOrderRejectedFilter = tnoEats.filters.OrderRejected(null, address, null);
