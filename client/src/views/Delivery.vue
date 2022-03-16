@@ -101,13 +101,13 @@ export default {
           seller,
           sellerZipCode,
           clientZipCode,
-          deliveryFee,
+          deliveryFee: parseFloat(ethers.utils.formatEther(deliveryFee)),
         });
       }
     };
 
     const onOrderAccepted = (id, client, seller, deliveryService) => {
-      if (deliveryService !== this.address) {
+      if (deliveryService !== address) {
         const orderId = parseInt(id._hex, 16);
         const index = orders.findIndex(order => order.id === orderId);
         orders.splice(index, 1);
