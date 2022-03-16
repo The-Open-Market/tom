@@ -109,7 +109,7 @@ export default {
           seller,
           sellerZipCode,
           clientZipCode,
-          orderContentsUrl: ipfsUrl
+          orderContentsUrl: ipfsUrl,
           deliveryFee: parseFloat(ethers.utils.formatEther(deliveryFee)),
         }]);
       }
