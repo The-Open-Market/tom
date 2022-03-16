@@ -4,6 +4,7 @@
       <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Accepted.value)" :key="order.id" :order="order">
         <template v-slot:contents>
           <p>TODO: integrate open maps</p>
+          <p>Delivery Reward: €{{ order.deliveryFee }}</p>
         </template>
         <template v-slot:controls>
           <Button text="Pick Up" styles="blue" @click="pickup(order.id)"/>
@@ -14,6 +15,7 @@
       <OrderCard v-for="order in orders.filter(order => OrderStatus.PickedUp.value <= order.status.value && order.status.value <= OrderStatus.InTransit.value)" :key="order.id" :order="order">
         <template v-slot:contents>
           <p>TODO: integrate open maps</p>
+          <p>Delivery Reward: €{{ order.deliveryFee }}</p>
         </template>
         <template v-slot:controls v-if="order.status.value === OrderStatus.Transferred.value">
           <Button text="PickUp" styles="blue" @click="pickup(order.id)"/>
@@ -27,6 +29,7 @@
       <OrderCard v-for="order in orders.filter(order => OrderStatus.Received.value <= order.status.value && order.status.value <= OrderStatus.Completed.value)" :key="order.id" :order="order">
         <template v-slot:contents>
           <p>TODO: integrate open maps</p>
+          <p>Delivery Reward: €{{ order.deliveryFee }}</p>
         </template>
         <template v-slot:controls v-if="order.status.value === OrderStatus.Received.value">
           <Button text="Deliver" styles="blue" @click="deliver(order.id)"/>
@@ -39,6 +42,7 @@
     <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Approved.value )" :key="order.id" :order="order">
       <template v-slot:contents>
         <p>TODO: integrate open maps</p>
+        <p>Delivery Reward: €{{ order.deliveryFee }}</p>
       </template>
       <template v-slot:controls>
         <Button text="Accept" styles="green" @click="accept(order.id)"/>
@@ -53,10 +57,11 @@ import Button from '@/components/shared/Button.vue';
 import OrderGrid from '@/components/shared/OrderGrid.vue';
 import OrderContainer from '@/components/shared/OrderContainer.vue';
 
+import { ethers } from 'ethers';
 import { reactive, onMounted } from 'vue';
 import { OrderStatus } from '@/services/order';
-import { getSmartContract } from '@/services/ethereum';
-import { getOrdersByDeliveryService, getApprovedOrders } from '@/services/smartContract';
+import { getSmartContract, getSignerAddress } from '@/services/ethereum';
+import { getOrdersByDeliveryService, getApprovedOrders } from '@/services/tnoEats';
 import { acceptOrder, pickupOrder, deliverOrder } from '@/services/deliveryService';
 
 export default {
@@ -86,7 +91,7 @@ export default {
       }
     };
     
-    const onOrderApproved = (id, client, seller, sellerZipCode, clientZipCode) => {
+    const onOrderApproved = (id, client, seller, sellerZipCode, clientZipCode, deliveryFee) => {
       const orderId = parseInt(id._hex, 16);
       if (orders.every(order => order.id !== orderId)) {
         orders.push({
@@ -95,7 +100,8 @@ export default {
           client,
           seller,
           sellerZipCode,
-          clientZipCode
+          clientZipCode,
+          deliveryFee,
         });
       }
     };
@@ -115,12 +121,11 @@ export default {
     };
 
     onMounted(async () => {
-      const address = "0x15f5319b330D8Da1E3a3852Fabcc60BFBA062919";
+      const address = await getSignerAddress();
       const myOrders = await getOrdersByDeliveryService(address);
       orders.push(...myOrders);
       const approvedOrders = await getApprovedOrders();
       orders.push(...approvedOrders);
-      console.log(orders);
       const { tnoEats } = await getSmartContract();
 
       tnoEats.on("OrderApproved", onOrderApproved);

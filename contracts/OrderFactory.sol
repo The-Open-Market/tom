@@ -1,17 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "../access/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
  * @title Order creation functionality, events, and modifiers
  * @notice This contract holds orders and allows to create new orders.
  */
 abstract contract OrderFactory is Ownable {
-    
-    // TODO: Add info for the deliveryService
+
     event OrderPending(uint id, address indexed client, address indexed seller, string orderContentsUrl);
-    event OrderApproved(uint id, address indexed client, address indexed seller, string sellerZipCode, string clientZipCode);
+    event OrderApproved(uint id, address indexed client, address indexed seller, string sellerZipCode, string clientZipCode, uint deliveryFee);
     event OrderRejected(uint id, address indexed client, address indexed seller);
     event OrderAccepted(uint id, address indexed client, address indexed seller, address indexed deliveryService);
     event OrderPickedUp(uint id, address indexed client, address indexed seller, address indexed deliveryService);
@@ -24,6 +23,8 @@ abstract contract OrderFactory is Ownable {
     
     struct Order {
         uint id;
+        uint amount;
+        uint deliveryFee;
         OrderStatus status;
         address client;
         address seller;
@@ -53,6 +54,16 @@ abstract contract OrderFactory is Ownable {
     mapping (address => uint) clientOrderCount;
     mapping (address => uint) sellerOrderCount;
     mapping (address => uint) deliveryServiceOrderCount;
+
+    address eurTnoContract;
+    
+    modifier checkDeliveryFee(uint _orderId, uint _deliveryFee) {
+        Order storage order = orders[_orderId];
+        require(
+            _deliveryFee <= order.amount
+        );
+        _;
+    }
 
     modifier senderIsSeller(uint _orderId) {
         Order storage order = orders[_orderId];
@@ -205,10 +216,10 @@ abstract contract OrderFactory is Ownable {
      * @param _seller The address of the seller
      * @param _orderInfo Url to the encoded order data stored in IPFS
      */
-    function _createOrder(address _seller, string memory _orderInfo) internal {
+    function _createOrder(address _seller, string memory _orderInfo, uint _amount) internal {
         address client = _msgSender();
         uint id = orders.length;
-        orders.push(Order(id, OrderStatus.Pending, client, _seller, address(0), _orderInfo, "", ""));
+        orders.push(Order(id, _amount, 0, OrderStatus.Pending, client, _seller, address(0), _orderInfo, "", ""));
         clientOrderCount[client]++;
         sellerOrderCount[_seller]++;
         emit OrderPending(id, client, _seller, _orderInfo);

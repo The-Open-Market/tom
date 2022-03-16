@@ -1,10 +1,9 @@
 import { getSmartContract } from './ethereum';
 
-const placeOrder = async (seller, orderInfo) => {
+const placeOrder = async (seller, orderInfo, amount) => {
     try {
         const { tnoEats } = await getSmartContract();
-        console.log(tnoEats);
-        const placeOrderTx = await tnoEats.placeOrder(seller, orderInfo);
+        const placeOrderTx = await tnoEats.placeOrder(seller, orderInfo, amount);
         await placeOrderTx.wait();
         return true;
     } catch (error) {
@@ -16,7 +15,6 @@ const placeOrder = async (seller, orderInfo) => {
 const cancelOrder = async (orderId) => {
     try {
         const { tnoEats } = await getSmartContract();
-        console.log(tnoEats);
         const cancelOrderTx = await tnoEats.cancelOrder(orderId);
         await cancelOrderTx.wait();
         return true;
@@ -29,7 +27,6 @@ const cancelOrder = async (orderId) => {
 const receiveOrder = async (orderId) => {
     try {
         const { tnoEats } = await getSmartContract();
-        console.log(tnoEats);
         const completeOrderTx = await tnoEats.completeOrder(orderId);
         await completeOrderTx.wait();
         return true;

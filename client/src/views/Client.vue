@@ -28,9 +28,11 @@ import OrderContainer from '@/components/shared/OrderContainer.vue';
 import OrderInfo from '@/components/shared/OrderInfo.vue';
 
 import { reactive, onMounted } from "vue";
+import { ethers } from 'ethers';
 import { OrderStatus } from '@/services/order';
-import { getOrdersByClient } from '@/services/smartContract';
-import { getSmartContract } from '@/services/ethereum';
+import { getOrdersByClient } from '@/services/tnoEats';
+import { approveTransaction } from '@/services/eurTno';
+import { getSmartContract, getSignerAddress } from '@/services/ethereum';
 import { placeOrder, cancelOrder, receiveOrder } from '@/services/client';
 import { encryptOrderInfo, decryptOrderInfo } from "@/services/crypto";
 import { uploadDeliveryInfo, downloadDeliveryInfo } from "@/services/ipfs";
@@ -49,7 +51,6 @@ export default {
       } else {
         cartContents.find(entry => entry.id == product.id)['quantity']++
       }
-      console.log(cartContents)
     }
 
     const increment = (id) => {
@@ -82,8 +83,10 @@ export default {
       };
       const encrypted = await encryptOrderInfo(sellerPublicKey, clientPublicKey, clientSecretKey, orderInfo);
       const path = await uploadDeliveryInfo(encrypted);
-
-      await placeOrder(sellerAddress, path);
+      const total = orderInfo.cart.reduce((a, b) => a + (b.quantity * b.price), 0);
+      const amount = ethers.utils.parseEther(total.toString());
+      await approveTransaction(amount);
+      await placeOrder(sellerAddress, path, amount);
     }
 
     const cancel = async (orderId) => {
@@ -151,7 +154,7 @@ export default {
     }
 
     onMounted(async () => {
-      const address = "0x3096cc43379D09d411A6f979E00e29f057929579";
+      const address = await getSignerAddress();
       const myOrders = await getOrdersByClient(address);
       addOrders(myOrders);
 
