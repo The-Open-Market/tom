@@ -1,19 +1,19 @@
 <template>
   <div class="bg-gray-100 rounded shadow drop-shadow px-6 py-4 divide-y">
-    <div class="flex justify-between">
+    <div class="flex justify-between py-3">
       <h3 class="font-medium">
-        Order #{{ order.id }}
+        Order <span class="text-sm">#</span>{{ order.id }}
       </h3>
       <div :class="'px-2 my-auto text-xs font-semibold rounded-full ' + order.status.color">
         {{ order.status.name }}
       </div>
     </div>
-    <div>
+    <div class="py-3">
       <slot name="contents"></slot>
     </div>
-    <div class="flex flex-wrap justify-end space-x-4 pt-4">
+    <div class="flex flex-wrap justify-end gap-4 pt-3">
       <slot name="controls">
-        No controls are available
+        <p class="text-sm italic font-thin text-slate-700">No controls are available</p>
       </slot>
     </div>
   </div>

@@ -1,10 +1,13 @@
 <template>
-  <button @click="clicked" :class="styles" :disabled="disabled">
-    {{ text }}
+  <button @click="clicked" :class="styles" :disabled="disabled || loading">
+    <Loader v-if="loading"/>
+    <span v-else>{{ text }}</span>
   </button>
 </template>
 
 <script>
+import Loader from '@/components/shared/Loader.vue';
+
 export default {
   name: "Button",
 
@@ -20,6 +23,10 @@ export default {
     disabled: {
       type: Boolean,
       default: false
+    },
+    loading: {
+      type: Boolean,
+      default: false
     }
   },
 
@@ -33,6 +40,10 @@ export default {
     return {
       clicked
     }
+  },
+
+  components: {
+    Loader,
   }
 }
 </script>
@@ -51,6 +62,7 @@ export default {
   }
 
   .green, .red, .blue {
-    @apply h-9 disabled:bg-gray-500 hover:disabled:cursor-not-allowed text-white font-semibold py-1 px-4 rounded;
+    min-width: 6rem;
+    @apply flex items-center justify-center h-9 disabled:bg-gray-500 hover:disabled:cursor-not-allowed text-white font-semibold py-1 px-4 rounded;
   }
 </style>
