@@ -2,7 +2,8 @@ import { getSmartContract } from '../services/ethereum';
 
 const approveTransaction = async (amount) => {
     const { eurTno, tnoEats } = await getSmartContract();
-    await eurTno.approve(tnoEats.address, amount);
+    const tx = await eurTno.approve(tnoEats.address, amount);
+    await tx.wait();
 }
   
 export { approveTransaction }
