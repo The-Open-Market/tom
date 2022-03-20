@@ -37,7 +37,7 @@ abstract contract OrderManager is OrderFactory {
         order.originZipCode = sellerZipCode;
         order.destinationZipCode = clientZipCode;
         order.deliveryFee = _deliveryFee;
-        emit OrderApproved(_orderId, order.client, order.seller, sellerZipCode, clientZipCode, _deliveryFee);
+        emit OrderApproved(_orderId, order.client, order.seller, sellerZipCode, clientZipCode, _deliveryFee, order.orderContentsUrl);
     }
 
     /**

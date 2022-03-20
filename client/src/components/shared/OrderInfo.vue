@@ -1,11 +1,20 @@
 <template>
   <div>
-    <p>Delivery address: {{ deliveryAddress.street }} {{ deliveryAddress.hnr }}, {{ deliveryAddress.zip }}</p>
-    <p>Order details ({{ items }} item{{ items > 1 ? 's' : '' }}):</p>
-    <div v-for="product in cart" :key="product.id">
-      <p>{{ product.quantity }}x {{ product.name }}: €{{ parseFloat(product.price * product.quantity).toFixed(2) }}</p>
-    </div>
+    <p v-if="pov === 'delivery'">TODO: integrate open maps</p>
+    <p v-if="pov === 'delivery'">Address hash: {{ hashedAddress }}</p>
+
+    <p v-if="pov !== 'delivery'">Delivery address: {{ deliveryAddress.street }} {{ deliveryAddress.hnr }} {{ deliveryAddress.hnr_add }}, {{ deliveryAddress.zip }}</p>
+    <p v-if="pov !== 'delivery'">Order details: ({{ items }} item{{ items > 1 ? 's' : '' }}):</p>
+
+    <p v-if="pov === 'seller'">Salt: {{ salt }}</p>
+
     <p v-if="order.status.name !== 'Pending'">Delivery Fee: €{{ order.deliveryFee.toFixed(2) }}</p>
+    
+    <template v-if="pov !== 'delivery'">
+      <div v-for="product in cart" :key="product.id">
+        <p>{{ product.quantity }}x {{ product.name }}: €{{ parseFloat(product.price * product.quantity).toFixed(2) }}</p>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -17,17 +26,31 @@ export default {
     order: {
       type: Object,
       required: true
+    },
+    pov: {
+      type: String,
+      default: "seller" // "client" or "delivery"
     }
   },
 
   setup(props) {
-    const { deliveryAddress, cart } = props.order.orderInformation;
-    const items = cart.reduce((a,b) => a + b.quantity, 0);
+    var deliveryAddress;
+    var cart;
+    var salt;
+    var items;
+    
+    if (props.order.orderInformation) {
+      var { deliveryAddress, cart, salt } = props.order.orderInformation;
+      items = cart.reduce((a,b) => a + b.quantity, 0);
+    }
+    const hashedAddress = props.order.hashedAddress;
 
     return {
       deliveryAddress,
+      salt,
       cart,
       items,
+      hashedAddress
     }
   }
 }

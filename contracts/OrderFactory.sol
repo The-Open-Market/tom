@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 abstract contract OrderFactory is Ownable {
 
     event OrderPending(uint id, address indexed client, address indexed seller, string orderContentsUrl);
-    event OrderApproved(uint id, address indexed client, address indexed seller, string sellerZipCode, string clientZipCode, uint deliveryFee);
+    event OrderApproved(uint id, address indexed client, address indexed seller, string sellerZipCode, string clientZipCode, uint deliveryFee, string orderContentsUrl);
     event OrderRejected(uint id, address indexed client, address indexed seller);
     event OrderAccepted(uint id, address indexed client, address indexed seller, address indexed deliveryService);
     event OrderPickedUp(uint id, address indexed client, address indexed seller, address indexed deliveryService);

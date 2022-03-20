@@ -1,10 +1,11 @@
-import { box, randomBytes } from 'tweetnacl';
+import { box, randomBytes, hash } from 'tweetnacl';
 import {
   decodeUTF8,
   encodeUTF8,
   encodeBase64,
   decodeBase64
 } from 'tweetnacl-util';
+import { Buffer } from 'buffer';
 
 // Using: https://github.com/dchest/tweetnacl-js/wiki/Examples
 const newNonce = () => randomBytes(box.nonceLength);
@@ -48,12 +49,26 @@ const decrypt = (secretOrSharedKey, messageWithNonce, key) => {
 
 
 const encryptOrderInfo = async (sellerPublicKey, clientPublicKey, clientSecretKey, orderInfo) => {
+    const fullAddress = orderInfo['deliveryAddress']['street'] + 
+      orderInfo['deliveryAddress']['hnr'] +
+      orderInfo['deliveryAddress']['hnr_add'] +
+      orderInfo['deliveryAddress']['zip'];
+
+    // TODO: make hashing bruteforce resistant
+    const salt = Uint8Array.from(randomBytes(10));
+    const hashInput = Uint8Array.from(decodeUTF8(fullAddress) + salt);
+    const hashedAddress = Buffer.from(hash(hashInput)).toString('hex');
+
+    orderInfo['salt'] = encodeBase64(salt);
+
     const shared = box.before(decodeBase64(sellerPublicKey), decodeBase64(clientSecretKey));
     const orderInformation =  encrypt(shared, orderInfo);
+
     return JSON.stringify({
         sellerPublicKey,
         clientPublicKey,
         orderInformation,
+        hashedAddress,
     });
 };
 
@@ -63,4 +78,16 @@ const decryptOrderInfo = async ({ clientPublicKey, orderInformation }, sellerSec
     return decrypted;
 };
 
-export { encryptOrderInfo, decryptOrderInfo };
+const isValidHash = async (clientAddress, saltString, hashedAddress) => {
+  try {
+    const salt = decodeBase64(saltString);
+    const hashPart = hashedAddress.split('$')[0];
+	  const hashInput = Uint8Array.from(decodeUTF8(clientAddress) + salt);
+
+    return Buffer.from(hash(hashInput)).toString('hex') == hashPart;
+  } catch (err) {
+    return false;
+  }
+}
+
+export { encryptOrderInfo, decryptOrderInfo, isValidHash };

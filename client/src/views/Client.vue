@@ -2,7 +2,7 @@
   <OrderContainer title="My orders" flow="row">
     <OrderCard v-for="order in orders" :key="order.id" :order="order">
       <template v-slot:contents>
-        <OrderInfo :order="order" />
+        <OrderInfo :order="order" pov="client" />
       </template>
       <template v-slot:controls v-if="order.status.value === OrderStatus.Pending.value">
         <Button text="Cancel" styles="red" @click="cancel(order.id)"/>
@@ -109,7 +109,7 @@ export default {
       for (const order of myOrders) {
         // TODO: Do not use sellerSecretKey to decrypt
         const downloadedInfo = await downloadDeliveryInfo(order.orderContentsUrl);
-        const orderInformation = await decryptOrderInfo(JSON.parse(downloadedInfo), sellerSecretKey);
+        const orderInformation = await decryptOrderInfo(downloadedInfo, sellerSecretKey);
         order.orderInformation = orderInformation;
         orders.push(order);
       }
