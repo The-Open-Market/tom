@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 abstract contract OrderFactory is Ownable {
 
     event OrderPending(uint id, address indexed client, address indexed seller, string orderContentsUrl);
-    event OrderApproved(uint id, address indexed client, address indexed seller, string sellerZipCode, string clientZipCode, uint deliveryFee, string orderContentsUrl);
+    event OrderApproved(uint id, address indexed client, address indexed seller, string sellerZipCode, string clientZipCode, uint deliveryFee, uint collateral, string orderContentsUrl);
     event OrderRejected(uint id, address indexed client, address indexed seller);
     event OrderAccepted(uint id, address indexed client, address indexed seller, address indexed deliveryService);
     event OrderPickedUp(uint id, address indexed client, address indexed seller, address indexed deliveryService);
@@ -25,6 +25,7 @@ abstract contract OrderFactory is Ownable {
         uint id;
         uint amount;
         uint deliveryFee;
+        uint collateral;
         OrderStatus status;
         address client;
         address seller;
@@ -219,7 +220,7 @@ abstract contract OrderFactory is Ownable {
     function _createOrder(address _seller, string memory _orderInfo, uint _amount) internal {
         address client = _msgSender();
         uint id = orders.length;
-        orders.push(Order(id, _amount, 0, OrderStatus.Pending, client, _seller, address(0), _orderInfo, "", ""));
+        orders.push(Order(id, _amount, 0, 0, OrderStatus.Pending, client, _seller, address(0), _orderInfo, "", ""));
         clientOrderCount[client]++;
         sellerOrderCount[_seller]++;
         emit OrderPending(id, client, _seller, _orderInfo);

@@ -27,7 +27,7 @@ abstract contract OrderManager is OrderFactory {
      *         Can be called only by the seller and the order needs to be pending.
      * @param _orderId Active order id
      */
-    function approveOrder(uint _orderId, string memory sellerZipCode, string memory clientZipCode, uint _deliveryFee) external orderIsActive(_orderId) orderIsPending(_orderId) senderIsSeller(_orderId) {
+    function approveOrder(uint _orderId, string memory sellerZipCode, string memory clientZipCode, uint _deliveryFee, uint _collateral) external orderIsActive(_orderId) orderIsPending(_orderId) senderIsSeller(_orderId) {
         Order storage order = orders[_orderId];
         // TODO: Stack Too Deep error when using checkDeliveryFee modifier 
         require(
@@ -37,7 +37,8 @@ abstract contract OrderManager is OrderFactory {
         order.originZipCode = sellerZipCode;
         order.destinationZipCode = clientZipCode;
         order.deliveryFee = _deliveryFee;
-        emit OrderApproved(_orderId, order.client, order.seller, sellerZipCode, clientZipCode, _deliveryFee, order.orderContentsUrl);
+        order.collateral = _collateral;
+        emit OrderApproved(_orderId, order.client, order.seller, sellerZipCode, clientZipCode, _deliveryFee, _collateral, order.orderContentsUrl);
     }
 
     /**
@@ -47,8 +48,11 @@ abstract contract OrderManager is OrderFactory {
      */
     function acceptOrder(uint _orderId) external orderIsActive(_orderId) orderIsApproved(_orderId) senderIsNotClientOrSeller(_orderId) {
         Order storage order = orders[_orderId];
-        // TODO: Check for valid reputation + collateral amount
         address deliveryService = _msgSender();
+        
+        // Freeze collateral
+        IERC20(eurTnoContract).transferFrom(deliveryService, address(this), order.collateral);  // TODO: Check if successful, checkvalidaddress?
+
         order.deliveryService = deliveryService;
         order.status = OrderStatus.Accepted;
         deliveryServiceOrderCount[deliveryService]++;
@@ -98,7 +102,7 @@ abstract contract OrderManager is OrderFactory {
                 || sender == order.deliveryService && order.status == OrderStatus.Received) {
             order.status = OrderStatus.Completed;
             IERC20(eurTnoContract).transfer(order.seller, order.amount - order.deliveryFee);
-            IERC20(eurTnoContract).transfer(order.deliveryService, order.deliveryFee);
+            IERC20(eurTnoContract).transfer(order.deliveryService, order.deliveryFee + order.collateral);
             emit OrderCompleted(_orderId, order.client, order.seller, order.deliveryService);
         } else {
             revert("Illegal operation, cannot complete order twice with the same account");

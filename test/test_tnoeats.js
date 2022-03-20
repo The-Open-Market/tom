@@ -41,6 +41,7 @@ contract("TnoEats", accounts => {
     let euroContract;
     const amount = 1000;
     const deliveryFee = 200;
+    const collateral = 300;
 
     beforeEach(async () => {
         contract = await TnoEats.deployed();
@@ -48,7 +49,6 @@ contract("TnoEats", accounts => {
     });
     
     async function placeOrder() {
-        let amount = 1000;
         await euroContract.approve(contract.address, amount, { from: client_a });
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         return result.logs[0].args.id.toNumber();
@@ -56,12 +56,13 @@ contract("TnoEats", accounts => {
     
     async function approveOrder() {
         const orderId = await placeOrder();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, collateral, { from: seller_a });
         return orderId;
     }
     
     async function acceptOrder() {
         const orderId = await approveOrder();
+        await euroContract.approve(contract.address, collateral, { from: delivery_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         return orderId;
     }
@@ -93,7 +94,7 @@ contract("TnoEats", accounts => {
         const pendingOrder = await contract.orders.call(orderId);
         assert.equal('Pending', ORDER_STATUSES[pendingOrder.status.toNumber()]);
         let deliveryFee = 500;
-        const approvedResult = await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
+        const approvedResult = await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, collateral, { from: seller_a });
         truffleAssert.eventEmitted(approvedResult, 'OrderApproved');
         const approvedOrder = await contract.orders.call(orderId);
         assert.equal('Approved', ORDER_STATUSES[approvedOrder.status.toNumber()]);
@@ -103,9 +104,10 @@ contract("TnoEats", accounts => {
         const orderId = await placeOrder();
         const pendingOrder = await contract.orders.call(orderId);
         assert.equal('Pending', ORDER_STATUSES[pendingOrder.status.toNumber()]);
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, collateral, { from: seller_a });
         const approvedOrder = await contract.orders.call(orderId);
         assert.equal('Approved', ORDER_STATUSES[approvedOrder.status.toNumber()]);
+        await euroContract.approve(contract.address, collateral, { from: delivery_a });
         const acceptedResult = await contract.acceptOrder(orderId, { from: delivery_a });
         truffleAssert.eventEmitted(acceptedResult, 'OrderAccepted');
         const acceptedOrder = await contract.orders.call(orderId);
@@ -115,24 +117,26 @@ contract("TnoEats", accounts => {
 
     it("delivery service cannot accept already taken orders", async () => {
         const orderId = await acceptOrder();
+        await euroContract.approve(contract.address, collateral, { from: delivery_b });
         truffleAssert.fails(contract.acceptOrder(orderId, { from: delivery_b }));
     });
 
     it("order of acceptance is seller then delivery", async () => {
         const orderId = await placeOrder();
 
-
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, collateral, { from: seller_a });
         const approvedOrder = await contract.orders.call(orderId);
         assert.equal('Approved', ORDER_STATUSES[approvedOrder.status.toNumber()]);
 
+        await euroContract.approve(contract.address, collateral, { from: delivery_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         const acceptedOrder = await contract.orders.call(orderId);
         assert.equal('Accepted', ORDER_STATUSES[acceptedOrder.status.toNumber()]);
     });
 
     it("should not be able to accept an invalid order", async () => {
-        truffleAssert.fails(contract.approveOrder(1000, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_a }));
+        truffleAssert.fails(contract.approveOrder(1000, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, collateral, { from: seller_a }));
+        await euroContract.approve(contract.address, collateral, { from: delivery_a });
         truffleAssert.fails(contract.acceptOrder(1000, { from: delivery_a }));
     });
 
@@ -179,7 +183,7 @@ contract("TnoEats", accounts => {
     it("deliveryFee should not be higher than the amount in the contract", async () => {
         const orderId = await placeOrder();
         const deliveryFee = amount + 1;
-        truffleAssert.fails(contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a }));
+        truffleAssert.fails(contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, collateral, { from: seller_a }));
     })
 
     it("client should not be able to complete not-accepted order", async () => {
@@ -212,7 +216,7 @@ contract("TnoEats", accounts => {
 
     it("external seller should not be able to accept different seller order", async () => {
         const orderId = await placeOrder();
-        truffleAssert.fails(contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, { from: seller_b }));
+        truffleAssert.fails(contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, amount, collateral, { from: seller_b }));
     });
 
     it("external party should not be able to complete different seller order", async () => {
@@ -333,7 +337,8 @@ contract("TnoEats", accounts => {
 
     it("client should not be able to accept his own order", async () => {
         const orderId = await placeOrder();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, collateral, { from: seller_a });
+        await euroContract.approve(contract.address, collateral, { from: client_a });
         truffleAssert.fails(contract.acceptOrder(orderId, { from: client_a }));
     });
 });
