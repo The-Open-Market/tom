@@ -78,7 +78,7 @@ contract("TnoEats", accounts => {
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
         assert.equal(10, result.logs[0].args.id.toNumber());
         truffleAssert.eventEmitted(result, 'OrderPending');
-        const order = await contract.orders.call(0);
+        const order = await contract.orders.call(10);
         assert.equal(client_a, order.client);
         assert.equal(seller_a, order.seller);
         assert.equal(NULL_ADDRESS, order.deliveryService);
