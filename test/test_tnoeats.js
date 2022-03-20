@@ -186,6 +186,12 @@ contract("TnoEats", accounts => {
         truffleAssert.fails(contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, collateral, { from: seller_a }));
     })
 
+    it("negative collateral should not be accepted", async () => {
+        const orderId = await placeOrder();
+        truffleAssert.fails(contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, -1, { from: seller_a }));
+    });
+
+
     it("client should not be able to complete not-accepted order", async () => {
         const orderId = await placeOrder();
         truffleAssert.fails(contract.completeOrder(orderId, { from: client_a }));
