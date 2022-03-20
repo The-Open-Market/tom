@@ -73,7 +73,6 @@ export default {
 
     const addOrders = async (myOrders) => {
       const clientKey = 'KXj1DmMm6caFY1ioIyBIy6Ovs1tCjFuj8yEXZgysSCk=';
-
       for (const order of myOrders) {
         try {
           const downloadedInfo = await downloadDeliveryInfo(order.orderContentsUrl);
@@ -81,8 +80,8 @@ export default {
           order.orderInformation = orderInformation;
           order.loading = false;
           orders.push(order);
-        } catch (_) {
-          // Ignore download/decryption errors
+        } catch (error) {
+          console.log(error);
         }
       }
     }
@@ -140,9 +139,11 @@ export default {
 
       address.value = await getSignerAddress();
       const myOrders = await getOrdersByClient(address.value);
-      addOrders(myOrders);
+      await addOrders(myOrders);
 
       const { tnoEats } = await getSmartContract();
+
+      tnoEats.removeAllListeners();
 
       const onOrderPendingFilter = tnoEats.filters.OrderPending(null, address.value, null, null);
       tnoEats.on(onOrderPendingFilter, onOrderPending);
