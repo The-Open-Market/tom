@@ -5,9 +5,11 @@
         <OrderInfo :order="order" pov="seller" />
       </template>
       <template v-slot:controls>
-        <Button text="Reject" styles="red" @click="reject(order.id)" :disabled="order.loading"/>
-        <input type="number" v-model="order.deliveryFee"/>
-        <Button text="Approve" styles="green" @click="approve(order.id)" :disabled="order.loading"/>
+        <Button text="Reject" class="red" @click="reject(order.id)" :disabled="order.loading"/>
+        <div class="flex flex-wrap justify-end gap-1 items-center">
+          <Input type="number" title="Delivery fee" class="small" v-model="order.deliveryFee"/>
+          <Button text="Approve" class="green" @click="approve(order.id)" :disabled="order.loading || order.deliveryFee <= 0"/>
+        </div>
       </template>
     </OrderCard>
   </OrderContainer>
@@ -27,7 +29,7 @@
           <OrderInfo :order="order" pov="seller" />
         </template>
         <template v-slot:controls>
-          <Button text="Transfer" styles="blue" @click="transfer(order.id)" :disabled="order.loading"/>
+          <Button text="Transfer" class="blue" @click="transfer(order.id)" :disabled="order.loading"/>
         </template>
       </OrderCard>
     </OrderContainer>
@@ -37,7 +39,7 @@
           <OrderInfo :order="order" pov="seller" />
         </template>
         <template v-slot:controls v-if="order.status.value === OrderStatus.PickedUp.value">
-          <Button text="Transfer" styles="blue" @click="transfer(order.id)" :disabled="order.loading"/>
+          <Button text="Transfer" class="blue" @click="transfer(order.id)" :disabled="order.loading"/>
         </template>
       </OrderCard>
     </OrderContainer>
@@ -62,11 +64,12 @@
 <script>
 import OrderCard from '@/components/shared/OrderCard.vue';
 import Button from '@/components/shared/Button.vue';
+import Input from '@/components/shared/Input.vue';
 import OrderGrid from '@/components/shared/OrderGrid.vue';
 import OrderContainer from '@/components/shared/OrderContainer.vue';
 import OrderInfo from '@/components/shared/OrderInfo.vue';
 
-import { reactive, onMounted } from "vue";
+import { inject, ref, reactive, onMounted } from "vue";
 import { OrderStatus } from '@/services/order';
 import { getOrdersBySeller } from '@/services/tnoEats';
 import { getSmartContract, getSignerAddress } from '@/services/ethereum';
@@ -79,6 +82,8 @@ export default {
 
   setup() {
     const orders = reactive([]);
+    let address = ref("");
+    const toast = inject('$toast');
 
     const approve = async (orderId) => {
       const index = orders.findIndex(order => order.id === orderId);
@@ -87,6 +92,9 @@ export default {
       try {
         if (await approveOrder(orderId, fee)) {
           orders[index].status = OrderStatus.Approved;
+          toast.success(`Order #${orderId} successfully approved!`);
+        } else {
+          toast.error(`Error approving order #${orderId}`);
         }
       } finally {
         orders[index].loading = false;
@@ -99,6 +107,9 @@ export default {
       try {
         if (await rejectOrder(orderId)) {
           orders[index].status = OrderStatus.Rejected;
+          toast.success(`Order #${orderId} successfully rejected!`);
+        } else {
+          toast.error(`Error rejecting order #${orderId}`);
         }
       } finally {
         orders[index].loading = false;
@@ -111,6 +122,9 @@ export default {
       try {
         if (await transferOrder(orderId)) {
           orders[index].status = OrderStatus.Transferred;
+          toast.success(`Order #${orderId} successfully transferred!`);
+        } else {
+          toast.error(`Error transferred order #${orderId}`);
         }
       } finally {
         orders[index].loading = false;
@@ -139,6 +153,7 @@ export default {
           seller,
           orderContentsUrl: ipfsUrl
         }]);
+        toast.info(`Order #${orderId} is now Pending!`);
       }
     }
 
@@ -146,6 +161,7 @@ export default {
       const orderId = parseInt(id._hex, 16);
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].status = OrderStatus.Cancelled;
+      toast.info(`Order #${orderId} is now Cancelled!`);
     }
 
     const onOrderAccepted = (id, client, seller, deliveryService) => {
@@ -153,49 +169,61 @@ export default {
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].status = OrderStatus.Accepted;
       orders[index].deliveryService = deliveryService;
+      toast.info(`Order #${orderId} is now Accepted!`);
     }
 
     const onOrderStatusChanged = (id, client, seller, deliveryService, status) => {
       const orderId = parseInt(id._hex, 16);
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].status = status;
+      toast.info(`Order #${orderId} is now ${status.name}!`);
     }
 
-    onMounted(async () => {
-      const address = await getSignerAddress();
-      const myOrders = await getOrdersBySeller(address);
+    const onAccountChanged = async () => {
+      while (orders.length) {
+        orders.pop();
+      }
+
+      address.value = await getSignerAddress();
+      const myOrders = await getOrdersBySeller(address.value);
       await addOrders(myOrders);
 
       const { tnoEats } = await getSmartContract();
 
-      const onOrderPendingFilter = tnoEats.filters.OrderPending(null, null, address, null);
+      const onOrderPendingFilter = tnoEats.filters.OrderPending(null, null, address.value, null);
       tnoEats.on(onOrderPendingFilter, onOrderPending);
 
-      const onOrderCancelledFilter = tnoEats.filters.OrderCancelled(null, null, address);
+      const onOrderCancelledFilter = tnoEats.filters.OrderCancelled(null, null, address.value);
       tnoEats.on(onOrderCancelledFilter, onOrderCancelled);
 
-      const onOrderAcceptedFilter = tnoEats.filters.OrderAccepted(null, null, address, null);
+      const onOrderAcceptedFilter = tnoEats.filters.OrderAccepted(null, null, address.value, null);
       tnoEats.on(onOrderAcceptedFilter, onOrderAccepted);
 
-      const onOrderPickedUpFilter = tnoEats.filters.OrderPickedUp(null, null, address, null);
+      const onOrderPickedUpFilter = tnoEats.filters.OrderPickedUp(null, null, address.value, null);
       tnoEats.on(onOrderPickedUpFilter, (id, client, seller, deliveryService) => +
         onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.PickedUp));
 
-      const onOrderInTransitFilter = tnoEats.filters.OrderInTransit(null, null, address, null);
+      const onOrderInTransitFilter = tnoEats.filters.OrderInTransit(null, null, address.value, null);
       tnoEats.on(onOrderInTransitFilter, (id, client, seller, deliveryService) => +
         onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.InTransit));
 
-      const onOrderReceivedFilter = tnoEats.filters.OrderReceived(null, null, address, null);
+      const onOrderReceivedFilter = tnoEats.filters.OrderReceived(null, null, address.value, null);
       tnoEats.on(onOrderReceivedFilter, (id, client, seller, deliveryService) => +
         onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.Received));
 
-      const onOrderDeliveredFilter = tnoEats.filters.OrderDelivered(null, null, address, null);
+      const onOrderDeliveredFilter = tnoEats.filters.OrderDelivered(null, null, address.value, null);
       tnoEats.on(onOrderDeliveredFilter, (id, client, seller, deliveryService) => +
         onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.Delivered));
 
-      const onOrderCompletedFilter = tnoEats.filters.OrderCompleted(null, null, address, null);
+      const onOrderCompletedFilter = tnoEats.filters.OrderCompleted(null, null, address.value, null);
       tnoEats.on(onOrderCompletedFilter, (id, client, seller, deliveryService) => +
         onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.Completed));
+    }
+
+    onMounted(onAccountChanged);
+
+    window.ethereum.on('accountsChanged', async (accounts) => {
+      await onAccountChanged();
     });
 
     return {
@@ -212,6 +240,7 @@ export default {
     OrderContainer,
     OrderCard,
     Button,
+    Input,
     OrderInfo,
   },
 }

@@ -5,29 +5,25 @@
         <OrderInfo :order="order" pov="client" />
       </template>
       <template v-slot:controls v-if="order.status.value === OrderStatus.Pending.value">
-        <Button text="Cancel" styles="red" @click="cancel(order.id)" :disabled="order.loading"/>
+        <Button text="Cancel" class="red" @click="cancel(order.id)" :disabled="order.loading"/>
       </template>
       <template v-slot:controls v-if="order.status.value === OrderStatus.InTransit.value || order.status.value === OrderStatus.Delivered.value">
-        <Button text="Receive" styles="green" @click="receive(order.id)" :disabled="order.loading"/>
+        <Button text="Receive" class="green" @click="receive(order.id)" :disabled="order.loading"/>
       </template>
     </OrderCard>
   </OrderContainer>
 
-  <div class="mt-24">
-    <ProductList @addToCart="addToCart"/>
-    <ShoppingCart :cartContents="this.cartContents" @increment="increment" @decrement="decrement" @remove="remove" @checkout="checkout"/>
-  </div>
+  <OrderPlacement class="mt-24"/>
 </template>
 
 <script>
-import ProductList from '@/components/client/ProductList.vue'
-import ShoppingCart from '@/components/client/ShoppingCart.vue'
+import OrderPlacement from '@/components/client/OrderPlacement.vue'
 import OrderCard from '@/components/shared/OrderCard.vue';
 import Button from '@/components/shared/Button.vue';
 import OrderContainer from '@/components/shared/OrderContainer.vue';
 import OrderInfo from '@/components/shared/OrderInfo.vue';
 
-import { reactive, onMounted } from "vue";
+import { ref, reactive, onMounted, inject } from "vue";
 import { ethers } from 'ethers';
 import { OrderStatus } from '@/services/order';
 import { getOrdersByClient } from '@/services/tnoEats';
@@ -41,53 +37,9 @@ export default {
   name: "Client",
 
   setup() {
-    let cartContents = reactive([]);
     const orders = reactive([]);
-
-    const addToCart = (product) => {
-      if (cartContents.filter(entry => entry.id == product.id).length == 0) {
-        product['quantity'] = 1
-        cartContents.push(product)
-      } else {
-        cartContents.find(entry => entry.id == product.id)['quantity']++
-      }
-    }
-
-    const increment = (id) => {
-      cartContents.find(entry => entry.id == id)['quantity']++
-    }
-
-    const decrement = (id) => {
-      if (cartContents.find(entry => entry.id == id)['quantity'] == 1) {
-        cartContents = cartContents.filter(entry => entry.id != id)
-      } else {
-        cartContents.find(entry => entry.id == id)['quantity']--
-      }
-    }
-
-    const remove = (id) => {
-      cartContents = cartContents.filter(entry => entry.id != id)
-    }
-
-    const checkout = async (clientAddress) => {
-      const clientKey = 'KXj1DmMm6caFY1ioIyBIy6Ovs1tCjFuj8yEXZgysSCk=';
-      const sellerPublicKey = 'sm0/a19e0Ojgh05dXX7nwL7QiGJ02HiKgZQGiLvW70w=';
-      const clientPublicKey = 'sm0/a19e0Ojgh05dXX7nwL7QiGJ02HiKgZQGiLvW70w=';
-      const clientSecretKey = 'z6bXpb5tnHlTc/B9N53ig455/o0lX3eienBkcHbNLeM=';
-
-      const sellerAddress = "0x59Ce492d182688239C118AcFEb1A4872Ce3B1231";
-
-      const orderInfo = {
-        cart: [...cartContents],
-        deliveryAddress: {...clientAddress},
-      };
-      const encrypted = await encryptOrderInfo(sellerPublicKey, clientPublicKey, clientSecretKey, clientKey, orderInfo);
-      const path = await uploadDeliveryInfo(encrypted);
-      const total = orderInfo.cart.reduce((a, b) => a + (b.quantity * b.price), 0);
-      const amount = ethers.utils.parseEther(total.toString());
-      await approveTransaction(amount);
-      await placeOrder(sellerAddress, path, amount);
-    }
+    const address = ref("");
+    const toast = inject('$toast');
 
     const cancel = async (orderId) => {
       const index = orders.findIndex(order => order.id === orderId);
@@ -95,6 +47,9 @@ export default {
       try {
         if (await cancelOrder(orderId)) {
           orders[index].status = OrderStatus.Cancelled;
+          toast.success(`Order #${orderId} successfully canceled!`);
+        } else {
+          toast.error(`Error canceling order #${orderId}`);
         }
       } finally {
         orders[index].loading = false;
@@ -107,6 +62,9 @@ export default {
       try {
         if (await receiveOrder(orderId)) {
           orders[index].status = OrderStatus.Received;
+          toast.success(`Order #${orderId} successfully received!`);
+        } else {
+          toast.error(`Error receiving order #${orderId}`);
         }
       } finally {
         orders[index].loading = false;
@@ -139,6 +97,7 @@ export default {
           seller,
           orderContentsUrl: ipfsUrl
         }]);
+        toast.info(`Order #${orderId} is now Pending!`);
       }
     }
 
@@ -146,6 +105,7 @@ export default {
       const orderId = parseInt(id._hex, 16);
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].status = OrderStatus.Rejected;
+      toast.info(`Order #${orderId} is now Rejected!`);
     }
 
     const onOrderApproved = (id, client, seller, sellerZipCode, clientZipCode, deliveryFee) => {
@@ -155,6 +115,7 @@ export default {
       orders[index].sellerZipCode = sellerZipCode;
       orders[index].clientZipCode = clientZipCode;
       orders[index].deliveryFee = parseFloat(ethers.utils.formatEther(deliveryFee));
+      toast.info(`Order #${orderId} is now Approved!`);
     }
 
     const onOrderAccepted = (id, client, seller, deliveryService) => {
@@ -162,62 +123,67 @@ export default {
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].status = OrderStatus.Accepted;
       orders[index].deliveryService = deliveryService;
+      toast.info(`Order #${orderId} is now Accepted!`);
     }
 
     const onOrderStatusChanged = (id, client, seller, deliveryService, status) => {
       const orderId = parseInt(id._hex, 16);
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].status = status;
+      toast.info(`Order #${orderId} is now ${status.name}!`);
     }
 
-    onMounted(async () => {
-      const address = await getSignerAddress();
-      const myOrders = await getOrdersByClient(address);
+    const onAccountChanged = async () => {
+      while (orders.length) {
+        orders.pop();
+      }
+
+      address.value = await getSignerAddress();
+      const myOrders = await getOrdersByClient(address.value);
       addOrders(myOrders);
 
       const { tnoEats } = await getSmartContract();
 
-      const onOrderPendingFilter = tnoEats.filters.OrderPending(null, address, null, null);
+      const onOrderPendingFilter = tnoEats.filters.OrderPending(null, address.value, null, null);
       tnoEats.on(onOrderPendingFilter, onOrderPending);
 
-      const onOrderApprovedFilter = tnoEats.filters.OrderApproved(null, address, null, null, null, null);
+      const onOrderApprovedFilter = tnoEats.filters.OrderApproved(null, address.value, null, null, null, null);
       tnoEats.on(onOrderApprovedFilter, onOrderApproved);
 
-      const onOrderRejectedFilter = tnoEats.filters.OrderRejected(null, address, null);
+      const onOrderRejectedFilter = tnoEats.filters.OrderRejected(null, address.value, null);
       tnoEats.on(onOrderRejectedFilter, onOrderRejected);
 
-      const onOrderAcceptedFilter = tnoEats.filters.OrderAccepted(null, address, null, null);
+      const onOrderAcceptedFilter = tnoEats.filters.OrderAccepted(null, address.value, null, null);
       tnoEats.on(onOrderAcceptedFilter, onOrderAccepted);
 
-      const onOrderPickedUpFilter = tnoEats.filters.OrderPickedUp(null, address, null, null);
+      const onOrderPickedUpFilter = tnoEats.filters.OrderPickedUp(null, address.value, null, null);
       tnoEats.on(onOrderPickedUpFilter, (id, client, seller, deliveryService) => +
         onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.PickedUp));
 
-      const onOrderTransferredFilter = tnoEats.filters.OrderTransferred(null, address, null, null);
+      const onOrderTransferredFilter = tnoEats.filters.OrderTransferred(null, address.value, null, null);
       tnoEats.on(onOrderTransferredFilter, (id, client, seller, deliveryService) => +
         onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.Transferred));
 
-      const onOrderInTransitFilter = tnoEats.filters.OrderInTransit(null, address, null, null);
+      const onOrderInTransitFilter = tnoEats.filters.OrderInTransit(null, address.value, null, null);
       tnoEats.on(onOrderInTransitFilter, (id, client, seller, deliveryService) => +
         onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.InTransit));
 
-      const onOrderDeliveredFilter = tnoEats.filters.OrderDelivered(null, address, null, null);
+      const onOrderDeliveredFilter = tnoEats.filters.OrderDelivered(null, address.value, null, null);
       tnoEats.on(onOrderDeliveredFilter, (id, client, seller, deliveryService) => +
         onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.Delivered));
 
-      const onOrderCompletedFilter = tnoEats.filters.OrderCompleted(null, address, null, null);
+      const onOrderCompletedFilter = tnoEats.filters.OrderCompleted(null, address.value, null, null);
       tnoEats.on(onOrderCompletedFilter, (id, client, seller, deliveryService) => +
-        onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.Completed));        
-    })
+        onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.Completed));
+    };
+
+    onMounted(onAccountChanged);
+
+    window.ethereum.on('accountsChanged', async (accounts) => {
+      await onAccountChanged();
+    });
 
     return {
-      cartContents,
-      addToCart,
-      increment,
-      decrement,
-      remove,
-      checkout,
-
       orders,
       cancel,
       receive,
@@ -226,8 +192,7 @@ export default {
   },
 
   components: {
-    ProductList,
-    ShoppingCart,
+    OrderPlacement,
     OrderContainer,
     OrderCard,
     Button,

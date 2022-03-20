@@ -16,7 +16,8 @@
     "vue": "^3.2.31",
     "vue-cli": "^2.9.6",
     "vue-clipboard3": "^2.0.0",
-    "vue-router": "^4.0.12"
+    "vue-router": "^4.0.12",
+    "vue-toast-notification": "^3.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.12.16",

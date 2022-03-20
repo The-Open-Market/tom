@@ -4,24 +4,19 @@
       TODO: integrate open maps
     </p>
 
-    <p class="flex" v-if="pov === 'delivery'">
-      <span class="font-medium uppercase">Address hash: </span>
-      <Button text="Copy" @click="copyHash" class="ml-1 uppercase green transparent small" />
-    </p>
-
     <p v-if="pov !== 'delivery'">
-      <span class="font-medium uppercase">Delivery address: </span>
+      <span class="font-medium uppercase">Address: </span>
       {{ deliveryAddress.street }} {{ deliveryAddress.hnr }} {{ deliveryAddress.hnr_add }}, {{ deliveryAddress.zip }}
     </p>
 
-    <p v-if="pov !== 'delivery'">
-      <span class="font-medium uppercase">Order details: </span>
-      ({{ items }} item{{ items > 1 ? 's' : '' }}):
+    <p class="flex" v-if="pov === 'delivery'">
+      <span class="font-medium uppercase">Address hash: </span>
+      <Button text="Copy" @click="copyValue(hashedAddress)" class="ml-1 uppercase green transparent small" />
     </p>
 
-    <p v-if="pov === 'seller'">
+    <p class="flex" v-if="pov === 'seller'">
       <span class="font-medium uppercase">Salt: </span>
-      {{ salt }}
+      <Button text="Copy" @click="copyValue(salt)" class="ml-1 uppercase green transparent small" />
     </p>
 
     <p v-if="order.status.name !== 'Pending'">
@@ -30,6 +25,11 @@
     </p>
     
     <template v-if="pov !== 'delivery'">
+      <p>
+        <span class="font-medium uppercase">
+          Order details <span class="text-sm lowercase">({{ items }} item{{ items > 1 ? 's' : '' }})</span>:
+        </span>
+      </p>
       <div v-for="product in cart" :key="product.id">
         <p>{{ product.quantity }}x {{ product.name }}: €{{ parseFloat(product.price * product.quantity).toFixed(2) }}</p>
       </div>
@@ -71,9 +71,9 @@ export default {
     
     const hashedAddress = props.order.hashedAddress;
 
-    const copyHash = async () => {
+    const copyValue = async (value) => {
       try {
-        await toClipboard(hashedAddress);
+        await toClipboard(value);
       } catch (e) {
         console.error(e)
       }
@@ -85,7 +85,7 @@ export default {
       cart,
       items,
       hashedAddress,
-      copyHash
+      copyValue
     }
   },
 

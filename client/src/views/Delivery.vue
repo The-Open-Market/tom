@@ -7,7 +7,7 @@
           <OrderInfo :order="order" pov="delivery"/>
         </template>
         <template v-slot:controls>
-          <Button text="Pick Up" styles="blue" @click="pickup(order.id)" :disabled="order.loading"/>
+          <Button text="Pick Up" class="blue" @click="pickup(order.id)" :disabled="order.loading"/>
         </template>
       </OrderCard>
     </OrderContainer>
@@ -17,10 +17,10 @@
           <OrderInfo :order="order" pov="delivery"/>
         </template>
         <template v-slot:controls v-if="order.status.value === OrderStatus.Transferred.value">
-          <Button text="PickUp" styles="blue" @click="pickup(order.id)" :disabled="order.loading"/>
+          <Button text="PickUp" class="blue" @click="pickup(order.id)" :disabled="order.loading"/>
         </template>
         <template v-slot:controls v-else-if="order.status.value === OrderStatus.InTransit.value">
-          <Button text="Deliver" styles="blue" @click="deliver(order.id)" :disabled="order.loading"/>
+          <Button text="Deliver" class="blue" @click="deliver(order.id)" :disabled="order.loading"/>
         </template>
       </OrderCard>
     </OrderContainer>
@@ -30,7 +30,7 @@
           <OrderInfo :order="order" pov="delivery"/>
         </template>
         <template v-slot:controls v-if="order.status.value === OrderStatus.Received.value">
-          <Button text="Deliver" styles="blue" @click="deliver(order.id)" :disabled="order.loading"/>
+          <Button text="Deliver" class="blue" @click="deliver(order.id)" :disabled="order.loading"/>
         </template>
       </OrderCard>
     </OrderContainer>
@@ -42,7 +42,7 @@
         <OrderInfo :order="order" pov="delivery"/>
       </template>
       <template v-slot:controls>
-        <Button text="Accept" styles="green" @click="accept(order.id)" :disabled="order.loading"/>
+        <Button text="Accept" class="green" @click="accept(order.id)" :disabled="order.loading"/>
       </template>
     </OrderCard>
   </OrderContainer>
@@ -57,7 +57,7 @@ import AddressValidator from '@/components/deliveryService/AddressValidator.vue'
 import OrderInfo from '@/components/shared/OrderInfo.vue';
 
 import { ethers } from 'ethers';
-import { reactive, onMounted } from 'vue';
+import { inject, ref, reactive, onMounted } from 'vue';
 import { OrderStatus } from '@/services/order';
 import { getSmartContract, getSignerAddress } from '@/services/ethereum';
 import { getOrdersByDeliveryService, getApprovedOrders } from '@/services/tnoEats';
@@ -69,6 +69,8 @@ export default {
 
   setup() {
     const orders = reactive([]);
+    const address = ref("");
+    const toast = inject('$toast');
 
     const accept = async(orderId) => {
       const index = orders.findIndex(order => order.id === orderId);
@@ -76,6 +78,9 @@ export default {
       try {
         if (await acceptOrder(orderId)) {
           orders[index].status = OrderStatus.Accepted;
+          toast.success(`Order #${orderId} successfully accepted!`);
+        } else {
+          toast.error(`Error accepting order #${orderId}`);
         }
       } finally {
         orders[index].loading = false;
@@ -88,6 +93,9 @@ export default {
       try {
         if (await pickupOrder(orderId)) {
           orders[index].status = OrderStatus.PickedUp;
+          toast.success(`Order #${orderId} successfully picked up!`);
+        } else {
+          toast.error(`Error picking up order #${orderId}`);
         }
       }
       finally {
@@ -101,6 +109,9 @@ export default {
       try {
         if (await deliverOrder(orderId)) {
           orders[index].status = OrderStatus.Delivered;
+          toast.success(`Order #${orderId} successfully delivered!`);
+        } else {
+          toast.error(`Error delivering order #${orderId}`);
         }
       } finally {
         orders[index].loading = false;
@@ -129,14 +140,16 @@ export default {
           orderContentsUrl: ipfsUrl,
           deliveryFee: parseFloat(ethers.utils.formatEther(deliveryFee)),
         }]);
+        toast.info(`Order #${orderId} is now Approved!`);
       }
     };
 
     const onOrderAccepted = (id, client, seller, deliveryService) => {
-      if (deliveryService !== address) {
+      if (deliveryService !== address.value) {
         const orderId = parseInt(id._hex, 16);
         const index = orders.findIndex(order => order.id === orderId);
         orders.splice(index, 1);
+        toast.info(`Order #${orderId} is now Accepted!`);
       }
     };
 
@@ -144,11 +157,16 @@ export default {
       const orderId = parseInt(id._hex, 16);
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].status = status;
+      toast.info(`Order #${orderId} is now ${status.name}!`);
     };
 
-    onMounted(async () => {
-      const address = await getSignerAddress();
-      const myOrders = await getOrdersByDeliveryService(address);
+    const onAccountChanged = async () => {
+      while (orders.length) {
+        orders.pop();
+      }
+
+      address.value = await getSignerAddress();
+      const myOrders = await getOrdersByDeliveryService(address.value);
       await addOrders(myOrders);
       const approvedOrders = await getApprovedOrders();
       await addOrders(approvedOrders);
@@ -156,24 +174,30 @@ export default {
 
       tnoEats.on("OrderApproved", onOrderApproved);
 
-      const onOrderAcceptedFilter = tnoEats.filters.OrderAccepted(null, null, null, address);
+      const onOrderAcceptedFilter = tnoEats.filters.OrderAccepted(null, null, null, address.value);
       tnoEats.on(onOrderAcceptedFilter, onOrderAccepted);
 
-      const onOrderTransferredFilter = tnoEats.filters.OrderTransferred(null, null, null, address);
+      const onOrderTransferredFilter = tnoEats.filters.OrderTransferred(null, null, null, address.value);
       tnoEats.on(onOrderTransferredFilter, (id, client, seller, deliveryService) => +
         onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.Transferred));
 
-      const onOrderInTransitFilter = tnoEats.filters.OrderInTransit(null, null, null, address);
+      const onOrderInTransitFilter = tnoEats.filters.OrderInTransit(null, null, null, address.value);
       tnoEats.on(onOrderInTransitFilter, (id, client, seller, deliveryService) => +
         onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.InTransit));
 
-      const onOrderReceivedFilter = tnoEats.filters.OrderReceived(null, null, null, address);
+      const onOrderReceivedFilter = tnoEats.filters.OrderReceived(null, null, null, address.value);
       tnoEats.on(onOrderReceivedFilter, (id, client, seller, deliveryService) => +
         onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.Received));
 
-      const onOrderCompletedFilter = tnoEats.filters.OrderCompleted(null, null, null, address);
+      const onOrderCompletedFilter = tnoEats.filters.OrderCompleted(null, null, null, address.value);
       tnoEats.on(onOrderCompletedFilter, (id, client, seller, deliveryService) => +
         onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.Completed));
+    }
+
+    onMounted(onAccountChanged);
+
+    window.ethereum.on('accountsChanged', async (accounts) => {
+      await onAccountChanged();
     });
 
     return {
