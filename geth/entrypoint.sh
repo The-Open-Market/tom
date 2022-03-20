@@ -8,7 +8,7 @@ else
 fi
 
 cd /home/tno-eats
-truffle migrate
+truffle migrate --network geth
 
 cd /home/tno-eats/client
 npm install --save
