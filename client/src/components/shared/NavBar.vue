@@ -1,7 +1,7 @@
 <template>
   <!-- This example requires Tailwind CSS v2.0+ -->
 <nav class="bg-gray-800">
-  <div class="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+  <div class="container mx-auto">
     <div class="relative flex items-center justify-between h-16">
       <div class="absolute inset-y-0 left-0 flex items-center sm:hidden">
         <!-- Mobile menu button-->
@@ -30,8 +30,8 @@
         </button>
       </div>
       <div class="flex-1 flex items-center justify-center sm:items-stretch sm:justify-start">
-        <div class="hidden sm:block sm:ml-6">
-          <div class="flex space-x-4">
+        <div class="hidden sm:block w-full">
+          <div class="flex w-full gap-8">
             <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
             <a href="/" class="bg-gray-900 text-white px-3 py-2 rounded-md text-sm font-medium" aria-current="page">TNO-EATS</a>
 
@@ -40,6 +40,10 @@
             <a href="/delivery" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Delivery POV</a>
 
             <a href="/seller" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Seller POV</a>
+
+            <div class="ml-auto flex items-center">
+              <span class="text-white">{{ address }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -49,7 +53,25 @@
 </template>
 
 <script>
+import { ref, onMounted } from 'vue';
+import { getSignerAddress } from '@/services/ethereum';
+
 export default {
-  name: "NavBar"
+  name: "NavBar",
+
+  setup() {
+    const address = ref("");
+
+    const updateAddress = async () => {
+      address.value = await getSignerAddress();
+    };
+
+    onMounted(updateAddress);
+    window.ethereum.on('accountsChanged', updateAddress);
+
+    return {
+      address,
+    };
+  },
 };
 </script>

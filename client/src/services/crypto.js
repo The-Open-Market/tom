@@ -1,4 +1,4 @@
-import { box, randomBytes, hash } from 'tweetnacl';
+import { secretbox, box, randomBytes, hash } from 'tweetnacl';
 import {
   decodeUTF8,
   encodeUTF8,
@@ -11,6 +11,8 @@ import { Buffer } from 'buffer';
 const newNonce = () => randomBytes(box.nonceLength);
 
 // const generateKeyPair = () => box.keyPair();
+
+const generateKey = () => encodeBase64(randomBytes(secretbox.keyLength));
 
 const encrypt = (secretOrSharedKey, json, key) => {
   const nonce = newNonce();
@@ -47,8 +49,41 @@ const decrypt = (secretOrSharedKey, messageWithNonce, key) => {
   return JSON.parse(base64DecryptedMessage);
 };
 
+export const symEncrypt = (key, json) => {
+  const keyUint8Array = decodeBase64(key);
 
-const encryptOrderInfo = async (sellerPublicKey, clientPublicKey, clientSecretKey, orderInfo) => {
+  const nonce = newNonce();
+  const messageUint8 = decodeUTF8(JSON.stringify(json));
+  const box = secretbox(messageUint8, nonce, keyUint8Array);
+
+  const fullMessage = new Uint8Array(nonce.length + box.length);
+  fullMessage.set(nonce);
+  fullMessage.set(box, nonce.length);
+
+  const base64FullMessage = encodeBase64(fullMessage);
+  return base64FullMessage;
+};
+
+export const symDecrypt = (key, messageWithNonce) => {
+  const keyUint8Array = decodeBase64(key);
+  const messageWithNonceAsUint8Array = decodeBase64(messageWithNonce);
+  const nonce = messageWithNonceAsUint8Array.slice(0, secretbox.nonceLength);
+  const message = messageWithNonceAsUint8Array.slice(
+    secretbox.nonceLength,
+    messageWithNonce.length
+  );
+
+  const decrypted = secretbox.open(message, nonce, keyUint8Array);
+
+  if (!decrypted) {
+    throw new Error("Could not decrypt message");
+  }
+
+  const base64DecryptedMessage = encodeUTF8(decrypted);
+  return JSON.parse(base64DecryptedMessage);
+};
+
+const encryptOrderInfo = async (sellerPublicKey, clientPublicKey, clientSecretKey, clientKey, orderInfo) => {
     const fullAddress = orderInfo['deliveryAddress']['street'] + 
       orderInfo['deliveryAddress']['hnr'] +
       orderInfo['deliveryAddress']['hnr_add'] +
@@ -62,12 +97,15 @@ const encryptOrderInfo = async (sellerPublicKey, clientPublicKey, clientSecretKe
     orderInfo['salt'] = encodeBase64(salt);
 
     const shared = box.before(decodeBase64(sellerPublicKey), decodeBase64(clientSecretKey));
-    const orderInformation =  encrypt(shared, orderInfo);
+    const orderInformation = encrypt(shared, orderInfo);
+
+    const clientOrderInformation = symEncrypt(clientKey, orderInfo);
 
     return JSON.stringify({
         sellerPublicKey,
         clientPublicKey,
         orderInformation,
+        clientOrderInformation,
         hashedAddress,
     });
 };
@@ -77,6 +115,10 @@ const decryptOrderInfo = async ({ clientPublicKey, orderInformation }, sellerSec
     const decrypted = decrypt(shared, orderInformation);
     return decrypted;
 };
+
+const decryptClientOrderInfo = async ({ clientOrderInformation }, clientKey) => {
+    return symDecrypt(clientKey, clientOrderInformation);
+}
 
 const isValidHash = async (clientAddress, saltString, hashedAddress) => {
   try {
@@ -90,4 +132,4 @@ const isValidHash = async (clientAddress, saltString, hashedAddress) => {
   }
 }
 
-export { encryptOrderInfo, decryptOrderInfo, isValidHash };
+export { encryptOrderInfo, decryptOrderInfo, decryptClientOrderInfo, isValidHash };

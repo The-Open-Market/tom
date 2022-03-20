@@ -71,6 +71,7 @@ module.exports = {
         );
       },
       network_id: "42",
+      skipDryRun: true,
     },
     // Another network with more advanced options...
     // advanced: {
