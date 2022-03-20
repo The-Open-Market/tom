@@ -6,7 +6,7 @@
 
     <p class="flex" v-if="pov === 'delivery'">
       <span class="font-medium uppercase">Address hash: </span>
-      <Button text="Copy" @click="copyHash"/>
+      <Button text="Copy" @click="copyHash" class="ml-1 uppercase green transparent small" />
     </p>
 
     <p v-if="pov !== 'delivery'">
