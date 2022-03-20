@@ -44,6 +44,11 @@
           <p>This is a disputed order</p>
         </template>
       </OrderCard>
+      <OrderCard :order="order1" loading="true">
+        <template v-slot:contents>
+          <p>This is a disputed order</p>
+        </template>
+      </OrderCard>
     </div>
   </div>  
 </div>

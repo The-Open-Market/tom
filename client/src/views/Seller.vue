@@ -1,19 +1,19 @@
 <template>
   <OrderContainer title="Pending" flow="row">
-    <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Pending.value)" :key="order.id" :order="order">
+    <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Pending.value)" :key="order.id" :order="order" :loading="order.loading">
       <template v-slot:contents>
         <OrderInfo :order="order" pov="seller" />
       </template>
       <template v-slot:controls>
-        <Button text="Reject" styles="red" @click="reject(order.id)"/>
+        <Button text="Reject" styles="red" @click="reject(order.id)" :disabled="order.loading"/>
         <input type="number" v-model="order.deliveryFee"/>
-        <Button text="Approve" styles="green" @click="approve(order.id)"/>
+        <Button text="Approve" styles="green" @click="approve(order.id)" :disabled="order.loading"/>
       </template>
     </OrderCard>
   </OrderContainer>
 
   <OrderContainer title="Approved" flow="row" class="mt-12">
-    <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Approved.value)" :key="order.id" :order="order">
+    <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Approved.value)" :key="order.id" :order="order" :loading="order.loading">
       <template v-slot:contents>
         <OrderInfo :order="order" pov="seller" />
       </template>
@@ -22,27 +22,27 @@
 
   <OrderGrid :nrColumns="3" class="mt-12">
     <OrderContainer title="Accepted">
-      <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Accepted.value)" :key="order.id" :order="order">
+      <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Accepted.value)" :key="order.id" :order="order" :loading="order.loading">
         <template v-slot:contents>
           <OrderInfo :order="order" pov="seller" />
         </template>
         <template v-slot:controls>
-          <Button text="Transfer" styles="blue" @click="transfer(order.id)"/>
+          <Button text="Transfer" styles="blue" @click="transfer(order.id)" :disabled="order.loading"/>
         </template>
       </OrderCard>
     </OrderContainer>
     <OrderContainer title="In transit">
-      <OrderCard v-for="order in orders.filter(order => OrderStatus.PickedUp.value <= order.status.value && order.status.value <= OrderStatus.InTransit.value)" :key="order.id" :order="order">
+      <OrderCard v-for="order in orders.filter(order => OrderStatus.PickedUp.value <= order.status.value && order.status.value <= OrderStatus.InTransit.value)" :key="order.id" :order="order" :loading="order.loading">
         <template v-slot:contents>
           <OrderInfo :order="order" pov="seller" />
         </template>
         <template v-slot:controls v-if="order.status.value === OrderStatus.PickedUp.value">
-          <Button text="Transfer" styles="blue" @click="transfer(order.id)"/>
+          <Button text="Transfer" styles="blue" @click="transfer(order.id)" :disabled="order.loading"/>
         </template>
       </OrderCard>
     </OrderContainer>
     <OrderContainer title="Completed">
-      <OrderCard v-for="order in orders.filter(order => OrderStatus.Received.value <= order.status.value && order.status.value <= OrderStatus.Completed.value)" :key="order.id" :order="order">
+      <OrderCard v-for="order in orders.filter(order => OrderStatus.Received.value <= order.status.value && order.status.value <= OrderStatus.Completed.value)" :key="order.id" :order="order" :loading="order.loading">
         <template v-slot:contents>
           <OrderInfo :order="order" pov="seller" />
         </template>
@@ -51,7 +51,7 @@
   </OrderGrid>
 
   <OrderContainer title="Rejected and cancelled" flow="row" class="mt-12">
-    <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Rejected.value || order.status.value === OrderStatus.Cancelled.value)" :key="order.id" :order="order">
+    <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Rejected.value || order.status.value === OrderStatus.Cancelled.value)" :key="order.id" :order="order" :loading="order.loading">
       <template v-slot:contents>
           <OrderInfo :order="order" pov="seller" />
       </template>
@@ -83,22 +83,37 @@ export default {
     const approve = async (orderId) => {
       const index = orders.findIndex(order => order.id === orderId);
       const fee = orders[index].deliveryFee;
-      if (await approveOrder(orderId, fee)) {
-        orders[index].status = OrderStatus.Approved;
+      orders[index].loading = true;
+      try {
+        if (await approveOrder(orderId, fee)) {
+          orders[index].status = OrderStatus.Approved;
+        }
+      } finally {
+        orders[index].loading = false;
       }
     }
 
     const reject = async (orderId) => {
-      if (await rejectOrder(orderId)) {
-        const index = orders.findIndex(order => order.id === orderId);
-        orders[index].status = OrderStatus.Rejected;
+      const index = orders.findIndex(order => order.id === orderId);
+      orders[index].loading = true;
+      try {
+        if (await rejectOrder(orderId)) {
+          orders[index].status = OrderStatus.Rejected;
+        }
+      } finally {
+        orders[index].loading = false;
       }
     }
 
     const transfer = async (orderId) => {
-      if (await transferOrder(orderId)) {
-        const index = orders.findIndex(order => order.id === orderId);
-        orders[index].status = OrderStatus.Transferred;
+      const index = orders.findIndex(order => order.id === orderId);
+      orders[index].loading = true;
+      try {
+        if (await transferOrder(orderId)) {
+          orders[index].status = OrderStatus.Transferred;
+        }
+      } finally {
+        orders[index].loading = false;
       }
     }
 
@@ -109,6 +124,7 @@ export default {
         const downloadedInfo = await downloadDeliveryInfo(order.orderContentsUrl);
         const orderInformation = await decryptOrderInfo(downloadedInfo, sellerSecretKey);
         order.orderInformation = orderInformation;
+        order.loading = false;
         orders.push(order);
       }
     }

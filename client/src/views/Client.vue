@@ -1,14 +1,14 @@
 <template>
   <OrderContainer title="My orders" flow="row">
-    <OrderCard v-for="order in orders" :key="order.id" :order="order">
+    <OrderCard v-for="order in orders" :key="order.id" :order="order" :loading="order.loading">
       <template v-slot:contents>
         <OrderInfo :order="order" pov="client" />
       </template>
       <template v-slot:controls v-if="order.status.value === OrderStatus.Pending.value">
-        <Button text="Cancel" styles="red" @click="cancel(order.id)"/>
+        <Button text="Cancel" styles="red" @click="cancel(order.id)" :disabled="order.loading"/>
       </template>
       <template v-slot:controls v-if="order.status.value === OrderStatus.InTransit.value || order.status.value === OrderStatus.Delivered.value">
-        <Button text="Receive" styles="green" @click="receive(order.id)"/>
+        <Button text="Receive" styles="green" @click="receive(order.id)" :disabled="order.loading"/>
       </template>
     </OrderCard>
   </OrderContainer>
@@ -90,16 +90,26 @@ export default {
     }
 
     const cancel = async (orderId) => {
-      if (await cancelOrder(orderId)) {
-        const index = orders.findIndex(order => order.id === orderId);
-        orders[index].status = OrderStatus.Cancelled;
+      const index = orders.findIndex(order => order.id === orderId);
+      orders[index].loading = true;
+      try {
+        if (await cancelOrder(orderId)) {
+          orders[index].status = OrderStatus.Cancelled;
+        }
+      } finally {
+        orders[index].loading = false;
       }
     }
 
     const receive = async (orderId) => {
-      if (await receiveOrder(orderId)) {
-        const index = orders.findIndex(order => order.id === orderId);
-        orders[index].status = OrderStatus.Received;
+      const index = orders.findIndex(order => order.id === orderId);
+      orders[index].loading = true;
+      try {
+        if (await receiveOrder(orderId)) {
+          orders[index].status = OrderStatus.Received;
+        }
+      } finally {
+        orders[index].loading = false;
       }
     }
 
@@ -111,6 +121,7 @@ export default {
         const downloadedInfo = await downloadDeliveryInfo(order.orderContentsUrl);
         const orderInformation = await decryptOrderInfo(downloadedInfo, sellerSecretKey);
         order.orderInformation = orderInformation;
+        order.loading = false;
         orders.push(order);
       }
     }

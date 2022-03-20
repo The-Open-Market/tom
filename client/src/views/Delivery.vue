@@ -2,47 +2,47 @@
   <AddressValidator/>
   <OrderGrid :nrColumns="3" class="mt-12">
     <OrderContainer title="Accepted">
-      <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Accepted.value)" :key="order.id" :order="order">
+      <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Accepted.value)" :key="order.id" :order="order" :loading="order.loading">
         <template v-slot:contents>
           <OrderInfo :order="order" pov="delivery"/>
         </template>
         <template v-slot:controls>
-          <Button text="Pick Up" styles="blue" @click="pickup(order.id)"/>
+          <Button text="Pick Up" styles="blue" @click="pickup(order.id)" :disabled="order.loading"/>
         </template>
       </OrderCard>
     </OrderContainer>
     <OrderContainer title="In transit">
-      <OrderCard v-for="order in orders.filter(order => OrderStatus.PickedUp.value <= order.status.value && order.status.value <= OrderStatus.InTransit.value)" :key="order.id" :order="order">
+      <OrderCard v-for="order in orders.filter(order => OrderStatus.PickedUp.value <= order.status.value && order.status.value <= OrderStatus.InTransit.value)" :key="order.id" :order="order" :loading="order.loading">
         <template v-slot:contents>
           <OrderInfo :order="order" pov="delivery"/>
         </template>
         <template v-slot:controls v-if="order.status.value === OrderStatus.Transferred.value">
-          <Button text="PickUp" styles="blue" @click="pickup(order.id)"/>
+          <Button text="PickUp" styles="blue" @click="pickup(order.id)" :disabled="order.loading"/>
         </template>
         <template v-slot:controls v-else-if="order.status.value === OrderStatus.InTransit.value">
-          <Button text="Deliver" styles="blue" @click="deliver(order.id)"/>
+          <Button text="Deliver" styles="blue" @click="deliver(order.id)" :disabled="order.loading"/>
         </template>
       </OrderCard>
     </OrderContainer>
     <OrderContainer title="Completed">
-      <OrderCard v-for="order in orders.filter(order => OrderStatus.Received.value <= order.status.value && order.status.value <= OrderStatus.Completed.value)" :key="order.id" :order="order">
+      <OrderCard v-for="order in orders.filter(order => OrderStatus.Received.value <= order.status.value && order.status.value <= OrderStatus.Completed.value)" :key="order.id" :order="order" :loading="order.loading">
         <template v-slot:contents>
           <OrderInfo :order="order" pov="delivery"/>
         </template>
         <template v-slot:controls v-if="order.status.value === OrderStatus.Received.value">
-          <Button text="Deliver" styles="blue" @click="deliver(order.id)"/>
+          <Button text="Deliver" styles="blue" @click="deliver(order.id)" :disabled="order.loading"/>
         </template>
       </OrderCard>
     </OrderContainer>
   </OrderGrid>
 
   <OrderContainer title="Approved" flow="row" class="mt-12">
-    <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Approved.value )" :key="order.id" :order="order">
+    <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Approved.value )" :key="order.id" :order="order" :loading="order.loading">
       <template v-slot:contents>
         <OrderInfo :order="order" pov="delivery"/>
       </template>
       <template v-slot:controls>
-        <Button text="Accept" styles="green" @click="accept(order.id)"/>
+        <Button text="Accept" styles="green" @click="accept(order.id)" :disabled="order.loading"/>
       </template>
     </OrderCard>
   </OrderContainer>
@@ -70,24 +70,40 @@ export default {
   setup() {
     const orders = reactive([]);
 
-    const accept = async(orderId) => { 
-      if (await acceptOrder(orderId)) {
-        const index = orders.findIndex(order => order.id === orderId);
-        orders[index].status = OrderStatus.Accepted;
+    const accept = async(orderId) => {
+      const index = orders.findIndex(order => order.id === orderId);
+      orders[index].loading = true;
+      try {
+        if (await acceptOrder(orderId)) {
+          orders[index].status = OrderStatus.Accepted;
+        }
+      } finally {
+        orders[index].loading = false;
       }
     };
 
     const pickup = async(orderId) => { 
-      if (await pickupOrder(orderId)) {
-        const index = orders.findIndex(order => order.id === orderId);
-        orders[index].status = OrderStatus.PickedUp;
+      const index = orders.findIndex(order => order.id === orderId);
+      orders[index].loading = true;
+      try {
+        if (await pickupOrder(orderId)) {
+          orders[index].status = OrderStatus.PickedUp;
+        }
+      }
+      finally {
+        orders[index].loading = false;
       }
     };
 
-    const deliver = async(orderId) => { 
-      if (await deliverOrder(orderId)) {
-        const index = orders.findIndex(order => order.id === orderId);
-        orders[index].status = OrderStatus.Delivered;
+    const deliver = async(orderId) => {
+      const index = orders.findIndex(order => order.id === orderId);
+      orders[index].loading = true;
+      try {
+        if (await deliverOrder(orderId)) {
+          orders[index].status = OrderStatus.Delivered;
+        }
+      } finally {
+        orders[index].loading = false;
       }
     };
 
@@ -95,6 +111,7 @@ export default {
       for (const order of myOrders) {
         const { hashedAddress } = await downloadDeliveryInfo(order.orderContentsUrl);
         order.hashedAddress = hashedAddress;
+        order.loading = false;
         orders.push(order);
       }
     }
