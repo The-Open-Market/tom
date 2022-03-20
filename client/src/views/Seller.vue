@@ -87,6 +87,7 @@ export default {
 
   setup() {
     const orders = reactive([]);
+    const collateralPercentage = .5;
 
     const approve = async (orderId) => {
       const index = orders.findIndex(order => order.id === orderId);
@@ -135,6 +136,9 @@ export default {
         const orderInformation = await decryptOrderInfo(downloadedInfo, sellerSecretKey);
         order.orderInformation = orderInformation;
         order.loading = false;
+        if (order.status.name === "Pending") {
+          order.collateral = order.amount * collateralPercentage;
+        }
         orders.push(order);
       }
     }
