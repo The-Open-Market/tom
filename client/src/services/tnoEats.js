@@ -16,7 +16,8 @@ const mapOrders = (orderArrays) => {
       destinationZipCode: orderArrays[key].destinationZipCode,
       amount: parseFloat(ethers.utils.formatEther(orderArrays[key].amount)),
       deliveryFee: parseFloat(ethers.utils.formatEther(orderArrays[key].deliveryFee)),
-      loading: false
+      collateral: parseFloat(ethers.utils.formatEther(orderArrays[key].collateral)),
+      loading: false,
     });
   }
   return orders;

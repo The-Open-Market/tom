@@ -5,8 +5,15 @@
         <OrderInfo :order="order" pov="seller" />
       </template>
       <template v-slot:controls>
+        <div>
+          <p>Delivery Fee</p>
+          <input type="number" v-model="order.deliveryFee"/>
+        </div>
+        <div>
+          <p>Collateral</p>
+          <input type="number" v-model="order.collateral"/>
+        </div>
         <Button text="Reject" styles="red" @click="reject(order.id)" :disabled="order.loading"/>
-        <input type="number" v-model="order.deliveryFee"/>
         <Button text="Approve" styles="green" @click="approve(order.id)" :disabled="order.loading"/>
       </template>
     </OrderCard>
@@ -67,6 +74,7 @@ import OrderContainer from '@/components/shared/OrderContainer.vue';
 import OrderInfo from '@/components/shared/OrderInfo.vue';
 
 import { reactive, onMounted } from "vue";
+import { ethers } from 'ethers';
 import { OrderStatus } from '@/services/order';
 import { getOrdersBySeller } from '@/services/tnoEats';
 import { getSmartContract, getSignerAddress } from '@/services/ethereum';
@@ -82,14 +90,16 @@ export default {
 
     const approve = async (orderId) => {
       const index = orders.findIndex(order => order.id === orderId);
-      const fee = orders[index].deliveryFee;
-      orders[index].loading = true;
+      const order = orders[index];
+      const fee = ethers.utils.parseEther(order.deliveryFee.toString());
+      const collateral = ethers.utils.parseEther(order.collateral.toString());
+      order.loading = true;
       try {
-        if (await approveOrder(orderId, fee)) {
-          orders[index].status = OrderStatus.Approved;
+        if (await approveOrder(orderId, fee, collateral)) {
+          order.status = OrderStatus.Approved;
         }
       } finally {
-        orders[index].loading = false;
+        order.loading = false;
       }
     }
 

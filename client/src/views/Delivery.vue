@@ -60,6 +60,7 @@ import { ethers } from 'ethers';
 import { reactive, onMounted } from 'vue';
 import { OrderStatus } from '@/services/order';
 import { getSmartContract, getSignerAddress } from '@/services/ethereum';
+import { approveTransaction } from '@/services/eurTno';
 import { getOrdersByDeliveryService, getApprovedOrders } from '@/services/tnoEats';
 import { acceptOrder, pickupOrder, deliverOrder } from '@/services/deliveryService';
 import { downloadDeliveryInfo } from "@/services/ipfs";
@@ -72,13 +73,15 @@ export default {
 
     const accept = async(orderId) => {
       const index = orders.findIndex(order => order.id === orderId);
-      orders[index].loading = true;
+      const order = orders[index];
+      await approveTransaction(order.collateral);
+      order.loading = true;
       try {
         if (await acceptOrder(orderId)) {
           orders[index].status = OrderStatus.Accepted;
         }
       } finally {
-        orders[index].loading = false;
+        order.loading = false;
       }
     };
 
