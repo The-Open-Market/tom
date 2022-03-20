@@ -74,7 +74,8 @@ export default {
     const accept = async(orderId) => {
       const index = orders.findIndex(order => order.id === orderId);
       const order = orders[index];
-      await approveTransaction(order.collateral);
+      const collateral = ethers.utils.parseEther(order.collateral.toString());
+      await approveTransaction(collateral);
       order.loading = true;
       try {
         if (await acceptOrder(orderId)) {
