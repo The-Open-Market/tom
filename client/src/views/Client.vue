@@ -34,7 +34,7 @@ import { getOrdersByClient } from '@/services/tnoEats';
 import { approveTransaction } from '@/services/eurTno';
 import { getSmartContract, getSignerAddress } from '@/services/ethereum';
 import { placeOrder, cancelOrder, receiveOrder } from '@/services/client';
-import { encryptOrderInfo, decryptOrderInfo } from "@/services/crypto";
+import { encryptOrderInfo, decryptClientOrderInfo } from "@/services/crypto";
 import { uploadDeliveryInfo, downloadDeliveryInfo } from "@/services/ipfs";
 
 export default {
@@ -70,18 +70,18 @@ export default {
     }
 
     const checkout = async (clientAddress) => {
+      const clientKey = 'KXj1DmMm6caFY1ioIyBIy6Ovs1tCjFuj8yEXZgysSCk=';
       const sellerPublicKey = 'sm0/a19e0Ojgh05dXX7nwL7QiGJ02HiKgZQGiLvW70w=';
       const clientPublicKey = 'sm0/a19e0Ojgh05dXX7nwL7QiGJ02HiKgZQGiLvW70w=';
       const clientSecretKey = 'z6bXpb5tnHlTc/B9N53ig455/o0lX3eienBkcHbNLeM=';
 
       const sellerAddress = "0x59Ce492d182688239C118AcFEb1A4872Ce3B1231";
 
-      // TODO: Add all necessary information to be encrypted
       const orderInfo = {
         cart: [...cartContents],
         deliveryAddress: {...clientAddress},
       };
-      const encrypted = await encryptOrderInfo(sellerPublicKey, clientPublicKey, clientSecretKey, orderInfo);
+      const encrypted = await encryptOrderInfo(sellerPublicKey, clientPublicKey, clientSecretKey, clientKey, orderInfo);
       const path = await uploadDeliveryInfo(encrypted);
       const total = orderInfo.cart.reduce((a, b) => a + (b.quantity * b.price), 0);
       const amount = ethers.utils.parseEther(total.toString());
@@ -114,15 +114,18 @@ export default {
     }
 
     const addOrders = async (myOrders) => {
-      const sellerSecretKey = 'z6bXpb5tnHlTc/B9N53ig455/o0lX3eienBkcHbNLeM=';
+      const clientKey = 'KXj1DmMm6caFY1ioIyBIy6Ovs1tCjFuj8yEXZgysSCk=';
 
       for (const order of myOrders) {
-        // TODO: Do not use sellerSecretKey to decrypt
-        const downloadedInfo = await downloadDeliveryInfo(order.orderContentsUrl);
-        const orderInformation = await decryptOrderInfo(downloadedInfo, sellerSecretKey);
-        order.orderInformation = orderInformation;
-        order.loading = false;
-        orders.push(order);
+        try {
+          const downloadedInfo = await downloadDeliveryInfo(order.orderContentsUrl);
+          const orderInformation = await decryptClientOrderInfo(downloadedInfo, clientKey);
+          order.orderInformation = orderInformation;
+          order.loading = false;
+          orders.push(order);
+        } catch (_) {
+          // Ignore download/decryption errors
+        }
       }
     }
 

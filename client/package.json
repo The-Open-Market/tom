@@ -15,6 +15,7 @@
     "tweetnacl-util": "^0.15.1",
     "vue": "^3.2.31",
     "vue-cli": "^2.9.6",
+    "vue-clipboard3": "^2.0.0",
     "vue-router": "^4.0.12"
   },
   "devDependencies": {
