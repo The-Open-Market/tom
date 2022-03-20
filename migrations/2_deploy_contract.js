@@ -52,7 +52,7 @@ async function addDemoData(eurtContract, tnoEatsContract) {
   }
 }
 
-module.exports = async (deployer, network) => {
+module.exports = async (deployer) => {
   const [client, seller, deliveryService, _client, _seller, _deliveryService] = await web3.eth.getAccounts();
 
   const eurtContract = await deployer.deploy(EurTno, oneEurt.multipliedBy(6000000));
@@ -64,9 +64,7 @@ module.exports = async (deployer, network) => {
   await eurtContract.transfer(_seller, oneEurt.multipliedBy(1000000), { from: client });
   await eurtContract.transfer(_deliveryService, oneEurt.multipliedBy(1000000), { from: client });
 
-  if(network != "test"){
-      await addDemoData(eurtContract, tnoEatsContract);
-  }
+  await addDemoData(eurtContract, tnoEatsContract);
 
   console.log(`EURT: ${eurtContract.address}`);
 };

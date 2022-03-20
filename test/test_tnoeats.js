@@ -76,7 +76,7 @@ contract("TnoEats", accounts => {
     it("client should be able to start a new order", async () => {
         await euroContract.approve(contract.address, amount, { from: client_a });
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
-        assert.equal(0, result.logs[0].args.id.toNumber());
+        assert.equal(10, result.logs[0].args.id.toNumber());
         truffleAssert.eventEmitted(result, 'OrderPending');
         const order = await contract.orders.call(0);
         assert.equal(client_a, order.client);
