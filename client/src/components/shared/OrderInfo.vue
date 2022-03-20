@@ -28,6 +28,10 @@
       <span class="font-medium uppercase">Delivery Fee: </span>
       €{{ order.deliveryFee.toFixed(2) }}
     </p>
+    <p v-if="order.status.name !== 'Pending'">
+      <span class="font-medium uppercase">Collateral: </span>
+      €{{ order.collateral.toFixed(2) }}
+    </p>
     
     <template v-if="pov !== 'delivery'">
       <div v-for="product in cart" :key="product.id">
