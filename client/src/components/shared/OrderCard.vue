@@ -1,25 +1,30 @@
 <template>
-  <div class="bg-gray-100 rounded shadow drop-shadow px-6 py-4 divide-y">
-    <div class="flex justify-between">
+  <div class="relative bg-gray-100 rounded shadow drop-shadow px-6 py-4 divide-y">
+    <div class="flex justify-between py-3">
       <h3 class="font-medium">
-        Order #{{ order.id }}
+        Order <span class="text-sm">#</span>{{ order.id }}
       </h3>
       <div :class="'px-2 my-auto text-xs font-semibold rounded-full ' + order.status.color">
         {{ order.status.name }}
       </div>
     </div>
-    <div>
+    <div class="py-3">
       <slot name="contents"></slot>
     </div>
-    <div class="flex flex-wrap justify-end space-x-4 pt-4">
+    <div class="flex flex-wrap justify-end gap-4 pt-3">
       <slot name="controls">
-        No controls are available
+        <p class="text-sm italic font-thin text-slate-700">No controls are available</p>
       </slot>
+    </div>
+    <div v-if="loading" class="flex absolute w-full h-full rounded top-0 left-0 z-10 bg-black/50">
+      <Loader class="m-auto"/>
     </div>
   </div>
 </template>
 
 <script>
+import Loader from '@/components/shared/Loader.vue';
+
 import { OrderStatus } from '@/services/order';
 
 export default {
@@ -29,11 +34,15 @@ export default {
     order: {
       type: Object,
       required: true
+    },
+    loading: {
+      type: Boolean,
+      default: false
     }
   },
 
-  setup() {
-
+  components: {
+    Loader
   }
 }
 </script>

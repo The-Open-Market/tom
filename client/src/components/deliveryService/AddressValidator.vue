@@ -1,31 +1,25 @@
 <template>
   <div class="flex flex-wrap gap-4 items-end">
-    <div class="flex flex-col w-80 focus-within:text-sky-700">
-      <span class="text-xs font-medium">Address</span>
-      <input type="text" v-model="address" class="h-7 text-sm pl-1 border border-gray-400 focus:border-sky-700 outline-none rounded"/>
-    </div>
-    <div class="flex flex-col w-32 focus-within:text-sky-700">
-      <span class="text-xs font-medium">Salt</span>
-      <input type="text" v-model="salt" class="h-7 text-sm pl-1 border border-gray-400 focus:border-sky-700 outline-none rounded"/>
-    </div>
-    <div class="flex flex-col w-48 focus-within:text-sky-700">
-      <span class="text-xs font-medium">Hash</span>
-      <input type="text" v-model="hash" class="h-7 text-sm pl-1 border border-gray-400 focus:border-sky-700 outline-none rounded"/>
-    </div>
+    <Input v-model="address" type="text" title="Address" placeholder="Address without separators and spaces" class="w-64"/>
+    <Input v-model="salt" type="text" title="Salt" placeholder="Provided by the seller" class="w-36"/>
+    <Input v-model="hash" type="text" title="Hash" class="w-48 grow"/>
 
-    <Button text="Validate" styles="blue" :disabled="!address || !salt || !hash" @click="validateHash"/>
+    <Button text="Validate" class="blue" :disabled="!address || !salt || !hash" @click="validateHash"/>
 
-    <div v-if="hashValidated" class="ml-1">
-      <span v-if="isHashValid" class="text-lg text-green-500">✓</span>
-      <span v-else class="text-lg text-red-500">✗</span>
+    <div class="ml-1 w-2">
+      <div v-if="hashValidated">
+        <span v-if="isHashValid" class="text-lg text-green-500">✓</span>
+        <span v-else class="text-lg text-red-500">✗</span>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref } from 'vue';
-
 import Button from '@/components/shared/Button.vue';
+import Input from '@/components/shared/Input.vue';
+
+import { ref } from 'vue';
 import { isValidHash } from '@/services/crypto';
 
 export default {
@@ -56,7 +50,8 @@ export default {
   },
 
   components: {
-    Button
+    Button,
+    Input
   }
 }
 </script>

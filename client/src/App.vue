@@ -7,6 +7,7 @@
 
 <script type="text/javascript">
 import NavBar from "@/components/shared/NavBar.vue";
+import 'vue-toast-notification/dist/theme-sugar.css';
 
 export default {
   components: {
