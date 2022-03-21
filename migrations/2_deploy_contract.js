@@ -5,7 +5,11 @@ const BigNumber = require('bignumber.js');
 let oneEurt = new BigNumber('1000000000000000000');
 oneEurt.shiftedBy(-18);
 
-async function addDemoData(eurtContract, tnoEatsContract, [client, seller, deliveryService, _client, _seller, _deliveryService]) {
+async function addDemoData(eurtContract, tnoEatsContract, network, [client, seller, deliveryService, _client, _seller, _deliveryService]) {
+  if (!network.endsWith('demo')) {
+    return;
+  }
+
   const IPFS_LINK = 'QmWxqHmH5MSPdGewEoVz3r6ThMAAdL6f1AWZNc4AuAFe9h';
 
   for (let i = 0; i < 10; ++i) {
@@ -27,10 +31,12 @@ async function addDemoData(eurtContract, tnoEatsContract, [client, seller, deliv
 
     if (i > 5) continue;
 
+    console.log(`Accepting ${orderId}`);
     await tnoEatsContract.acceptOrder(orderId, { from: deliveryService });
 
     if (i > 4) continue;
 
+    console.log(`Transfering ${orderId}`);
     if (i % 2 == 0) {
       await tnoEatsContract.transferOrder(orderId, { from: seller });
       await tnoEatsContract.transferOrder(orderId, { from: deliveryService });
@@ -41,6 +47,7 @@ async function addDemoData(eurtContract, tnoEatsContract, [client, seller, deliv
 
     if (i > 2) continue;
 
+    console.log(`Completing ${orderId}`);
     if (i % 2 == 0) {
       await tnoEatsContract.completeOrder(orderId, { from: client });
       await tnoEatsContract.completeOrder(orderId, { from: deliveryService });
@@ -59,6 +66,7 @@ module.exports = async (deployer, network) => {
         const eurtContract = await EurTno.deployed();
 
         await deployer.deploy(TnoEats, eurtContract.address);
+        const tnoEatsContract = await TnoEats.deployed();
 
         await eurtContract.transfer(client, oneEurt.multipliedBy(1000000), { from: deployAddress });
         await eurtContract.transfer(seller, oneEurt.multipliedBy(1000000), { from: deployAddress });
@@ -66,7 +74,7 @@ module.exports = async (deployer, network) => {
         await eurtContract.transfer(_client, oneEurt.multipliedBy(1000000), { from: deployAddress });
         await eurtContract.transfer(_seller, oneEurt.multipliedBy(1000000), { from: deployAddress });
         await eurtContract.transfer(_deliveryService, oneEurt.multipliedBy(1000000), { from: deployAddress });
-        await addDemoData(eurtContract, tnoEatsContract, [client, seller, deliveryService, _client, _seller, _deliveryService]);
+        await addDemoData(eurtContract, tnoEatsContract, network, [client, seller, deliveryService, _client, _seller, _deliveryService]);
 
         console.log(`EURT: ${eurtContract.address}`);
     } else {
@@ -80,7 +88,7 @@ module.exports = async (deployer, network) => {
         await eurtContract.transfer(_client, oneEurt.multipliedBy(1000000), { from: client });
         await eurtContract.transfer(_seller, oneEurt.multipliedBy(1000000), { from: client });
         await eurtContract.transfer(_deliveryService, oneEurt.multipliedBy(1000000), { from: client });
-        await addDemoData(eurtContract, tnoEatsContract, [client, seller, deliveryService, _client, _seller, _deliveryService]);
+        await addDemoData(eurtContract, tnoEatsContract, network, [client, seller, deliveryService, _client, _seller, _deliveryService]);
 
         console.log(`EURT: ${eurtContract.address}`);
     }
