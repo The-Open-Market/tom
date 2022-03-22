@@ -70,12 +70,13 @@ import OrderContainer from '@/components/shared/OrderContainer.vue';
 import OrderInfo from '@/components/shared/OrderInfo.vue';
 
 import { inject, ref, reactive, onMounted } from "vue";
-import { OrderStatus } from '@/services/order';
-import { getOrdersBySeller } from '@/services/tnoEats';
+
 import { getSmartContract, getSignerAddress } from '@/services/ethereum';
-import { approveOrder, rejectOrder, transferOrder } from '@/services/seller';
-import { decryptOrderInfo } from "@/services/crypto";
-import { downloadDeliveryInfo } from "@/services/ipfs";
+
+import { getOrdersBySeller, approveOrder, rejectOrder, transferOrder } from '@/endpoints/seller';
+
+import { OrderStatus, OrderStatusMap, orderFromData } from '@/utils/order';
+import { sellerData } from '@/utils/constants';
 
 export default {
   name: 'Seller',
@@ -91,8 +92,7 @@ export default {
       orders[index].loading = true;
       try {
         if (await approveOrder(orderId, fee)) {
-          orders[index].status = OrderStatus.Approved;
-          toast.success(`Order #${orderId} successfully approved!`);
+          toast.success(`Order #${orderId} successfully approved`);
         } else {
           toast.error(`Error approving order #${orderId}`);
         }
@@ -106,8 +106,7 @@ export default {
       orders[index].loading = true;
       try {
         if (await rejectOrder(orderId)) {
-          orders[index].status = OrderStatus.Rejected;
-          toast.success(`Order #${orderId} successfully rejected!`);
+          toast.success(`Order #${orderId} successfully rejected`);
         } else {
           toast.error(`Error rejecting order #${orderId}`);
         }
@@ -121,8 +120,7 @@ export default {
       orders[index].loading = true;
       try {
         if (await transferOrder(orderId)) {
-          orders[index].status = OrderStatus.Transferred;
-          toast.success(`Order #${orderId} successfully transferred!`);
+          toast.success(`Order #${orderId} successfully transferred`);
         } else {
           toast.error(`Error transferred order #${orderId}`);
         }
@@ -131,93 +129,39 @@ export default {
       }
     }
 
-    const addOrders = async (myOrders) => {
-      const sellerSecretKey = 'z6bXpb5tnHlTc/B9N53ig455/o0lX3eienBkcHbNLeM=';
-
-      for (const order of myOrders) {
-        const downloadedInfo = await downloadDeliveryInfo(order.orderContentsUrl);
-        const orderInformation = await decryptOrderInfo(downloadedInfo, sellerSecretKey);
-        order.orderInformation = orderInformation;
-        order.loading = false;
-        orders.push(order);
-      }
-    }
-
-    const onOrderPending = async (id, client, seller, ipfsUrl) => {
+    const onOrderStatusChanged = async (id, amount, deliveryFee, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode) => {
       const orderId = parseInt(id._hex, 16);
+      const data = {id, amount, deliveryFee, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode};
+
       if (orders.every(order => order.id !== orderId)) {
-        await addOrders([{
-          id: orderId,
-          status: OrderStatus.Pending,
-          client,
-          seller,
-          orderContentsUrl: ipfsUrl
-        }]);
-        toast.info(`Order #${orderId} is now Pending!`);
+        const order = await orderFromData(data, 'seller', sellerData.keys.private);
+        orders.push(order);
+        toast.info(`Order #${orderId} is now ${OrderStatusMap[status].name.toLowerCase()}`);
+        return;
       }
-    }
 
-    const onOrderCancelled = (id, client, seller) => {
-      const orderId = parseInt(id._hex, 16);
       const index = orders.findIndex(order => order.id === orderId);
-      orders[index].status = OrderStatus.Cancelled;
-      toast.info(`Order #${orderId} is now Cancelled!`);
-    }
-
-    const onOrderAccepted = (id, client, seller, deliveryService) => {
-      const orderId = parseInt(id._hex, 16);
-      const index = orders.findIndex(order => order.id === orderId);
-      orders[index].status = OrderStatus.Accepted;
-      orders[index].deliveryService = deliveryService;
-      toast.info(`Order #${orderId} is now Accepted!`);
-    }
-
-    const onOrderStatusChanged = (id, client, seller, deliveryService, status) => {
-      const orderId = parseInt(id._hex, 16);
-      const index = orders.findIndex(order => order.id === orderId);
-      orders[index].status = status;
-      toast.info(`Order #${orderId} is now ${status.name}!`);
+      
+      if (orders[index].status.value < OrderStatusMap[status].value) {
+        const order = await orderFromData(data, 'seller', sellerData.keys.private);
+        orders[index] = order;
+        toast.info(`Order #${orderId} is now ${OrderStatusMap[status].name.toLowerCase()}`);
+      }
     }
 
     const onAccountChanged = async () => {
-      while (orders.length) {
-        orders.pop();
-      }
+      orders.splice(0);
 
       address.value = await getSignerAddress();
-      const myOrders = await getOrdersBySeller(address.value);
-      await addOrders(myOrders);
+      const myOrders = await getOrdersBySeller(address.value, sellerData.keys.private);
+      orders.push(...myOrders);
 
       const { tnoEats } = await getSmartContract();
 
-      const onOrderPendingFilter = tnoEats.filters.OrderPending(null, null, address.value, null);
-      tnoEats.on(onOrderPendingFilter, onOrderPending);
+      tnoEats.removeAllListeners();
 
-      const onOrderCancelledFilter = tnoEats.filters.OrderCancelled(null, null, address.value);
-      tnoEats.on(onOrderCancelledFilter, onOrderCancelled);
-
-      const onOrderAcceptedFilter = tnoEats.filters.OrderAccepted(null, null, address.value, null);
-      tnoEats.on(onOrderAcceptedFilter, onOrderAccepted);
-
-      const onOrderPickedUpFilter = tnoEats.filters.OrderPickedUp(null, null, address.value, null);
-      tnoEats.on(onOrderPickedUpFilter, (id, client, seller, deliveryService) => +
-        onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.PickedUp));
-
-      const onOrderInTransitFilter = tnoEats.filters.OrderInTransit(null, null, address.value, null);
-      tnoEats.on(onOrderInTransitFilter, (id, client, seller, deliveryService) => +
-        onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.InTransit));
-
-      const onOrderReceivedFilter = tnoEats.filters.OrderReceived(null, null, address.value, null);
-      tnoEats.on(onOrderReceivedFilter, (id, client, seller, deliveryService) => +
-        onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.Received));
-
-      const onOrderDeliveredFilter = tnoEats.filters.OrderDelivered(null, null, address.value, null);
-      tnoEats.on(onOrderDeliveredFilter, (id, client, seller, deliveryService) => +
-        onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.Delivered));
-
-      const onOrderCompletedFilter = tnoEats.filters.OrderCompleted(null, null, address.value, null);
-      tnoEats.on(onOrderCompletedFilter, (id, client, seller, deliveryService) => +
-        onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.Completed));
+      const filteredEventListener = tnoEats.filters.OrderStatusChanged(null, null, null, null, null, address.value, null, null, null, null);
+      tnoEats.on(filteredEventListener, onOrderStatusChanged);
     }
 
     onMounted(onAccountChanged);

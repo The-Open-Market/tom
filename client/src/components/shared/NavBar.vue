@@ -37,9 +37,9 @@
 
             <a href="/client" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Client POV</a>
 
-            <a href="/delivery" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Delivery POV</a>
-
             <a href="/seller" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Seller POV</a>
+
+            <a href="/delivery" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Delivery POV</a>
 
             <div class="ml-auto flex items-center">
               <span class="text-white">{{ address }}</span>
@@ -54,6 +54,7 @@
 
 <script>
 import { ref, onMounted } from 'vue';
+
 import { getSignerAddress } from '@/services/ethereum';
 
 export default {

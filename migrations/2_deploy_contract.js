@@ -10,7 +10,7 @@ async function addDemoData(eurtContract, tnoEatsContract, network, [client, sell
     return;
   }
 
-  const IPFS_LINK = 'QmWxqHmH5MSPdGewEoVz3r6ThMAAdL6f1AWZNc4AuAFe9h';
+  const IPFS_LINK = 'QmVnQJyEmrzvgjJX9WqfV3WRRb4uZz4SwuYmYnBJXc4pix';
 
   for (let i = 0; i < 10; ++i) {
     await eurtContract.approve(tnoEatsContract.address, oneEurt.multipliedBy(10), { from: client });

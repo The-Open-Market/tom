@@ -37,7 +37,7 @@ abstract contract OrderManager is OrderFactory {
         order.originZipCode = sellerZipCode;
         order.destinationZipCode = clientZipCode;
         order.deliveryFee = _deliveryFee;
-        emit OrderApproved(_orderId, order.client, order.seller, sellerZipCode, clientZipCode, _deliveryFee, order.orderContentsUrl);
+        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
     }
 
     /**
@@ -52,7 +52,7 @@ abstract contract OrderManager is OrderFactory {
         order.deliveryService = deliveryService;
         order.status = OrderStatus.Accepted;
         deliveryServiceOrderCount[deliveryService]++;
-        emit OrderAccepted(_orderId, order.client, order.seller, deliveryService);
+        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
     }
 
     /**
@@ -66,17 +66,15 @@ abstract contract OrderManager is OrderFactory {
         address sender = _msgSender();
         if (sender == order.seller && order.status == OrderStatus.Accepted) {
             order.status = OrderStatus.Transferred;
-            emit OrderTransferred(_orderId, order.client, order.seller, order.deliveryService);
         } else if (sender == order.deliveryService && order.status == OrderStatus.Accepted) {
             order.status = OrderStatus.PickedUp;
-            emit OrderPickedUp(_orderId, order.client, order.seller, order.deliveryService);
         } else if (sender == order.seller          && order.status == OrderStatus.PickedUp 
                 || sender == order.deliveryService && order.status == OrderStatus.Transferred) {
             order.status = OrderStatus.InTransit;
-            emit OrderInTransit(_orderId, order.client, order.seller, order.deliveryService);
         } else {
             revert("Illegal operation, cannot set order in transit twice with the same account");
         }
+        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
     }
 
     /**
@@ -90,19 +88,17 @@ abstract contract OrderManager is OrderFactory {
         address sender = _msgSender();
         if (sender == order.client && order.status == OrderStatus.InTransit) {
             order.status = OrderStatus.Received;
-            emit OrderReceived(_orderId, order.client, order.seller, order.deliveryService);
         } else if (sender == order.deliveryService && order.status == OrderStatus.InTransit) {
             order.status = OrderStatus.Delivered;
-            emit OrderDelivered(_orderId, order.client, order.seller, order.deliveryService);
         } else if (sender == order.client          && order.status == OrderStatus.Delivered
                 || sender == order.deliveryService && order.status == OrderStatus.Received) {
             order.status = OrderStatus.Completed;
             IERC20(eurTnoContract).transfer(order.seller, order.amount - order.deliveryFee);
             IERC20(eurTnoContract).transfer(order.deliveryService, order.deliveryFee);
-            emit OrderCompleted(_orderId, order.client, order.seller, order.deliveryService);
         } else {
             revert("Illegal operation, cannot complete order twice with the same account");
         }
+        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
     }
 
     /**
@@ -115,7 +111,7 @@ abstract contract OrderManager is OrderFactory {
         Order storage order = orders[_orderId];
         order.status = OrderStatus.Cancelled;
         IERC20(eurTnoContract).transfer(order.client, order.amount);
-        emit OrderCancelled(_orderId, order.client, order.seller);
+        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
     }
 
     /**
@@ -127,6 +123,6 @@ abstract contract OrderManager is OrderFactory {
         Order storage order = orders[_orderId];
         order.status = OrderStatus.Rejected;
         IERC20(eurTnoContract).transfer(order.client, order.amount);
-        emit OrderRejected(_orderId, order.client, order.seller);
+        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
     }
 }

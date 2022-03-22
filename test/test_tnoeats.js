@@ -76,7 +76,7 @@ contract("TnoEats", accounts => {
     it("client should be able to start a new order", async () => {
         await euroContract.approve(contract.address, amount, { from: client_a });
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
-        truffleAssert.eventEmitted(result, 'OrderPending');
+        truffleAssert.eventEmitted(result, 'OrderStatusChanged');
         const order = await contract.orders.call(result.logs[0].args.id.toNumber());
         assert.equal(client_a, order.client);
         assert.equal(seller_a, order.seller);
@@ -93,7 +93,7 @@ contract("TnoEats", accounts => {
         assert.equal('Pending', ORDER_STATUSES[pendingOrder.status.toNumber()]);
         let deliveryFee = 500;
         const approvedResult = await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, { from: seller_a });
-        truffleAssert.eventEmitted(approvedResult, 'OrderApproved');
+        truffleAssert.eventEmitted(approvedResult, 'OrderStatusChanged');
         const approvedOrder = await contract.orders.call(orderId);
         assert.equal('Approved', ORDER_STATUSES[approvedOrder.status.toNumber()]);
     });
@@ -106,7 +106,7 @@ contract("TnoEats", accounts => {
         const approvedOrder = await contract.orders.call(orderId);
         assert.equal('Approved', ORDER_STATUSES[approvedOrder.status.toNumber()]);
         const acceptedResult = await contract.acceptOrder(orderId, { from: delivery_a });
-        truffleAssert.eventEmitted(acceptedResult, 'OrderAccepted');
+        truffleAssert.eventEmitted(acceptedResult, 'OrderStatusChanged');
         const acceptedOrder = await contract.orders.call(orderId);
         assert.equal('Accepted', ORDER_STATUSES[acceptedOrder.status.toNumber()]);
         assert.equal(delivery_a, acceptedOrder.deliveryService);
@@ -140,7 +140,7 @@ contract("TnoEats", accounts => {
         const canceledResult = await contract.cancelOrder(orderId, { from: client_a });
         const canceledOrder = await contract.orders.call(orderId);
         assert.equal('Canceled', ORDER_STATUSES[canceledOrder.status.toNumber()]);
-        truffleAssert.eventEmitted(canceledResult, 'OrderCancelled');
+        truffleAssert.eventEmitted(canceledResult, 'OrderStatusChanged');
     });
 
     it("seller should be able to reject not processed order", async () => {
@@ -148,7 +148,7 @@ contract("TnoEats", accounts => {
         const rejectedResult = await contract.rejectOrder(orderId, { from: seller_a });
         const rejectedOrder = await contract.orders.call(orderId);
         assert.equal('Rejected', ORDER_STATUSES[rejectedOrder.status.toNumber()]);
-        truffleAssert.eventEmitted(rejectedResult, 'OrderRejected');
+        truffleAssert.eventEmitted(rejectedResult, 'OrderStatusChanged');
     });
 
     it("should not be able to reject an invalid order", async () => {
@@ -231,11 +231,11 @@ contract("TnoEats", accounts => {
         const pickedupResult = await contract.transferOrder(orderId, { from: delivery_a });
         const pickedUpOrder = await contract.orders.call(orderId);
         assert.equal('PickedUp', ORDER_STATUSES[pickedUpOrder.status.toNumber()]);
-        truffleAssert.eventEmitted(pickedupResult, 'OrderPickedUp');
+        truffleAssert.eventEmitted(pickedupResult, 'OrderStatusChanged');
         const inIntransitResult = await contract.transferOrder(orderId, { from: seller_a });
         const intransitOrder = await contract.orders.call(orderId);
         assert.equal('InTransit', ORDER_STATUSES[intransitOrder.status.toNumber()]);
-        truffleAssert.eventEmitted(inIntransitResult, 'OrderInTransit');
+        truffleAssert.eventEmitted(inIntransitResult, 'OrderStatusChanged');
     });
 
     it("seller transfers order then delivery service picks it up", async () => {
@@ -243,11 +243,11 @@ contract("TnoEats", accounts => {
         const transferredResult = await contract.transferOrder(orderId, { from: seller_a });
         const transferredOrder = await contract.orders.call(orderId);
         assert.equal('Transferred', ORDER_STATUSES[transferredOrder.status.toNumber()]);
-        truffleAssert.eventEmitted(transferredResult, 'OrderTransferred');
+        truffleAssert.eventEmitted(transferredResult, 'OrderStatusChanged');
         const inIntransitResult = await contract.transferOrder(orderId, { from: delivery_a });
         const intransitOrder = await contract.orders.call(orderId);
         assert.equal('InTransit', ORDER_STATUSES[intransitOrder.status.toNumber()]);
-        truffleAssert.eventEmitted(inIntransitResult, 'OrderInTransit');
+        truffleAssert.eventEmitted(inIntransitResult, 'OrderStatusChanged');
     });
 
     it("seller cannot call transfer twice", async () => {
@@ -274,11 +274,11 @@ contract("TnoEats", accounts => {
         const receivedResult = await contract.completeOrder(orderId, { from: client_a });
         const receivedOrder = await contract.orders.call(orderId);
         assert.equal('Received', ORDER_STATUSES[receivedOrder.status.toNumber()]);
-        truffleAssert.eventEmitted(receivedResult, 'OrderReceived');
+        truffleAssert.eventEmitted(receivedResult, 'OrderStatusChanged');
         const completedResult = await contract.completeOrder(orderId, { from: delivery_a });
         const completedOrder = await contract.orders.call(orderId);
         assert.equal('Completed', ORDER_STATUSES[completedOrder.status.toNumber()]);
-        truffleAssert.eventEmitted(completedResult, 'OrderCompleted');
+        truffleAssert.eventEmitted(completedResult, 'OrderStatusChanged');
     });
 
     it("delivery service then client should be able to finalize transaction", async () => {
@@ -286,11 +286,11 @@ contract("TnoEats", accounts => {
         const deliveredResult = await contract.completeOrder(orderId, { from: delivery_a });
         const deliveredOrder = await contract.orders.call(orderId);
         assert.equal('Delivered', ORDER_STATUSES[deliveredOrder.status.toNumber()]);
-        truffleAssert.eventEmitted(deliveredResult, 'OrderDelivered');
+        truffleAssert.eventEmitted(deliveredResult, 'OrderStatusChanged');
         const completedResult = await contract.completeOrder(orderId, { from: client_a });
         const completedOrder = await contract.orders.call(orderId);
         assert.equal('Completed', ORDER_STATUSES[completedOrder.status.toNumber()]);
-        truffleAssert.eventEmitted(completedResult, 'OrderCompleted');
+        truffleAssert.eventEmitted(completedResult, 'OrderStatusChanged');
     });
 
     it("client cannot call complete order twice to finalize transaction #55", async () => {

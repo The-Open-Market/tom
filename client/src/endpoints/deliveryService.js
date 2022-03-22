@@ -1,4 +1,17 @@
-import { getSmartContract } from './ethereum';
+import { getSmartContract } from '@/services/ethereum';
+import { ordersFromArrays } from '@/utils/order';
+ 
+const getOrdersByDeliveryService = async (address) => {
+  const { tnoEats } = await getSmartContract();
+  const orders = await tnoEats.getOrdersByDeliveryService(address);
+  return ordersFromArrays(orders, 'delivery');
+}
+
+const getApprovedOrders = async () => {
+  const { tnoEats } = await getSmartContract();
+  const orders = await tnoEats.getApprovedOrders();
+  return ordersFromArrays(orders);
+}
 
 const acceptOrder = async (orderId) => {
   try {
@@ -36,4 +49,4 @@ const deliverOrder = async (orderId) => {
   }
 }
 
-export { acceptOrder, pickupOrder, deliverOrder }
+export { getOrdersByDeliveryService, getApprovedOrders, acceptOrder, pickupOrder, deliverOrder }

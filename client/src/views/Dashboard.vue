@@ -70,8 +70,10 @@
 <script>
 import Button from "@/components/shared/Button.vue";
 import OrderCard from "@/components/shared/OrderCard.vue";
-import { OrderStatus } from '@/services/order';
+
 import { inject } from 'vue';
+
+import { OrderStatus } from '@/utils/order';
 
 export default {
   name: "Dashboard",

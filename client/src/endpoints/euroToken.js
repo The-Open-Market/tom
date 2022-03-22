@@ -1,4 +1,4 @@
-import { getSmartContract } from '../services/ethereum';
+import { getSmartContract } from '@/services/ethereum';
 
 const approveTransaction = async (amount) => {
     try {

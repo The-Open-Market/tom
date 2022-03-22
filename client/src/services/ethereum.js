@@ -1,7 +1,7 @@
 import detectEthereumProvider from '@metamask/detect-provider';
 import { ethers, Contract } from 'ethers';
-import TnoEats from '../../../build/contracts/TnoEats.json';
-import EurTno from '../../../build/contracts/EurTno.json';
+import TnoEats from '@/../../build/contracts/TnoEats.json';
+import EurTno from '@/../../build/contracts/EurTno.json';
 
 const getSmartContract = async () => {
   let provider = await detectEthereumProvider();

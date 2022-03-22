@@ -5,8 +5,9 @@
   </main>
 </template>
 
-<script type="text/javascript">
+<script>
 import NavBar from "@/components/shared/NavBar.vue";
+
 import 'vue-toast-notification/dist/theme-sugar.css';
 
 export default {

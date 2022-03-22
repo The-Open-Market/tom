@@ -1,10 +1,5 @@
 import { secretbox, box, randomBytes, hash } from 'tweetnacl';
-import {
-  decodeUTF8,
-  encodeUTF8,
-  encodeBase64,
-  decodeBase64
-} from 'tweetnacl-util';
+import { decodeUTF8, encodeUTF8, encodeBase64, decodeBase64 } from 'tweetnacl-util';
 import { Buffer } from 'buffer';
 
 // Using: https://github.com/dchest/tweetnacl-js/wiki/Examples
@@ -111,13 +106,13 @@ const encryptOrderInfo = async (sellerPublicKey, clientPublicKey, clientSecretKe
 };
 
 const decryptOrderInfo = async ({ clientPublicKey, orderInformation }, sellerSecretKey) => {
-    const shared = box.before(decodeBase64(clientPublicKey), decodeBase64(sellerSecretKey));
-    const decrypted = decrypt(shared, orderInformation);
-    return decrypted;
+  const shared = box.before(decodeBase64(clientPublicKey), decodeBase64(sellerSecretKey));
+  const decrypted = decrypt(shared, orderInformation);
+  return decrypted;
 };
 
 const decryptClientOrderInfo = async ({ clientOrderInformation }, clientKey) => {
-    return symDecrypt(clientKey, clientOrderInformation);
+  return symDecrypt(clientKey, clientOrderInformation);
 }
 
 const isValidHash = async (clientAddress, saltString, hashedAddress) => {

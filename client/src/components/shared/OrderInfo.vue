@@ -1,39 +1,69 @@
 <template>
-  <div>
-    <p v-if="pov === 'delivery'">
-      TODO: integrate open maps
-    </p>
-
-    <p v-if="pov !== 'delivery'">
-      <span class="font-medium uppercase">Address: </span>
+<!-- Client view: -->
+  <div v-if="pov === 'client'">
+    <div>
+      <span class="font-medium">Address: </span>
       {{ deliveryAddress.street }} {{ deliveryAddress.hnr }} {{ deliveryAddress.hnr_add }}, {{ deliveryAddress.zip }}
-    </p>
-
-    <p class="flex" v-if="pov === 'delivery'">
-      <span class="font-medium uppercase">Address hash: </span>
-      <Button text="Copy" @click="copyValue(hashedAddress)" class="ml-1 uppercase green transparent small" />
-    </p>
-
-    <p class="flex" v-if="pov === 'seller'">
-      <span class="font-medium uppercase">Salt: </span>
-      <Button text="Copy" @click="copyValue(salt)" class="ml-1 uppercase green transparent small" />
-    </p>
-
-    <p v-if="order.status.name !== 'Pending'">
-      <span class="font-medium uppercase">Delivery Fee: </span>
-      €{{ order.deliveryFee.toFixed(2) }}
-    </p>
-    
-    <template v-if="pov !== 'delivery'">
-      <p>
-        <span class="font-medium uppercase">
-          Order details <span class="text-sm lowercase">({{ items }} item{{ items > 1 ? 's' : '' }})</span>:
-        </span>
-      </p>
+    </div>
+    <div>
+      <span class="font-medium">Delivery Fee: </span>
+      {{ 0 < order.deliveryFee ? `€${order.deliveryFee.toFixed(2)}` : 'N/a' }}
+    </div>
+    <div>
+      <span class="font-medium">
+        Order details <span class="text-sm lowercase">({{ items }} item{{ items > 1 ? 's' : '' }})</span>:
+      </span>
       <div v-for="product in cart" :key="product.id">
         <p>{{ product.quantity }}x {{ product.name }}: €{{ parseFloat(product.price * product.quantity).toFixed(2) }}</p>
       </div>
-    </template>
+    </div>    
+  </div>
+  
+<!-- Seller view: -->
+  <div v-if="pov === 'seller'">
+    <div>
+      <span class="font-medium">Address: </span>
+      {{ deliveryAddress.street }} {{ deliveryAddress.hnr }} {{ deliveryAddress.hnr_add }}, {{ deliveryAddress.zip }}
+    </div>
+    <div class="flex">
+      <span class="font-medium">Salt: </span>
+      <Button text="Copy" @click="copyValue(salt)" class="ml-1 green transparent small" />
+    </div>
+    <div>
+      <span class="font-medium">Delivery Fee: </span>
+      {{ 0 < order.deliveryFee ? `€${order.deliveryFee.toFixed(2)}` : 'N/a' }}
+    </div>
+    <div>
+      <span class="font-medium">
+        Order details <span class="text-sm lowercase">({{ items }} item{{ items > 1 ? 's' : '' }})</span>:
+      </span>
+      <div v-for="product in cart" :key="product.id">
+        <p>{{ product.quantity }}x {{ product.name }}: €{{ parseFloat(product.price * product.quantity).toFixed(2) }}</p>
+      </div>
+    </div> 
+  </div>
+
+<!-- Delivery view: -->
+  <div v-if="pov === 'delivery'">
+    <div class="border-b pb-3 mb-3">
+      <span class="text-sm italic">Possibility to integrate open maps</span>
+      <div>
+        <span class="font-medium">Origin: </span>
+        {{ order.originZipCode }}
+      </div>
+      <div>
+        <span class="font-medium">Destination: </span>
+        {{ order.destinationZipCode }}
+      </div>
+    </div>
+    <div class="flex">
+      <span class="font-medium">Address hash: </span>
+      <Button text="Copy" @click="copyValue(hashedAddress)" class="ml-1 green transparent small" />
+    </div>
+    <div class="text-red-500">
+      <span class="font-medium">Delivery Fee: </span>
+      {{ 0 < order.deliveryFee ? `€${order.deliveryFee.toFixed(2)}` : 'N/a' }}
+    </div>
   </div>
 </template>
 
