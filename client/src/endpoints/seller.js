@@ -5,8 +5,15 @@ import { ordersFromArrays } from '@/utils/order';
 
 const getOrdersBySeller = async (address, key = null) => {
   const { tnoEats } = await getSmartContract();
-  const orders = await tnoEats.getOrdersBySeller(address);
-  return ordersFromArrays(orders, 'seller', key);
+  const ordersRaw = await tnoEats.getOrdersBySeller(address);
+  const orders = await ordersFromArrays(ordersRaw, 'seller', key);
+
+  await Promise.all(orders.map(async (order) => {
+    order['completedOrders'] = parseInt((await tnoEats.getClientCompletedOrderCount(order['client']))._hex, 16);
+    order['cancelledOrders'] = parseInt((await tnoEats.getClientCancelledOrderCount(order['client']))._hex, 16);
+  }));
+
+  return orders;
 }
 
 const approveOrder = async (orderId, fee, collateral) => {

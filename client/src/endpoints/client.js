@@ -46,5 +46,18 @@ const receiveOrder = async (orderId) => {
     }
 }
 
+const tip = async (deliveryService, amount) => {
+    try {
+        const { eurTno } = await getSmartContract();
+        const etherAmount = ethers.utils.parseEther(amount.toString());
+        const tipTx = await eurTno.transfer(deliveryService, etherAmount);
+        await tipTx.wait();
+        return true;
+    } catch (error) {
+        console.log(error);
+        return false;
+    }
+}
 
-export { getOrdersByClient, placeOrder, cancelOrder, receiveOrder };
+
+export { getOrdersByClient, placeOrder, cancelOrder, receiveOrder, tip };

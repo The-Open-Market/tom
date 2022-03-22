@@ -8,7 +8,8 @@
         <Button text="Cancel" class="red" @click="cancel(order.id)" :disabled="order.loading"/>
       </template>
       <template v-slot:controls v-if="order.status.value === OrderStatus.InTransit.value || order.status.value === OrderStatus.Delivered.value">
-        <Button text="Receive" class="blue" @click="receive(order.id)" :disabled="order.loading"/>
+        <Input type="number" id="tip" title="Tip" class="small" v-model="order.tip" />
+        <Button text="Receive" class="blue" @click="receive(order.id, order.tip, order.deliveryService)" :disabled="order.loading"/>
       </template>
     </OrderCard>
   </OrderContainer>
@@ -20,6 +21,7 @@
 import OrderPlacement from '@/components/client/OrderPlacement.vue'
 import OrderCard from '@/components/shared/OrderCard.vue';
 import Button from '@/components/shared/Button.vue';
+import Input from '@/components/shared/Input.vue';
 import OrderContainer from '@/components/shared/OrderContainer.vue';
 import OrderInfo from '@/components/shared/OrderInfo.vue';
 
@@ -27,7 +29,7 @@ import { ref, reactive, onMounted, inject } from "vue";
 
 import { getSmartContract, getSignerAddress } from '@/services/ethereum';
 
-import { getOrdersByClient, cancelOrder, receiveOrder } from '@/endpoints/client';
+import { getOrdersByClient, cancelOrder, receiveOrder, tip } from '@/endpoints/client';
 
 import { OrderStatus, OrderStatusMap, orderFromData } from '@/utils/order';
 import { clientData } from '@/utils/constants';
@@ -52,10 +54,14 @@ export default {
       }
     }
 
-    const receive = async (orderId) => {
+    const receive = async (orderId, orderTip, deliveryService) => {
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].loading = true;
       try {
+        if (orderTip) {
+          tip(deliveryService, orderTip);
+        }
+
         const success = await receiveOrder(orderId)
         if (!success) toast.error(`Error receiving order #${orderId}`);
       } finally {
@@ -118,6 +124,7 @@ export default {
     OrderCard,
     Button,
     OrderInfo,
+    Input,
   },
 }
 </script>
