@@ -30,10 +30,10 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue';
-
 import Input from '@/components/shared/Input.vue';
 import Button from '@/components/shared/Button.vue';
+
+import { ref, computed } from 'vue';
 
 export default {
   name: "Checkout",

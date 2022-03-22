@@ -9,17 +9,18 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  */
 abstract contract OrderFactory is Ownable {
 
-    event OrderPending(uint id, address indexed client, address indexed seller, string orderContentsUrl);
-    event OrderApproved(uint id, address indexed client, address indexed seller, string sellerZipCode, string clientZipCode, uint deliveryFee, string orderContentsUrl);
-    event OrderRejected(uint id, address indexed client, address indexed seller);
-    event OrderAccepted(uint id, address indexed client, address indexed seller, address indexed deliveryService);
-    event OrderPickedUp(uint id, address indexed client, address indexed seller, address indexed deliveryService);
-    event OrderTransferred(uint id, address indexed client, address indexed seller, address indexed deliveryService);
-    event OrderInTransit(uint id, address indexed client, address indexed seller, address indexed deliveryService);
-    event OrderDelivered(uint id, address indexed client, address indexed seller, address indexed deliveryService);
-    event OrderReceived(uint id, address indexed client, address indexed seller, address indexed deliveryService);
-    event OrderCompleted(uint id, address indexed client, address indexed seller, address indexed deliveryService);
-    event OrderCancelled(uint id, address indexed client, address indexed seller);
+    event OrderStatusChanged(
+        uint id,
+        uint amount,
+        uint deliveryFee,
+        OrderStatus status,
+        address indexed client,
+        address indexed seller,
+        address indexed deliveryService,
+        string orderContentsUrl,
+        string originZipCode,
+        string destinationZipCode
+    );
     
     struct Order {
         uint id;
@@ -222,6 +223,6 @@ abstract contract OrderFactory is Ownable {
         orders.push(Order(id, _amount, 0, OrderStatus.Pending, client, _seller, address(0), _orderInfo, "", ""));
         clientOrderCount[client]++;
         sellerOrderCount[_seller]++;
-        emit OrderPending(id, client, _seller, _orderInfo);
+        emit OrderStatusChanged(id, _amount, 0, OrderStatus.Pending, client, _seller, address(0), _orderInfo, "", "");
     }
 }

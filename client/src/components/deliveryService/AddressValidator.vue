@@ -20,7 +20,8 @@ import Button from '@/components/shared/Button.vue';
 import Input from '@/components/shared/Input.vue';
 
 import { ref } from 'vue';
-import { isValidHash } from '@/services/crypto';
+
+import { isValidHash } from '@/utils/crypto';
 
 export default {
   name: "AddressValidator",

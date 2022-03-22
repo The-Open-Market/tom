@@ -11,13 +11,16 @@ import ProductList from '@/components/client/ProductList.vue';
 import ShoppingCart from '@/components/client/ShoppingCart.vue';
 import Checkout from '@/components/client/Checkout.vue';
 
-import { ethers } from 'ethers';
-import { approveTransaction } from '@/services/eurTno';
-import { placeOrder } from '@/services/client';
-import { encryptOrderInfo } from "@/services/crypto";
-import { uploadDeliveryInfo } from "@/services/ipfs";
-
 import { ref, reactive } from "vue";
+
+import { ethers } from 'ethers';
+
+import { approveTransaction } from '@/endpoints/euroToken';
+import { placeOrder } from '@/endpoints/client';
+import { uploadDeliveryInfo } from '@/endpoints/ipfs';
+
+import { encryptOrderInfo } from '@/utils/crypto';
+import { sellerData, clientData } from '@/utils/constants'
 
 export default {
   name: "OrderPlacement",
@@ -61,24 +64,17 @@ export default {
     const checkout = async (clientAddress) => {
       loading.value = true;
       try {
-        const clientKey = 'KXj1DmMm6caFY1ioIyBIy6Ovs1tCjFuj8yEXZgysSCk=';
-        const sellerPublicKey = 'sm0/a19e0Ojgh05dXX7nwL7QiGJ02HiKgZQGiLvW70w=';
-        const clientPublicKey = 'sm0/a19e0Ojgh05dXX7nwL7QiGJ02HiKgZQGiLvW70w=';
-        const clientSecretKey = 'z6bXpb5tnHlTc/B9N53ig455/o0lX3eienBkcHbNLeM=';
-
-        const sellerAddress = "0x59Ce492d182688239C118AcFEb1A4872Ce3B1231";
-
         const orderInfo = {
           cart: [...cartContents],
           deliveryAddress: clientAddress,
         };
 
-        const encrypted = await encryptOrderInfo(sellerPublicKey, clientPublicKey, clientSecretKey, clientKey, orderInfo);
+        const encrypted = await encryptOrderInfo(sellerData.keys.public, clientData.keys.public, clientData.keys.private, clientData.keys.symmetric, orderInfo);
         const path = await uploadDeliveryInfo(encrypted);
         const total = orderInfo.cart.reduce((a, b) => a + (b.quantity * b.price), 0);
         const amount = ethers.utils.parseEther(total.toString());
         if (await approveTransaction(amount)) {
-          if (await placeOrder(sellerAddress, path, amount)) {
+          if (await placeOrder(sellerData.address, path, amount)) {
             cartContents.splice(0);
             address.street = address.houseNumber = address.houseAddition = address.zipCode = undefined;
           }

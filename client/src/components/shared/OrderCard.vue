@@ -25,7 +25,7 @@
 <script>
 import Loader from '@/components/shared/Loader.vue';
 
-import { OrderStatus } from '@/services/order';
+import { OrderStatus } from '@/utils/order';
 
 export default {
   name: "OrderCard",
