@@ -1,20 +1,29 @@
-import { inject } from "vue";
+import { ethers } from 'ethers';
 
 import { getSmartContract } from '@/services/ethereum';
-
-const toast = inject('$toast');
 
 const approveTransaction = async (amount) => {
     try {
         const { eurTno, tnoEats } = await getSmartContract();
-        const tx = await eurTno.approve(tnoEats.address, amount);
+        const etherAmount = ethers.utils.parseEther(amount.toString());
+        const tx = await eurTno.approve(tnoEats.address, etherAmount);
         await tx.wait();
         return true;
     } catch (error) {
-        toast.error(`Error approving euro transaction #${orderId}`);
         console.log(error);
         return false;
     }
 }
+
+const checkAllowance = async (address) => {
+    try {
+        const { eurTno, tnoEats } = await getSmartContract();
+        const response = await eurTno.allowance(address, tnoEats.address);
+        return parseFloat(ethers.utils.formatEther(response));
+    } catch (error) {
+        console.log(error);
+        return 0;
+    }
+}
   
-export { approveTransaction }
+export { approveTransaction, checkAllowance }

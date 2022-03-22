@@ -59,7 +59,7 @@ import OrderInfo from '@/components/shared/OrderInfo.vue';
 import { inject, ref, reactive, onMounted } from 'vue';
 
 import { getSmartContract, getSignerAddress } from '@/services/ethereum';
-import { approveTransaction } from '@/endpoints/euroToken';
+import { approveTransaction, checkAllowance } from '@/endpoints/euroToken';
 
 import { getOrdersByDeliveryService, getApprovedOrders, acceptOrder, pickupOrder, deliverOrder } from '@/endpoints/deliveryService';
 
@@ -77,11 +77,17 @@ export default {
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].loading = true;
       try {
-        let success = await approveTransaction(orders[index].collateral)
-        if (success) {
-          success = await acceptOrder(orderId);
+        const allowance = await checkAllowance(address.value);
+        if (allowance < orders[index].collateral) {
+          if (!await approveTransaction(orders[index].collateral)) {
+            toast.error(`Error approving euro transaction #${orderId}`);
+            orders[index].loading = false;
+            return;
+          }
         }
-        if (!success) toast.error(`Error accepting order #${orderId}`);
+        if (!await acceptOrder(orderId)) {
+          toast.error(`Error accepting order #${orderId}`);
+        }
       } finally {
         orders[index].loading = false;
       }
