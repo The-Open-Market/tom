@@ -1,5 +1,5 @@
 <template>
-  <button @click="clicked" :class="styles" :disabled="disabled || loading">
+  <button @click="clicked" class="green" :disabled="disabled || loading">
     <Loader v-if="loading"/>
     <span v-else>{{ text }}</span>
   </button>
@@ -15,10 +15,6 @@ export default {
     text: {
       type: String,
       required: true
-    },
-    styles: {
-      type: String,
-      default: "green" // (green | red | blue) X transparent X small
     },
     disabled: {
       type: Boolean,
@@ -61,8 +57,9 @@ export default {
     @apply bg-sky-500 hover:bg-sky-700 border-sky-500 hover:border-sky-700;
   }
 
-  .transparent {
-    @apply bg-transparent border;
+  .green, .red, .blue {
+    min-width: 6rem;
+    @apply flex items-center justify-center h-9 disabled:bg-gray-500 hover:disabled:cursor-not-allowed text-white font-semibold py-1 px-4 rounded;
   }
 
   .green.transparent {
@@ -77,9 +74,8 @@ export default {
     @apply hover:bg-sky-500 hover:border-sky-500 text-sky-500 hover:text-white;
   }
 
-  .green, .red, .blue {
-    min-width: 6rem;
-    @apply flex items-center justify-center h-9 disabled:bg-gray-500 hover:disabled:cursor-not-allowed text-white font-semibold py-1 px-4 rounded;
+  .transparent {
+    @apply bg-transparent border disabled:text-white hover:disabled:bg-gray-500 disabled:border-gray-500 hover:disabled:border-gray-500;
   }
 
   .small {

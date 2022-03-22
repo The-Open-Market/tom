@@ -5,16 +5,12 @@
         <OrderInfo :order="order" pov="seller" />
       </template>
       <template v-slot:controls>
-        <div>
-          <p>Delivery Fee</p>
-          <input type="number" v-model="order.deliveryFee"/>
+        <Button text="Reject" class="red" @click="reject(order.id)" :disabled="order.loading"/>
+        <div class="flex flex-wrap justify-end gap-1 items-center">
+          <Input type="number" title="Collateral" class="small" v-model="order.collateral"/>
+          <Input type="number" title="Delivery fee" class="small" v-model="order.deliveryFee"/>
+          <Button text="Approve" class="green" @click="approve(order.id)" :disabled="order.loading || order.deliveryFee <= 0"/>
         </div>
-        <div>
-          <p>Collateral</p>
-          <input type="number" v-model="order.collateral"/>
-        </div>
-        <Button text="Reject" styles="red" @click="reject(order.id)" :disabled="order.loading"/>
-        <Button text="Approve" styles="green" @click="approve(order.id)" :disabled="order.loading"/>
       </template>
     </OrderCard>
   </OrderContainer>
@@ -34,7 +30,7 @@
           <OrderInfo :order="order" pov="seller" />
         </template>
         <template v-slot:controls>
-          <Button text="Transfer" styles="blue" @click="transfer(order.id)" :disabled="order.loading"/>
+          <Button text="Transfer" class="blue" @click="transfer(order.id)" :disabled="order.loading"/>
         </template>
       </OrderCard>
     </OrderContainer>
@@ -44,7 +40,7 @@
           <OrderInfo :order="order" pov="seller" />
         </template>
         <template v-slot:controls v-if="order.status.value === OrderStatus.PickedUp.value">
-          <Button text="Transfer" styles="blue" @click="transfer(order.id)" :disabled="order.loading"/>
+          <Button text="Transfer" class="blue" @click="transfer(order.id)" :disabled="order.loading"/>
         </template>
       </OrderCard>
     </OrderContainer>
@@ -69,18 +65,19 @@
 <script>
 import OrderCard from '@/components/shared/OrderCard.vue';
 import Button from '@/components/shared/Button.vue';
+import Input from '@/components/shared/Input.vue';
 import OrderGrid from '@/components/shared/OrderGrid.vue';
 import OrderContainer from '@/components/shared/OrderContainer.vue';
 import OrderInfo from '@/components/shared/OrderInfo.vue';
 
-import { reactive, onMounted } from "vue";
-import { ethers } from 'ethers';
-import { OrderStatus } from '@/services/order';
-import { getOrdersBySeller } from '@/services/tnoEats';
+import { inject, ref, reactive, onMounted } from "vue";
+
 import { getSmartContract, getSignerAddress } from '@/services/ethereum';
-import { approveOrder, rejectOrder, transferOrder } from '@/services/seller';
-import { decryptOrderInfo } from "@/services/crypto";
-import { downloadDeliveryInfo } from "@/services/ipfs";
+
+import { getOrdersBySeller, approveOrder, rejectOrder, transferOrder } from '@/endpoints/seller';
+
+import { OrderStatus, OrderStatusMap, orderFromData } from '@/utils/order';
+import { sellerData } from '@/utils/constants';
 
 export default {
   name: 'Seller',
@@ -88,19 +85,17 @@ export default {
   setup() {
     const orders = reactive([]);
     const collateralPercentage = .5;
+    let address = ref("");
+    const toast = inject('$toast');
 
     const approve = async (orderId) => {
       const index = orders.findIndex(order => order.id === orderId);
-      const order = orders[index];
-      const fee = ethers.utils.parseEther(order.deliveryFee.toString());
-      const collateral = ethers.utils.parseEther(order.collateral.toString());
-      order.loading = true;
+      orders[index].loading = true;
       try {
-        if (await approveOrder(orderId, fee, collateral)) {
-          order.status = OrderStatus.Approved;
-        }
+        const success = await approveOrder(orderId, orders[index].deliveryFee, orders[index].collateral);
+        if (!success) toast.error(`Error approving order #${orderId}`);
       } finally {
-        order.loading = false;
+        orders[index].loading = false;
       }
     }
 
@@ -108,9 +103,8 @@ export default {
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].loading = true;
       try {
-        if (await rejectOrder(orderId)) {
-          orders[index].status = OrderStatus.Rejected;
-        }
+        const success = await rejectOrder(orderId);
+        if (!success) toast.error(`Error rejecting order #${orderId}`);
       } finally {
         orders[index].loading = false;
       }
@@ -120,96 +114,52 @@ export default {
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].loading = true;
       try {
-        if (await transferOrder(orderId)) {
-          orders[index].status = OrderStatus.Transferred;
-        }
+        const success = await transferOrder(orderId);
+        if (!success) toast.error(`Error transferring order #${orderId}`);
       } finally {
         orders[index].loading = false;
       }
     }
 
-    const addOrders = async (myOrders) => {
-      const sellerSecretKey = 'z6bXpb5tnHlTc/B9N53ig455/o0lX3eienBkcHbNLeM=';
-
-      for (const order of myOrders) {
-        const downloadedInfo = await downloadDeliveryInfo(order.orderContentsUrl);
-        const orderInformation = await decryptOrderInfo(downloadedInfo, sellerSecretKey);
-        order.orderInformation = orderInformation;
-        order.loading = false;
-        if (order.status.name === "Pending") {
-          order.collateral = order.amount * collateralPercentage;
-        }
-        orders.push(order);
-      }
-    }
-
-    const onOrderPending = async (id, client, seller, ipfsUrl) => {
+    const onOrderStatusChanged = async (id, amount, deliveryFee, collateral, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode) => {
       const orderId = parseInt(id._hex, 16);
+      const data = {id, amount, deliveryFee, collateral, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode};
+
       if (orders.every(order => order.id !== orderId)) {
-        await addOrders([{
-          id: orderId,
-          status: OrderStatus.Pending,
-          client,
-          seller,
-          orderContentsUrl: ipfsUrl
-        }]);
+        const order = await orderFromData(data, 'seller', sellerData.keys.private);
+        orders.push(order);
+        toast.info(`Order #${orderId} is now ${OrderStatusMap[status].name.toLowerCase()}`);
+        return;
+      }
+
+      const index = orders.findIndex(order => order.id === orderId);
+      
+      if (orders[index].status.value < OrderStatusMap[status].value) {
+        const order = await orderFromData(data, 'seller', sellerData.keys.private);
+        orders[index] = order;
+        toast.info(`Order #${orderId} is now ${OrderStatusMap[status].name.toLowerCase()}`);
       }
     }
 
-    const onOrderCancelled = (id, client, seller) => {
-      const orderId = parseInt(id._hex, 16);
-      const index = orders.findIndex(order => order.id === orderId);
-      orders[index].status = OrderStatus.Cancelled;
-    }
+    const onAccountChanged = async () => {
+      orders.splice(0);
 
-    const onOrderAccepted = (id, client, seller, deliveryService) => {
-      const orderId = parseInt(id._hex, 16);
-      const index = orders.findIndex(order => order.id === orderId);
-      orders[index].status = OrderStatus.Accepted;
-      orders[index].deliveryService = deliveryService;
-    }
-
-    const onOrderStatusChanged = (id, client, seller, deliveryService, status) => {
-      const orderId = parseInt(id._hex, 16);
-      const index = orders.findIndex(order => order.id === orderId);
-      orders[index].status = status;
-    }
-
-    onMounted(async () => {
-      const address = await getSignerAddress();
-      const myOrders = await getOrdersBySeller(address);
-      await addOrders(myOrders);
+      address.value = await getSignerAddress();
+      const myOrders = await getOrdersBySeller(address.value, sellerData.keys.private);
+      orders.push(...myOrders);
 
       const { tnoEats } = await getSmartContract();
 
-      const onOrderPendingFilter = tnoEats.filters.OrderPending(null, null, address, null);
-      tnoEats.on(onOrderPendingFilter, onOrderPending);
+      tnoEats.removeAllListeners();
 
-      const onOrderCancelledFilter = tnoEats.filters.OrderCancelled(null, null, address);
-      tnoEats.on(onOrderCancelledFilter, onOrderCancelled);
+      const filteredEventListener = tnoEats.filters.OrderStatusChanged(null, null, null, null, null, null, address.value, null, null, null, null);
+      tnoEats.on(filteredEventListener, onOrderStatusChanged);
+    }
 
-      const onOrderAcceptedFilter = tnoEats.filters.OrderAccepted(null, null, address, null);
-      tnoEats.on(onOrderAcceptedFilter, onOrderAccepted);
+    onMounted(onAccountChanged);
 
-      const onOrderPickedUpFilter = tnoEats.filters.OrderPickedUp(null, null, address, null);
-      tnoEats.on(onOrderPickedUpFilter, (id, client, seller, deliveryService) => +
-        onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.PickedUp));
-
-      const onOrderInTransitFilter = tnoEats.filters.OrderInTransit(null, null, address, null);
-      tnoEats.on(onOrderInTransitFilter, (id, client, seller, deliveryService) => +
-        onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.InTransit));
-
-      const onOrderReceivedFilter = tnoEats.filters.OrderReceived(null, null, address, null);
-      tnoEats.on(onOrderReceivedFilter, (id, client, seller, deliveryService) => +
-        onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.Received));
-
-      const onOrderDeliveredFilter = tnoEats.filters.OrderDelivered(null, null, address, null);
-      tnoEats.on(onOrderDeliveredFilter, (id, client, seller, deliveryService) => +
-        onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.Delivered));
-
-      const onOrderCompletedFilter = tnoEats.filters.OrderCompleted(null, null, address, null);
-      tnoEats.on(onOrderCompletedFilter, (id, client, seller, deliveryService) => +
-        onOrderStatusChanged(id, client, seller, deliveryService, OrderStatus.Completed));
+    window.ethereum.on('accountsChanged', async (accounts) => {
+      await onAccountChanged();
     });
 
     return {
@@ -226,6 +176,7 @@ export default {
     OrderContainer,
     OrderCard,
     Button,
+    Input,
     OrderInfo,
   },
 }
