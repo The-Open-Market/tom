@@ -85,7 +85,8 @@ contract("TnoEats", accounts => {
     });
 
     it("client should not be able to start an order with invalid seller address", async () => {
-        truffleAssert.fails(contract.placeOrder(NULL_ADDRESS, "IPFS_LINK", { from: client_a }));
+        await euroContract.approve(contract.address, amount, { from: client_a });
+        truffleAssert.fails(contract.placeOrder(NULL_ADDRESS, "IPFS_LINK", amount, { from: client_a }));
     });
 
     it("seller should be able to accept incoming order", async () => {
