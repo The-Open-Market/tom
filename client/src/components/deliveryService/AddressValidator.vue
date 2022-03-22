@@ -2,7 +2,7 @@
   <div class="flex flex-wrap gap-4 items-end">
     <Input v-model="address" type="text" title="Address" placeholder="Address without separators and spaces" class="w-64"/>
     <Input v-model="salt" type="text" title="Salt" placeholder="Provided by the seller" class="w-36"/>
-    <Input v-model="hash" type="text" title="Hash" class="w-48 grow"/>
+    <Input v-model="hash" type="text" title="Hash" placeholder="Copy and paste from the respective order" class="w-48 grow"/>
 
     <Button text="Validate" class="blue" :disabled="!address || !salt || !hash" @click="validateHash"/>
 

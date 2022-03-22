@@ -9,31 +9,44 @@ const routes = [
     path: "/",
     name: "Dashboard",
     component: Dashboard,
-    meta: { title: 'TNO-Eats - Dashboard' },
+    meta: {
+      title: 'TNO-Eats - Dashboard',
+    },
   },
   {
     path: "/seller",
     name: "Seller",
     component: Seller,
-    meta: { title: 'TNO-Eats - Seller' },
+    meta: { 
+      title: 'TNO-Eats - Seller',
+    },
   },
   {
     path: "/delivery",
     name: "Delivery",
     component: Delivery,
-    meta: { title: 'TNO-Eats - Delivery' },
+    meta: { 
+      title: 'TNO-Eats - Delivery',
+    },
   },
   {
     path: "/client",
     name: "Client",
     component: Client,
-    meta: { title: 'TNO-Eats - Client' },
+    meta: { 
+      title: 'TNO-Eats - Client',
+    },
   }
 ]
 
 const router = createRouter({
     history: createWebHistory(),
     routes
-})
+});
+
+router.beforeEach((to, from, next) => {
+  document.title = `${to.meta.title}`;
+  next();
+});
 
 export default router

@@ -8,7 +8,7 @@
         <Button text="Cancel" class="red" @click="cancel(order.id)" :disabled="order.loading"/>
       </template>
       <template v-slot:controls v-if="order.status.value === OrderStatus.InTransit.value || order.status.value === OrderStatus.Delivered.value">
-        <Button text="Receive" class="green" @click="receive(order.id)" :disabled="order.loading"/>
+        <Button text="Receive" class="blue" @click="receive(order.id)" :disabled="order.loading"/>
       </template>
     </OrderCard>
   </OrderContainer>

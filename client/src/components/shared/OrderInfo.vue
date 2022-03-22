@@ -45,7 +45,17 @@
 
 <!-- Delivery view: -->
   <div v-if="pov === 'delivery'">
-    <div>TODO: integrate open maps</div>
+    <div class="border-b pb-3 mb-3">
+      <span class="text-sm italic">Possibility to integrate open maps</span>
+      <div>
+        <span class="font-medium uppercase">Origin: </span>
+        {{ order.originZipCode }}
+      </div>
+      <div>
+        <span class="font-medium uppercase">Destination: </span>
+        {{ order.destinationZipCode }}
+      </div>
+    </div>
     <div class="flex">
       <span class="font-medium uppercase">Address hash: </span>
       <Button text="Copy" @click="copyValue(hashedAddress)" class="ml-1 uppercase green transparent small" />
