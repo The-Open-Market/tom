@@ -3,6 +3,8 @@ import { ethers } from 'ethers';
 import { downloadDeliveryInfo } from "@/endpoints/ipfs";
 import { decryptOrderInfo, decryptClientOrderInfo } from "@/utils/crypto";
 
+import { orderDefaults } from '@/utils/constants';
+
 const OrderStatus = Object.freeze({
   Pending:     { value: 0, name: "Pending", color: "yellow" },
   Approved:    { value: 1, name: "Approved", color: "light-green" },
@@ -48,6 +50,7 @@ const orderFromData = async (data, party = null, key = null) => {
       id: parseInt(data.id._hex, 16),
       amount: parseFloat(ethers.utils.formatEther(data.amount)),
       deliveryFee: parseFloat(ethers.utils.formatEther(data.deliveryFee)),
+      collateral: parseFloat(ethers.utils.formatEther(data.collateral)),
       status: OrderStatusMap[data.status],
       client: data.client,
       seller: data.seller,
@@ -56,6 +59,10 @@ const orderFromData = async (data, party = null, key = null) => {
       originZipCode: data.originZipCode,
       destinationZipCode: data.destinationZipCode,
       loading: false,
+    };
+    if (order.status.value === OrderStatus.Pending.value) {
+      order.collateral = order.amount * orderDefaults.defaultCollateralPercentage;
+      order.deliveryFee = orderDefaults.defaultDeliveryFee;
     }
     await attachIpfsData(order, party, key);
     return order;

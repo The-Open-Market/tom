@@ -27,9 +27,11 @@ async function addDemoData(eurtContract, tnoEatsContract, network, [client, sell
 
     if (i > 6) continue;
     console.log(`Approving ${orderId}`);
-    await tnoEatsContract.approveOrder(orderId, "SELLER01", "CLIENT02", oneEurt.multipliedBy(i), { from: seller });
+    await tnoEatsContract.approveOrder(orderId, "SELLER01", "CLIENT02", oneEurt.multipliedBy(i), oneEurt.multipliedBy(10), { from: seller });
 
     if (i > 5) continue;
+
+    await eurtContract.approve(tnoEatsContract.address, oneEurt.multipliedBy(10), { from: deliveryService });
 
     console.log(`Accepting ${orderId}`);
     await tnoEatsContract.acceptOrder(orderId, { from: deliveryService });

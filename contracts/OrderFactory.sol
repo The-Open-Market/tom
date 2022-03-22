@@ -13,6 +13,7 @@ abstract contract OrderFactory is Ownable {
         uint id,
         uint amount,
         uint deliveryFee,
+        uint collateral,
         OrderStatus status,
         address indexed client,
         address indexed seller,
@@ -26,6 +27,7 @@ abstract contract OrderFactory is Ownable {
         uint id;
         uint amount;
         uint deliveryFee;
+        uint collateral;
         OrderStatus status;
         address client;
         address seller;
@@ -220,9 +222,9 @@ abstract contract OrderFactory is Ownable {
     function _createOrder(address _seller, string memory _orderInfo, uint _amount) internal {
         address client = _msgSender();
         uint id = orders.length;
-        orders.push(Order(id, _amount, 0, OrderStatus.Pending, client, _seller, address(0), _orderInfo, "", ""));
+        orders.push(Order(id, _amount, 0, 0, OrderStatus.Pending, client, _seller, address(0), _orderInfo, "", ""));
         clientOrderCount[client]++;
         sellerOrderCount[_seller]++;
-        emit OrderStatusChanged(id, _amount, 0, OrderStatus.Pending, client, _seller, address(0), _orderInfo, "", "");
+        emit OrderStatusChanged(id, _amount, 0, 0, OrderStatus.Pending, client, _seller, address(0), _orderInfo, "", "");
     }
 }

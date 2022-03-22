@@ -59,6 +59,7 @@ import OrderInfo from '@/components/shared/OrderInfo.vue';
 import { inject, ref, reactive, onMounted } from 'vue';
 
 import { getSmartContract, getSignerAddress } from '@/services/ethereum';
+import { approveTransaction, checkAllowance } from '@/endpoints/euroToken';
 
 import { getOrdersByDeliveryService, getApprovedOrders, acceptOrder, pickupOrder, deliverOrder } from '@/endpoints/deliveryService';
 
@@ -76,9 +77,15 @@ export default {
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].loading = true;
       try {
-        if (await acceptOrder(orderId)) {
-          toast.success(`Order #${orderId} successfully accepted`);
-        } else {
+        const allowance = await checkAllowance(address.value);
+        if (allowance < orders[index].collateral) {
+          if (!await approveTransaction(orders[index].collateral)) {
+            toast.error(`Error approving euro transaction #${orderId}`);
+            orders[index].loading = false;
+            return;
+          }
+        }
+        if (!await acceptOrder(orderId)) {
           toast.error(`Error accepting order #${orderId}`);
         }
       } finally {
@@ -90,11 +97,8 @@ export default {
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].loading = true;
       try {
-        if (await pickupOrder(orderId)) {
-          toast.success(`Order #${orderId} successfully picked up`);
-        } else {
-          toast.error(`Error picking up order #${orderId}`);
-        }
+        const success = await pickupOrder(orderId);
+        if (!success) toast.error(`Error picking up order #${orderId}`);
       }
       finally {
         orders[index].loading = false;
@@ -105,19 +109,16 @@ export default {
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].loading = true;
       try {
-        if (await deliverOrder(orderId)) {
-          toast.success(`Order #${orderId} successfully delivered`);
-        } else {
-          toast.error(`Error delivering order #${orderId}`);
-        }
+        const success = await deliverOrder(orderId);
+        if (!success) toast.error(`Error delivering order #${orderId}`);
       } finally {
         orders[index].loading = false;
       }
     };
 
-    const onOrderStatusChanged = async (id, amount, deliveryFee, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode) => {
+    const onOrderStatusChanged = async (id, amount, deliveryFee, collateral, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode) => {
       const orderId = parseInt(id._hex, 16);
-      const data = {id, amount, deliveryFee, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode};
+      const data = {id, amount, deliveryFee, collateral, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode};
 
       if (orders.every(order => order.id !== orderId)) {
         const order = await orderFromData(data, 'delivery');
@@ -149,7 +150,7 @@ export default {
 
       tnoEats.removeAllListeners();
 
-      const filteredEventListener = tnoEats.filters.OrderStatusChanged(null, null, null, null, null, null, address.value, null, null, null);
+      const filteredEventListener = tnoEats.filters.OrderStatusChanged(null, null, null, null, null, null, null, address.value, null, null, null);
       tnoEats.on(filteredEventListener, onOrderStatusChanged);
     }
 

@@ -7,6 +7,7 @@
       <template v-slot:controls>
         <Button text="Reject" class="red" @click="reject(order.id)" :disabled="order.loading"/>
         <div class="flex flex-wrap justify-end gap-1 items-center">
+          <Input type="number" title="Collateral" class="small" v-model="order.collateral"/>
           <Input type="number" title="Delivery fee" class="small" v-model="order.deliveryFee"/>
           <Button text="Approve" class="green" @click="approve(order.id)" :disabled="order.loading || order.deliveryFee <= 0"/>
         </div>
@@ -83,19 +84,16 @@ export default {
 
   setup() {
     const orders = reactive([]);
+    const collateralPercentage = .5;
     let address = ref("");
     const toast = inject('$toast');
 
     const approve = async (orderId) => {
       const index = orders.findIndex(order => order.id === orderId);
-      const fee = orders[index].deliveryFee;
       orders[index].loading = true;
       try {
-        if (await approveOrder(orderId, fee)) {
-          toast.success(`Order #${orderId} successfully approved`);
-        } else {
-          toast.error(`Error approving order #${orderId}`);
-        }
+        const success = await approveOrder(orderId, orders[index].deliveryFee, orders[index].collateral);
+        if (!success) toast.error(`Error approving order #${orderId}`);
       } finally {
         orders[index].loading = false;
       }
@@ -105,11 +103,8 @@ export default {
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].loading = true;
       try {
-        if (await rejectOrder(orderId)) {
-          toast.success(`Order #${orderId} successfully rejected`);
-        } else {
-          toast.error(`Error rejecting order #${orderId}`);
-        }
+        const success = await rejectOrder(orderId);
+        if (!success) toast.error(`Error rejecting order #${orderId}`);
       } finally {
         orders[index].loading = false;
       }
@@ -119,19 +114,16 @@ export default {
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].loading = true;
       try {
-        if (await transferOrder(orderId)) {
-          toast.success(`Order #${orderId} successfully transferred`);
-        } else {
-          toast.error(`Error transferred order #${orderId}`);
-        }
+        const success = await transferOrder(orderId);
+        if (!success) toast.error(`Error transferring order #${orderId}`);
       } finally {
         orders[index].loading = false;
       }
     }
 
-    const onOrderStatusChanged = async (id, amount, deliveryFee, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode) => {
+    const onOrderStatusChanged = async (id, amount, deliveryFee, collateral, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode) => {
       const orderId = parseInt(id._hex, 16);
-      const data = {id, amount, deliveryFee, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode};
+      const data = {id, amount, deliveryFee, collateral, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode};
 
       if (orders.every(order => order.id !== orderId)) {
         const order = await orderFromData(data, 'seller', sellerData.keys.private);
@@ -160,7 +152,7 @@ export default {
 
       tnoEats.removeAllListeners();
 
-      const filteredEventListener = tnoEats.filters.OrderStatusChanged(null, null, null, null, null, address.value, null, null, null, null);
+      const filteredEventListener = tnoEats.filters.OrderStatusChanged(null, null, null, null, null, null, address.value, null, null, null, null);
       tnoEats.on(filteredEventListener, onOrderStatusChanged);
     }
 

@@ -1,4 +1,5 @@
 import { ethers } from 'ethers';
+
 import { getSmartContract } from '@/services/ethereum';
 import { ordersFromArrays } from '@/utils/order';
 
@@ -8,11 +9,12 @@ const getOrdersBySeller = async (address, key = null) => {
   return ordersFromArrays(orders, 'seller', key);
 }
 
-const approveOrder = async (orderId, fee) => {
+const approveOrder = async (orderId, fee, collateral) => {
     try {
         const { tnoEats } = await getSmartContract();
-        const eurTFee = ethers.utils.parseEther(fee.toString());
-        const approveOrderTx = await tnoEats.approveOrder(orderId, "DummySellerZip", "DummyClientZip", eurTFee);
+        const etherFee = ethers.utils.parseEther(fee.toString());
+        const etherCollateral = ethers.utils.parseEther(collateral.toString());
+        const approveOrderTx = await tnoEats.approveOrder(orderId, "DummySellerZip", "DummyClientZip", etherFee, etherCollateral);
         await approveOrderTx.wait();
         return true;
     } catch (error) {

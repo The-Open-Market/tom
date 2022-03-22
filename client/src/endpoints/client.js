@@ -1,3 +1,5 @@
+import { ethers } from 'ethers';
+
 import { getSmartContract } from '@/services/ethereum';
 import { ordersFromArrays } from '@/utils/order';
 
@@ -10,7 +12,8 @@ const getOrdersByClient = async (address, key = null) => {
 const placeOrder = async (seller, orderInfo, amount) => {
     try {
         const { tnoEats } = await getSmartContract();
-        const placeOrderTx = await tnoEats.placeOrder(seller, orderInfo, amount);
+        const etherAmount = ethers.utils.parseEther(amount.toString());
+        const placeOrderTx = await tnoEats.placeOrder(seller, orderInfo, etherAmount);
         await placeOrderTx.wait();
         return true;
     } catch (error) {

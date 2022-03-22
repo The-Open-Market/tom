@@ -6,10 +6,6 @@
       {{ deliveryAddress.street }} {{ deliveryAddress.hnr }} {{ deliveryAddress.hnr_add }}, {{ deliveryAddress.zip }}
     </div>
     <div>
-      <span class="font-medium">Delivery Fee: </span>
-      {{ 0 < order.deliveryFee ? `€${order.deliveryFee.toFixed(2)}` : 'N/a' }}
-    </div>
-    <div>
       <span class="font-medium">
         Order details <span class="text-sm lowercase">({{ items }} item{{ items > 1 ? 's' : '' }})</span>:
       </span>
@@ -29,7 +25,11 @@
       <span class="font-medium">Salt: </span>
       <Button text="Copy" @click="copyValue(salt)" class="ml-1 green transparent small" />
     </div>
-    <div>
+    <div v-if="order.status.value !== OrderStatus.Pending.value">
+      <span class="font-medium">Collateral: </span>
+      {{ 0 < order.collateral ? `€${order.collateral}` : 'N/a' }}
+    </div>
+    <div v-if="order.status.value !== OrderStatus.Pending.value">
       <span class="font-medium">Delivery Fee: </span>
       {{ 0 < order.deliveryFee ? `€${order.deliveryFee.toFixed(2)}` : 'N/a' }}
     </div>
@@ -61,6 +61,10 @@
       <Button text="Copy" @click="copyValue(hashedAddress)" class="ml-1 green transparent small" />
     </div>
     <div class="text-red-500">
+      <span class="font-medium">Collateral: </span>
+      {{ 0 < order.collateral ? `€${order.collateral.toFixed(2)}` : 'N/a' }}
+    </div>
+    <div class="text-red-500">
       <span class="font-medium">Delivery Fee: </span>
       {{ 0 < order.deliveryFee ? `€${order.deliveryFee.toFixed(2)}` : 'N/a' }}
     </div>
@@ -71,6 +75,8 @@
 import Button from '@/components/shared/Button.vue';
 
 import useClipboard from 'vue-clipboard3'
+
+import { OrderStatus } from '@/utils/order';
 
 export default {
   name: "OrderInfo",
@@ -115,7 +121,8 @@ export default {
       cart,
       items,
       hashedAddress,
-      copyValue
+      copyValue,
+      OrderStatus
     }
   },
 

@@ -2,7 +2,7 @@
   <div>
     <ProductList @addToCart="addToCart"/>
     <ShoppingCart :cartContents="cartContents" @increment="increment" @decrement="decrement" @remove="remove"/>
-    <Checkout :cartContents="cartContents" :address="address" :loading="loading" @checkout="checkout"/>
+    <Checkout :cartContents="cartContents" :address="deliveryAddress" :loading="loading" @checkout="checkout"/>
   </div>
 </template>
 
@@ -11,11 +11,11 @@ import ProductList from '@/components/client/ProductList.vue';
 import ShoppingCart from '@/components/client/ShoppingCart.vue';
 import Checkout from '@/components/client/Checkout.vue';
 
-import { ref, reactive } from "vue";
+import { ref, reactive, inject } from "vue";
 
-import { ethers } from 'ethers';
+import { getSignerAddress } from '@/services/ethereum';
 
-import { approveTransaction } from '@/endpoints/euroToken';
+import { approveTransaction, checkAllowance } from '@/endpoints/euroToken';
 import { placeOrder } from '@/endpoints/client';
 import { uploadDeliveryInfo } from '@/endpoints/ipfs';
 
@@ -26,8 +26,10 @@ export default {
   name: "OrderPlacement",
 
   setup() {
+    const toast = inject('$toast');
+
     const cartContents = reactive([]);
-    const address = reactive({
+    const deliveryAddress = reactive({
       street: undefined,
       houseNumber: undefined,
       houseAddition: undefined,
@@ -72,13 +74,22 @@ export default {
         const encrypted = await encryptOrderInfo(sellerData.keys.public, clientData.keys.public, clientData.keys.private, clientData.keys.symmetric, orderInfo);
         const path = await uploadDeliveryInfo(encrypted);
         const total = orderInfo.cart.reduce((a, b) => a + (b.quantity * b.price), 0);
-        const amount = ethers.utils.parseEther(total.toString());
-        if (await approveTransaction(amount)) {
-          if (await placeOrder(sellerData.address, path, amount)) {
-            cartContents.splice(0);
-            address.street = address.houseNumber = address.houseAddition = address.zipCode = undefined;
+        
+        const allowance = await checkAllowance(await getSignerAddress())
+        if (allowance < total) {
+          if (!await approveTransaction(total)) {
+            toast.error('Error approving euro transaction');
+            return;
           }
         }
+
+        if (!await placeOrder(sellerData.address, path, total)) {
+          toast.error('Failed to place the order');
+          return;
+        }
+
+        cartContents.splice(0);
+        deliveryAddress.street = deliveryAddress.houseNumber = deliveryAddress.houseAddition = deliveryAddress.zipCode = undefined;
       } finally {
         loading.value = false;
       }
@@ -91,7 +102,7 @@ export default {
       decrement,
       remove,
       checkout,
-      address,
+      deliveryAddress,
       loading
     }
   },

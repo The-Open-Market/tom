@@ -1,9 +1,10 @@
 <template>
   <div class="flex flex-col focus-within:text-sky-700">
     <span class="text-xs font-medium">{{ title }}</span>
-    <input :type="type" 
+    <input :type="type"
            :value="modelValue"
-           @input="onChange"
+           :step="step"
+           @input="onInput"
            :placeholder="placeholder"
            class="h-7 text-sm pl-1 border border-gray-400 focus:border-sky-700 outline-none rounded"/>
   </div>
@@ -29,15 +30,19 @@ export default {
     },
     placeholder: {
       type: String
+    },
+    step: {
+      type: Number,
+      default: 0.01
     }
   },
 
   setup(props, context) {
-    const onChange = (e) => {
+    const onInput = (e) => {
       context.emit("update:modelValue", e.currentTarget.value);
     }
     return {
-      onChange
+      onInput
     }
   }
 }
@@ -45,6 +50,6 @@ export default {
 
 <style>
   .small > input {
-    @apply h-5 w-24;
+    @apply h-5 w-20;
   }
 </style>

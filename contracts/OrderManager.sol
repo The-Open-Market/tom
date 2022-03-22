@@ -16,9 +16,7 @@ abstract contract OrderManager is OrderFactory {
      * @param _orderInfo Url to the encoded order data stored in IPFS
      */
     function placeOrder(address _seller, string memory _orderInfo, uint _amount) external validAddress(_seller) {
-        // TODO: Handle collateral of user and amount of purchase
-        // TODO: Check for valid reputation + collateral amount
-        IERC20(eurTnoContract).transferFrom(_msgSender(), address(this), _amount);  // TODO: Check if successful
+        require(IERC20(eurTnoContract).transferFrom(_msgSender(), address(this), _amount));
         _createOrder(_seller, _orderInfo, _amount);
     }
 
@@ -27,17 +25,15 @@ abstract contract OrderManager is OrderFactory {
      *         Can be called only by the seller and the order needs to be pending.
      * @param _orderId Active order id
      */
-    function approveOrder(uint _orderId, string memory sellerZipCode, string memory clientZipCode, uint _deliveryFee) external orderIsActive(_orderId) orderIsPending(_orderId) senderIsSeller(_orderId) {
+    function approveOrder(uint _orderId, string memory sellerZipCode, string memory clientZipCode, uint _deliveryFee, uint _collateral) external orderIsActive(_orderId) orderIsPending(_orderId) senderIsSeller(_orderId) {
         Order storage order = orders[_orderId];
-        // TODO: Stack Too Deep error when using checkDeliveryFee modifier 
-        require(
-            _deliveryFee <= order.amount
-        );
+        require(_deliveryFee <= order.amount);
         order.status = OrderStatus.Approved;
         order.originZipCode = sellerZipCode;
         order.destinationZipCode = clientZipCode;
         order.deliveryFee = _deliveryFee;
-        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
+        order.collateral = _collateral;
+        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
     }
 
     /**
@@ -47,12 +43,12 @@ abstract contract OrderManager is OrderFactory {
      */
     function acceptOrder(uint _orderId) external orderIsActive(_orderId) orderIsApproved(_orderId) senderIsNotClientOrSeller(_orderId) {
         Order storage order = orders[_orderId];
-        // TODO: Check for valid reputation + collateral amount
         address deliveryService = _msgSender();
+        require(IERC20(eurTnoContract).transferFrom(deliveryService, address(this), order.collateral));
         order.deliveryService = deliveryService;
         order.status = OrderStatus.Accepted;
         deliveryServiceOrderCount[deliveryService]++;
-        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
+        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
     }
 
     /**
@@ -74,7 +70,7 @@ abstract contract OrderManager is OrderFactory {
         } else {
             revert("Illegal operation, cannot set order in transit twice with the same account");
         }
-        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
+        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
     }
 
     /**
@@ -93,12 +89,12 @@ abstract contract OrderManager is OrderFactory {
         } else if (sender == order.client          && order.status == OrderStatus.Delivered
                 || sender == order.deliveryService && order.status == OrderStatus.Received) {
             order.status = OrderStatus.Completed;
-            IERC20(eurTnoContract).transfer(order.seller, order.amount - order.deliveryFee);
-            IERC20(eurTnoContract).transfer(order.deliveryService, order.deliveryFee);
+            require(IERC20(eurTnoContract).transfer(order.seller, order.amount - order.deliveryFee));
+            require(IERC20(eurTnoContract).transfer(order.deliveryService, order.deliveryFee + order.collateral));
         } else {
             revert("Illegal operation, cannot complete order twice with the same account");
         }
-        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
+        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
     }
 
     /**
@@ -110,8 +106,8 @@ abstract contract OrderManager is OrderFactory {
     function cancelOrder(uint _orderId) external orderIsCancelable(_orderId) senderIsClient(_orderId) {
         Order storage order = orders[_orderId];
         order.status = OrderStatus.Cancelled;
-        IERC20(eurTnoContract).transfer(order.client, order.amount);
-        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
+        require(IERC20(eurTnoContract).transfer(order.client, order.amount));
+        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
     }
 
     /**
@@ -122,7 +118,7 @@ abstract contract OrderManager is OrderFactory {
     function rejectOrder(uint _orderId) external orderIsPending(_orderId) senderIsSeller(_orderId) {
         Order storage order = orders[_orderId];
         order.status = OrderStatus.Rejected;
-        IERC20(eurTnoContract).transfer(order.client, order.amount);
-        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
+        require(IERC20(eurTnoContract).transfer(order.client, order.amount));
+        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
     }
 }

@@ -1,6 +1,6 @@
 import { getSmartContract } from '@/services/ethereum';
 import { ordersFromArrays } from '@/utils/order';
- 
+
 const getOrdersByDeliveryService = async (address) => {
   const { tnoEats } = await getSmartContract();
   const orders = await tnoEats.getOrdersByDeliveryService(address);
@@ -15,37 +15,37 @@ const getApprovedOrders = async () => {
 
 const acceptOrder = async (orderId) => {
   try {
-      const { tnoEats } = await getSmartContract();
-      const acceptOrderTx = await tnoEats.acceptOrder(orderId);
-      await acceptOrderTx.wait();
-      return true;
+    const { tnoEats } = await getSmartContract();
+    const acceptOrderTx = await tnoEats.acceptOrder(orderId);
+    await acceptOrderTx.wait();
+    return true;
   } catch (error) {
-      console.log(error);
-      return false;
+    console.log(error);
+    return false;
   }
 }
 
 const pickupOrder = async (orderId) => {
   try {
-      const { tnoEats } = await getSmartContract();
-      const transferOrderTx = await tnoEats.transferOrder(orderId);
-      await transferOrderTx.wait();
-      return true;
+    const { tnoEats } = await getSmartContract();
+    const transferOrderTx = await tnoEats.transferOrder(orderId);
+    await transferOrderTx.wait();
+    return true;
   } catch (error) {
-      console.log(error);
-      return false;
+    console.log(error);
+    return false;
   }
 }
 
 const deliverOrder = async (orderId) => {
   try {
-      const { tnoEats } = await getSmartContract();
-      const completeOrderTx = await tnoEats.completeOrder(orderId);
-      await completeOrderTx.wait();
-      return true;
+    const { tnoEats } = await getSmartContract();
+    const completeOrderTx = await tnoEats.completeOrder(orderId);
+    await completeOrderTx.wait();
+    return true;
   } catch (error) {
-      console.log(error);
-      return false;
+    console.log(error);
+    return false;
   }
 }
 

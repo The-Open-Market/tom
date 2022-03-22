@@ -12,6 +12,11 @@ const clientData = {
     public: '4wkgmg8X2ScQHGz1vaqnDGEpb7n1yeE1OG/s8rvIrH8=',
     private: 'DWGOwvvKMKEW4+Fyd9JUdOcDJzJ/pQlElKhTWOEptWg=',
   },
-}
+};
 
-export { sellerData, clientData }
+const orderDefaults = {
+  defaultDeliveryFee: 2.5,
+  defaultCollateralPercentage: 0.5
+};
+
+export { sellerData, clientData, orderDefaults }

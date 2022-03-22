@@ -45,11 +45,8 @@ export default {
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].loading = true;
       try {
-        if (await cancelOrder(orderId)) {
-          toast.success(`Order #${orderId} successfully canceled`);
-        } else {
-          toast.error(`Error canceling order #${orderId}`);
-        }
+        const success = await cancelOrder(orderId);
+        if (!success) toast.error(`Error cancelling order #${orderId}`);
       } finally {
         orders[index].loading = false;
       }
@@ -59,19 +56,16 @@ export default {
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].loading = true;
       try {
-        if (await receiveOrder(orderId)) {
-          toast.success(`Order #${orderId} successfully received`);
-        } else {
-          toast.error(`Error receiving order #${orderId}`);
-        }
+        const success = await receiveOrder(orderId)
+        if (!success) toast.error(`Error receiving order #${orderId}`);
       } finally {
         orders[index].loading = false;
       }
     }
 
-    const onOrderStatusChanged = async (id, amount, deliveryFee, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode) => {
+    const onOrderStatusChanged = async (id, amount, deliveryFee, collateral, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode) => {
       const orderId = parseInt(id._hex, 16);
-      const data = {id, amount, deliveryFee, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode};
+      const data = {id, amount, deliveryFee, collateral, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode};
 
       if (orders.every(order => order.id !== orderId)) {
         const order = await orderFromData(data, 'client', clientData.keys.symmetric);
@@ -100,7 +94,7 @@ export default {
 
       tnoEats.removeAllListeners();
 
-      const filteredEventListener = tnoEats.filters.OrderStatusChanged(null, null, null, null, address.value, null, null, null, null, null);
+      const filteredEventListener = tnoEats.filters.OrderStatusChanged(null, null, null, null, null, address.value, null, null, null, null, null);
       tnoEats.on(filteredEventListener, onOrderStatusChanged);
     };
 
