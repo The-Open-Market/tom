@@ -7,13 +7,6 @@ const getOrdersBySeller = async (address, key = null) => {
   const { tnoEats } = await getSmartContract();
   const ordersRaw = await tnoEats.getOrdersBySeller(address);
   const orders = await ordersFromArrays(ordersRaw, 'seller', key);
-
-  await Promise.all(orders.map(async (order) => {
-    const orderCount = await tnoEats.getClientOrderCount(order['client']);
-    order['completedOrders'] = parseInt(orderCount[0]._hex, 16);
-    order['cancelledOrders'] = parseInt(orderCount[1]._hex, 16);
-  }));
-
   return orders;
 }
 

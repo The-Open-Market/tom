@@ -1,5 +1,7 @@
 import { ethers } from 'ethers';
 
+import { getSmartContract } from '@/services/ethereum';
+
 import { downloadDeliveryInfo } from "@/endpoints/ipfs";
 import { decryptOrderInfo, decryptClientOrderInfo } from "@/utils/crypto";
 
@@ -64,13 +66,24 @@ const orderFromData = async (data, party = null, key = null) => {
       order.collateral = order.amount * orderDefaults.defaultCollateralPercentage;
       order.deliveryFee = orderDefaults.defaultDeliveryFee;
     }
+    if (order.status.value === OrderStatus.Completed.value) {
+      order.tip = 0;
+    }
     await attachIpfsData(order, party, key);
+    await attachOrderCounts(order);
     return order;
   } catch (error) {
     console.log(error);
     return null;
   }
 }
+
+const attachOrderCounts = async (order) => {
+  const { tnoEats } = await getSmartContract();
+  const orderCount = await tnoEats.getClientOrderCount(order.client);
+  order.completedOrders = parseInt(orderCount[0]._hex, 16);
+  order.cancelledOrders = parseInt(orderCount[1]._hex, 16);
+} 
 
 const attachIpfsData = async (order, party, key) => {
   if (!party) return;

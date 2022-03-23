@@ -1,5 +1,5 @@
 <template>
-  <div class="relative bg-gray-100 rounded shadow drop-shadow px-6 py-4 divide-y">
+  <div class="relative bg-gray-100 rounded shadow drop-shadow px-6 py-4 divide-y flex flex-col">
     <div class="flex justify-between py-3">
       <h3 class="font-medium">
         Order <span class="text-sm">#</span>{{ order.id }}
@@ -11,7 +11,7 @@
     <div class="py-3">
       <slot name="contents"></slot>
     </div>
-    <div class="flex flex-wrap justify-end gap-4 pt-3">
+    <div class="flex flex-wrap justify-end gap-4 pt-3 mt-auto">
       <slot name="controls">
         <p class="text-sm italic font-thin text-slate-700">No controls are available</p>
       </slot>
