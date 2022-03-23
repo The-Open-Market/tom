@@ -9,8 +9,9 @@ const getOrdersBySeller = async (address, key = null) => {
   const orders = await ordersFromArrays(ordersRaw, 'seller', key);
 
   await Promise.all(orders.map(async (order) => {
-    order['completedOrders'] = parseInt((await tnoEats.getClientCompletedOrderCount(order['client']))._hex, 16);
-    order['cancelledOrders'] = parseInt((await tnoEats.getClientCancelledOrderCount(order['client']))._hex, 16);
+    const orderCount = await tnoEats.getClientOrderCount(order['client']);
+    order['completedOrders'] = parseInt(orderCount[0]._hex, 16);
+    order['cancelledOrders'] = parseInt(orderCount[1]._hex, 16);
   }));
 
   return orders;
