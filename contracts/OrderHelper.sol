@@ -77,4 +77,19 @@ abstract contract OrderHelper is OrderFactory {
     }
     return result;
   }
+
+  function getClientOrderCount(address _client) external view returns(uint, uint) {
+    uint completedCount = 0;
+    uint cancelledCount = 0;
+
+    for (uint i = 0; i < orders.length; i++) {
+      if (orders[i].status == OrderStatus.Completed && orders[i].client == _client) {
+        completedCount++;
+      } else if (orders[i].status == OrderStatus.Cancelled && orders[i].client == _client) {
+        cancelledCount++;
+      }
+    }
+
+    return (completedCount, cancelledCount);
+  }
 }

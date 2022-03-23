@@ -60,13 +60,13 @@ abstract contract OrderFactory is Ownable {
 
     address eurTnoContract;
     
-    modifier checkDeliveryFee(uint _orderId, uint _deliveryFee) {
-        Order storage order = orders[_orderId];
-        require(
-            _deliveryFee <= order.amount
-        );
-        _;
-    }
+    // modifier checkDeliveryFee(uint _orderId, uint _deliveryFee) {
+    //     Order storage order = orders[_orderId];
+    //     require(
+    //         _deliveryFee <= order.amount
+    //     );
+    //     _;
+    // }
 
     modifier senderIsSeller(uint _orderId) {
         Order storage order = orders[_orderId];

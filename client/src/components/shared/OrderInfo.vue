@@ -12,7 +12,7 @@
       <div v-for="product in cart" :key="product.id">
         <p>{{ product.quantity }}x {{ product.name }}: €{{ parseFloat(product.price * product.quantity).toFixed(2) }}</p>
       </div>
-    </div>    
+    </div>
   </div>
   
 <!-- Seller view: -->
@@ -24,6 +24,11 @@
     <div class="flex">
       <span class="font-medium">Salt: </span>
       <Button text="Copy" @click="copyValue(salt)" class="ml-1 green transparent small" />
+    </div>
+    <div v-if="order.status.value === OrderStatus.Pending.value">
+      <span class="font-medium">Order history:</span>
+      <div># Completed orders: <span class="font-medium">{{ order['completedOrders'] }}</span></div>
+      <div># Cancelled orders: <span class="font-medium">{{ order['cancelledOrders'] }}</span></div>
     </div>
     <div v-if="order.status.value !== OrderStatus.Pending.value">
       <span class="font-medium">Collateral: </span>
