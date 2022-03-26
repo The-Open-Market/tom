@@ -11,7 +11,7 @@
         <Button text="Receive" class="blue" @click="receive(order.id)" :disabled="order.loading"/>
       </template>
       <template v-slot:controls v-if="order.status.value === OrderStatus.Completed.value">
-        <Input type="number" id="tip" title="Tip" class="small" v-model="order.tip" />
+        <MoneyInput id="tip" title="Tip" class="small" v-model="order.tip" />
         <Button text="Tip" class="blue" @click="tip(order.id)" :disabled="order.loading"/>
       </template>
     </OrderCard>
@@ -24,7 +24,7 @@
 import OrderPlacement from '@/components/client/OrderPlacement.vue'
 import OrderCard from '@/components/shared/OrderCard.vue';
 import Button from '@/components/shared/Button.vue';
-import Input from '@/components/shared/Input.vue';
+import MoneyInput from '@/components/shared/MoneyInput.vue';
 import OrderContainer from '@/components/shared/OrderContainer.vue';
 import OrderInfo from '@/components/shared/OrderInfo.vue';
 
@@ -138,7 +138,7 @@ export default {
     OrderCard,
     Button,
     OrderInfo,
-    Input,
+    MoneyInput,
   },
 }
 </script>
