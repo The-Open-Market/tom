@@ -48,6 +48,7 @@ export default {
       },
       set: function(newValue) {
         let money = parseFloat(newValue.replace(/[^\d\.]/g, ""));
+        money = Math.round(money * Math.pow(10,2)) / Math.pow(10,2)
         if (isNaN(money)) {
           money = 0;
         }
