@@ -33,13 +33,13 @@
         <div class="hidden sm:block w-full">
           <div class="flex w-full gap-8">
             <!-- Current: "bg-gray-900 text-white", Default: "text-gray-300 hover:bg-gray-700 hover:text-white" -->
-            <a href="/" class="bg-gray-900 text-white px-3 py-2 rounded-md text-sm font-medium" aria-current="page">TNO-EATS</a>
+            <a :href="publicPath" class="bg-gray-900 text-white px-3 py-2 rounded-md text-sm font-medium" aria-current="page">TNO-EATS</a>
 
-            <a href="/client" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Client POV</a>
+            <a :href="publicPath + 'client'" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Client POV</a>
 
-            <a href="/seller" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Seller POV</a>
+            <a :href="publicPath + 'seller'" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Seller POV</a>
 
-            <a href="/delivery" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Delivery POV</a>
+            <a :href="publicPath + 'delivery'" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Delivery POV</a>
 
             <div class="ml-auto flex items-center">
               <span class="text-white">{{ address }}</span>
@@ -70,8 +70,13 @@ export default {
     onMounted(updateAddress);
     window.ethereum.on('accountsChanged', updateAddress);
 
+    const publicPath = process.env.NODE_ENV === 'production'
+      ? '/tno-eats/'
+      : '/';
+
     return {
       address,
+      publicPath,
     };
   },
 };

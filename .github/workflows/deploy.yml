@@ -1,0 +1,27 @@
+name: Deploy Github Pages
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: NodeJS Setup
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: NodeJS version    
+        run: npm --version
+
+      - name: Deploy
+        working-directory: client
+        run: npm run deploy
+        env:
+          GITHUB_ACTOR: 'neat-monte'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: 'tno-eats'
