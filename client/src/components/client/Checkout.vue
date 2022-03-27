@@ -89,7 +89,7 @@ export default {
   
   components: {
     Input,
-    Button
+    Button,
   }
 }
 </script>
