@@ -28,9 +28,12 @@ jobs:
 
       - name: Coverage Smart Contract Test
         run: COV="$(CI=true truffle run coverage | grep 'All files' | awk '{print $6}')"
+
+      - name: Print Smart Contract Test
+        run: echo $COV
       
       - name: Set environment variable
-        run: echo "COVERAGE=$COV%" >> $GITHUB_ENV
+        run: echo "COVERAGE=${COV}%" >> $GITHUB_ENV
 
       - name: Create Coverage Badge
         uses: schneegans/dynamic-badges-action@v1.2.0
