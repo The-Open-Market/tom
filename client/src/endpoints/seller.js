@@ -15,7 +15,7 @@ const approveOrder = async (orderId, fee, collateral) => {
         const { tnoEats } = await getSmartContract();
         const etherFee = ethers.utils.parseEther(fee.toString());
         const etherCollateral = ethers.utils.parseEther(collateral.toString());
-        const approveOrderTx = await tnoEats.approveOrder(orderId, "DummySellerZip", "DummyClientZip", etherFee, etherCollateral);
+        const approveOrderTx = await tnoEats.approveOrder(orderId, "DummySellerZip", "DummyClientZip", etherFee, etherCollateral, {gasLimit: 1000000});
         await approveOrderTx.wait();
         return true;
     } catch (error) {
@@ -27,7 +27,7 @@ const approveOrder = async (orderId, fee, collateral) => {
 const rejectOrder = async (orderId) => {
     try {
         const { tnoEats } = await getSmartContract();
-        const rejectOrderTx = await tnoEats.rejectOrder(orderId);
+        const rejectOrderTx = await tnoEats.rejectOrder(orderId, {gasLimit: 1000000});
         await rejectOrderTx.wait();
         return true;
     } catch (error) {
@@ -39,7 +39,7 @@ const rejectOrder = async (orderId) => {
 const transferOrder = async (orderId) => {
     try {
         const { tnoEats } = await getSmartContract();
-        const transferOrderTx = await tnoEats.transferOrder(orderId);
+        const transferOrderTx = await tnoEats.transferOrder(orderId, {gasLimit: 1000000});
         await transferOrderTx.wait();
         return true;
     } catch (error) {

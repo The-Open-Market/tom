@@ -13,7 +13,8 @@ const placeOrder = async (seller, orderInfo, amount) => {
     try {
         const { tnoEats } = await getSmartContract();
         const etherAmount = ethers.utils.parseEther(amount.toString());
-        const placeOrderTx = await tnoEats.placeOrder(seller, orderInfo, etherAmount);
+
+        const placeOrderTx = await tnoEats.placeOrder(seller, orderInfo, etherAmount, {gasLimit: 1000000});
         await placeOrderTx.wait();
         return true;
     } catch (error) {
@@ -25,7 +26,7 @@ const placeOrder = async (seller, orderInfo, amount) => {
 const cancelOrder = async (orderId) => {
     try {
         const { tnoEats } = await getSmartContract();
-        const cancelOrderTx = await tnoEats.cancelOrder(orderId);
+        const cancelOrderTx = await tnoEats.cancelOrder(orderId, {gasLimit: 1000000});
         await cancelOrderTx.wait();
         return true;
     } catch (error) {
@@ -37,7 +38,7 @@ const cancelOrder = async (orderId) => {
 const receiveOrder = async (orderId) => {
     try {
         const { tnoEats } = await getSmartContract();
-        const completeOrderTx = await tnoEats.completeOrder(orderId);
+        const completeOrderTx = await tnoEats.completeOrder(orderId, {gasLimit: 1000000});
         await completeOrderTx.wait();
         return true;
     } catch (error) {
