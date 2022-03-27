@@ -7,8 +7,8 @@
       <template v-slot:controls>
         <Button text="Reject" class="red" @click="reject(order.id)" :disabled="order.loading"/>
         <div class="flex flex-wrap justify-end gap-1 items-center">
-          <Input type="number" title="Collateral" class="small" v-model="order.collateral"/>
-          <Input type="number" title="Delivery fee" class="small" v-model="order.deliveryFee"/>
+          <MoneyInput title="Collateral" class="small" v-model="order.collateral"/>
+          <MoneyInput title="Delivery fee" class="small" v-model="order.deliveryFee"/>
           <Button text="Approve" class="green" @click="approve(order.id)" :disabled="order.loading || order.deliveryFee <= 0"/>
         </div>
       </template>
@@ -66,6 +66,7 @@
 import OrderCard from '@/components/shared/OrderCard.vue';
 import Button from '@/components/shared/Button.vue';
 import Input from '@/components/shared/Input.vue';
+import MoneyInput from '@/components/shared/MoneyInput.vue';
 import OrderGrid from '@/components/shared/OrderGrid.vue';
 import OrderContainer from '@/components/shared/OrderContainer.vue';
 import OrderInfo from '@/components/shared/OrderInfo.vue';
@@ -178,6 +179,7 @@ export default {
     Button,
     Input,
     OrderInfo,
+    MoneyInput,
   },
 }
 </script>
