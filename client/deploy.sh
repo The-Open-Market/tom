@@ -17,7 +17,7 @@ git config user.name "$author"
 git config user.email "$email"
 git add -A
 git commit -m "page deployment" -m "$coauthor"
-git remote add origin https://github.com/nicktehrany/tno-eats
+git remote add origin git@github.com:nicktehrany/tno-eats.git
 git push -f origin gh-pages
 
 cd -
