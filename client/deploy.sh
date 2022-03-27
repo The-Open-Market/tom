@@ -11,6 +11,7 @@ cp index.html 404.html
 author="$(git log -1 | grep Author | awk '{print $2;exit}')"
 email="$(git log -1 | grep Author | awk '{print $3;exit}' | sed -e 's/[<>]//g')"
 coauthor="$(git log -1 | grep -m1 Co-authored-by)"
+echo $author
 
 git init -b gh-pages
 git config user.name "$author"
