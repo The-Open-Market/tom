@@ -45,4 +45,3 @@ jobs:
       - name: Running Frontend Build
         working-directory: client
         run: npm run build
-
