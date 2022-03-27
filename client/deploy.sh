@@ -1,7 +1,6 @@
 #!/bin/sh
 
-set -e
-set -x
+set -ex
 
 npm ci
 NODE_ENV=production npm run build
