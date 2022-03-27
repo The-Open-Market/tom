@@ -17,7 +17,7 @@ git config user.name "$author"
 git config user.email "$email"
 git add -A
 git commit -m "page deployment"
-git remote add origin "https://${GITHUB_ACTOR}:${GITHUB_TOKEN}@github.com/${GITHUB_ACTOR}/${REPOSITORY}.git"
+git remote add origin "https://${REMOTE_ACTOR}:${GITHUB_TOKEN}@github.com/${REMOTE_ACTOR}/${REPOSITORY}.git"
 git push -f origin gh-pages
 
 cd -
