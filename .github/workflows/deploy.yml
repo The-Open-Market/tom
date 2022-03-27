@@ -21,7 +21,7 @@ jobs:
       - name: Deploy
         working-directory: client
         run: npm run deploy
-        with:
+        env:
           GITHUB_ACTOR: 'nicktehrany'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: 'tno-eats'
