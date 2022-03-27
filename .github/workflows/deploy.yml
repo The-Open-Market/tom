@@ -22,6 +22,6 @@ jobs:
         working-directory: client
         run: npm run deploy
         env:
-          GITHUB_ACTOR: 'nicktehrany'
+          GITHUB_ACTOR: 'neat-monte'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: 'tno-eats'
