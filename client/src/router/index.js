@@ -1,16 +1,26 @@
 import { createWebHistory, createRouter } from "vue-router"
+import Home from "@/views/Home.vue"
 import Dashboard from "@/views/Dashboard.vue"
 import Client from "@/views/Client.vue"
 import Seller from "@/views/Seller.vue"
 import Delivery from "@/views/Delivery.vue"
+import Styles from "@/views/Styles.vue"
 
 const routes = [
   {
     path: "/",
+    name: "Home",
+    component: Home,
+    meta: {
+      title: 'Home',
+    },
+  },
+  {
+    path: "/dashboard",
     name: "Dashboard",
     component: Dashboard,
     meta: {
-      title: 'TNO-Eats - Dashboard',
+      title: 'Dashboard',
     },
   },
   {
@@ -18,7 +28,7 @@ const routes = [
     name: "Seller",
     component: Seller,
     meta: { 
-      title: 'TNO-Eats - Seller',
+      title: 'Seller',
     },
   },
   {
@@ -26,7 +36,7 @@ const routes = [
     name: "Delivery",
     component: Delivery,
     meta: { 
-      title: 'TNO-Eats - Delivery',
+      title: 'Delivery',
     },
   },
   {
@@ -34,13 +44,21 @@ const routes = [
     name: "Client",
     component: Client,
     meta: { 
-      title: 'TNO-Eats - Client',
+      title: 'Client',
+    },
+  },
+  {
+    path: "/styles",
+    name: "Styles",
+    component: Styles,
+    meta: { 
+      title: 'Styles',
     },
   }
 ]
 
 const router = createRouter({
-    history: createWebHistory('/tno-eats/'),
+    history: createWebHistory(),
     routes
 });
 

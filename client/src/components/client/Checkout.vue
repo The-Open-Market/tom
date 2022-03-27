@@ -5,20 +5,7 @@
       <span class="font-semibold text-sm uppercase">Items {{ itemAmount }}</span>
       <span class="font-semibold text-sm">€ {{ totalCost }}</span>
     </div>
-    <div class="flex flex-wrap gap-4">
-      <div class="basis-48 grow">
-        <Input type="text" v-model="address.street" title="Street" placeholder="Enter the street name"/>
-      </div>
-      <div class="basis-20 grow">
-        <Input type="number" v-model="address.houseNumber" title="House number" placeholder="Enter the house number"/>
-      </div>
-      <div class="basis-20 grow">
-        <Input type="text" v-model="address.houseAddition" title="House addition (optional)" placeholder="Enter the house addition"/>
-      </div>
-      <div class="basis-36 grow">
-        <Input type="text" v-model="address.zipCode" title="Zip code" placeholder="Enter the zip code"/>
-      </div>
-    </div>
+    <AddressForm v-model="address"/>
     <div class="flex justify-between items-center border-t mt-8">
       <div class="flex font-semibold justify-between py-6 text-sm uppercase">
         <span>Total cost</span>
@@ -32,6 +19,7 @@
 <script>
 import Input from '@/components/shared/Input.vue';
 import Button from '@/components/shared/Button.vue';
+import AddressForm from '@/components/shared/AddressForm.vue';
 
 import { ref, computed } from 'vue';
 
@@ -89,7 +77,8 @@ export default {
   
   components: {
     Input,
-    Button
+    Button,
+    AddressForm
   }
 }
 </script>

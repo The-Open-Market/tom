@@ -1,12 +1,12 @@
 <template>
   <NavBar />
-  <main class="container mx-auto px-2 pt-6">
+  <main class="container max-w-6xl mx-auto px-4 pt-6">
     <router-view />
   </main>
 </template>
 
 <script>
-import NavBar from "@/components/shared/NavBar.vue";
+import NavBar from "@/components/navigation/NavBar.vue";
 
 import 'vue-toast-notification/dist/theme-sugar.css';
 
