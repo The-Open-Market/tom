@@ -9,8 +9,8 @@ cd dist
 cp index.html 404.html
 
 git init -b gh-pages
-git config user.name "github-actions[bot]"
-git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+git config user.name $((git log | grep Author | awk '{print $2;exit}'))
+git config user.email $((git log | grep Author | awk '{print $3;exit}' | sed -e 's/[<>]//g'))
 git add -A
 git commit -m 'page deployment'
 git remote add origin https://github.com/nicktehrany/tno-eats
