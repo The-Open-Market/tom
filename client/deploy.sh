@@ -9,8 +9,8 @@ NODE_ENV=production npm run build
 cd dist
 cp index.html 404.html
 
-author="$(git log -1 --format='%an' | grep Author | awk '{print $2;exit}')"
-email="$(git log -1 | grep Author | awk '{print $3;exit}' | sed -e 's/[<>]//g')"
+author="$(git log -1 --format='%an')"
+email="$(git log -1 --format='%ae')"
 coauthor="$(git log -1 | grep Co-authored-by)"
 
 git init -b gh-pages
