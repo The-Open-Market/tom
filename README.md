@@ -1,6 +1,7 @@
 # tno-eats
 
 ![Smart Contract Test](https://github.com/neat-monte/tno-eats/actions/workflows/main.yml/badge.svg)
+![Test Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/neat-monte/38e17eaacdbbcd485a265bb6f916c704/raw/46c668f1648c13d266629f9c3d0f53c0f4802399/coverage.badge.json)
 
 ## Development setup
 

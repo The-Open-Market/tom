@@ -1,0 +1,43 @@
+name: Smart Contract Coverage
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: NodeJS Setup
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: NodeJS version
+        run: npm --version
+
+      - name: Installing truffle and ganache
+        run: npm install truffle ganache -g && npm install
+
+      - name: Running Ganache in background
+        run: ganache -h 0.0.0.0 &
+
+      - name: Coverage Smart Contract Test
+        run: COV="$(CI=true truffle run coverage | grep 'All files' | awk '{print $6}')"
+      
+      - name: Set environment variable
+        run: echo "COVERAGE=$COV%" >> $GITHUB_ENV
+
+      - name: Create Coverage Badge
+        uses: schneegans/dynamic-badges-action@v1.2.0
+        with:
+          auth: ${{ secrets.GIST_SECRET }}
+          gistID: 38e17eaacdbbcd485a265bb6f916c704
+          filename: coverage.badge.json
+          label: Test Coverage
+          message: ${{ env.COVERAGE }}
+          color: blue
