@@ -1,5 +1,6 @@
 import { getSmartContract } from '@/services/ethereum';
 import { ordersFromArrays } from '@/utils/order';
+import { gasLimit } from '@/utils/constants';
 
 const getOrdersByDeliveryService = async (address) => {
   const { tnoEats } = await getSmartContract();
@@ -16,7 +17,7 @@ const getApprovedOrders = async () => {
 const acceptOrder = async (orderId) => {
   try {
     const { tnoEats } = await getSmartContract();
-    const acceptOrderTx = await tnoEats.acceptOrder(orderId, {gasLimit: 1000000});
+    const acceptOrderTx = await tnoEats.acceptOrder(orderId, { gasLimit });
     await acceptOrderTx.wait();
     return true;
   } catch (error) {
@@ -28,7 +29,7 @@ const acceptOrder = async (orderId) => {
 const pickupOrder = async (orderId) => {
   try {
     const { tnoEats } = await getSmartContract();
-    const transferOrderTx = await tnoEats.transferOrder(orderId, {gasLimit: 1000000});
+    const transferOrderTx = await tnoEats.transferOrder(orderId, { gasLimit });
     await transferOrderTx.wait();
     return true;
   } catch (error) {
@@ -40,7 +41,7 @@ const pickupOrder = async (orderId) => {
 const deliverOrder = async (orderId) => {
   try {
     const { tnoEats } = await getSmartContract();
-    const completeOrderTx = await tnoEats.completeOrder(orderId, {gasLimit: 1000000});
+    const completeOrderTx = await tnoEats.completeOrder(orderId, { gasLimit });
     await completeOrderTx.wait();
     return true;
   } catch (error) {
