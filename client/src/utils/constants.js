@@ -19,6 +19,6 @@ const orderDefaults = {
   defaultCollateralPercentage: 0.5
 };
 
-const gasLimit = 1000000;
+const GAS_LIMIT = 1000000;
 
-export { sellerData, clientData, orderDefaults, gasLimit };
+export { sellerData, clientData, orderDefaults, GAS_LIMIT };

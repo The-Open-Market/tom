@@ -2,7 +2,7 @@ import { ethers } from 'ethers';
 
 import { getSmartContract } from '@/services/ethereum';
 import { ordersFromArrays } from '@/utils/order';
-import { gasLimit } from '@/utils/constants';
+import { GAS_LIMIT } from '@/utils/constants';
 
 const getOrdersBySeller = async (address, key = null) => {
   const { tnoEats } = await getSmartContract();
@@ -16,7 +16,7 @@ const approveOrder = async (orderId, fee, collateral) => {
         const { tnoEats } = await getSmartContract();
         const etherFee = ethers.utils.parseEther(fee.toString());
         const etherCollateral = ethers.utils.parseEther(collateral.toString());
-        const approveOrderTx = await tnoEats.approveOrder(orderId, "DummySellerZip", "DummyClientZip", etherFee, etherCollateral, { gasLimit });
+        const approveOrderTx = await tnoEats.approveOrder(orderId, "DummySellerZip", "DummyClientZip", etherFee, etherCollateral, { gasLimit: GAS_LIMIT });
         await approveOrderTx.wait();
         return true;
     } catch (error) {
@@ -28,7 +28,7 @@ const approveOrder = async (orderId, fee, collateral) => {
 const rejectOrder = async (orderId) => {
     try {
         const { tnoEats } = await getSmartContract();
-        const rejectOrderTx = await tnoEats.rejectOrder(orderId, { gasLimit });
+        const rejectOrderTx = await tnoEats.rejectOrder(orderId, { gasLimit: GAS_LIMIT });
         await rejectOrderTx.wait();
         return true;
     } catch (error) {
@@ -40,7 +40,7 @@ const rejectOrder = async (orderId) => {
 const transferOrder = async (orderId) => {
     try {
         const { tnoEats } = await getSmartContract();
-        const transferOrderTx = await tnoEats.transferOrder(orderId, { gasLimit });
+        const transferOrderTx = await tnoEats.transferOrder(orderId, { gasLimit: GAS_LIMIT });
         await transferOrderTx.wait();
         return true;
     } catch (error) {
