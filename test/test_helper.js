@@ -34,8 +34,8 @@ contract("Test helper", accounts => {
     const CANCELED = '1';
 
     beforeEach(async () => {
-        contract = await TnoEats.deployed();
         euroContract = await EurTno.deployed();
+        contract = await TnoEats.new(euroContract.address);
     });
     
     async function completeOrder(client, seller=seller_a, deliverer=delivery_a) {
@@ -111,6 +111,27 @@ contract("Test helper", accounts => {
         result = await contract.getOrdersBySeller(seller_a);
         assert.equal(result.length, 3);
         assert.equal(result[2].id, id3);
+        
+    });
+
+    it("test getOrdersByDeliveryService", async () => {
+        let result = await contract.getOrdersByDeliveryService(delivery_a);
+        assert.equal(result.length, 0);
+
+        const id0 = await completeOrder(client_a, seller_a, delivery_a);
+        result = await contract.getOrdersByDeliveryService(delivery_a);
+        assert.equal(result.length, 1);
+        assert.equal(result[0].id, id0);
+
+        const id1 = await completeOrder(client_a, seller_a, delivery_b);
+        result = await contract.getOrdersByDeliveryService(delivery_b);
+        assert.equal(result.length, 1);
+        assert.equal(result[0].id, id1);
+        
+        const id2 = await completeOrder(client_b, seller_b, delivery_a);
+        result = await contract.getOrdersByDeliveryService(delivery_a);
+        assert.equal(result.length, 2);
+        assert.equal(result[1].id, id2);
         
     });
 
