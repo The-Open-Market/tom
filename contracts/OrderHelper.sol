@@ -60,6 +60,10 @@ abstract contract OrderHelper is OrderFactory {
     return result;
   }
 
+  /**
+   * @notice Gets all orders that are approved by a seller waiting for deliveryService to accept.
+   * @return Order[] An array containing orders.
+   */
   function getApprovedOrders() external view returns(Order[] memory) {
     uint total = 0;
     for (uint i = 0; i < orders.length; i++) {
@@ -78,6 +82,11 @@ abstract contract OrderHelper is OrderFactory {
     return result;
   }
 
+  /**
+   * @notice Get canceled and completed orders count of a given client.
+   * @param _client Order client address.
+   * @return (uint, uint) Tuple containing (completedCount, cancelledCount).
+   */
   function getClientOrderCount(address _client) external view returns(uint, uint) {
     uint completedCount = 0;
     uint cancelledCount = 0;

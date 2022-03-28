@@ -25,7 +25,7 @@ abstract contract OrderManager is OrderFactory {
      *         Can be called only by the seller and the order needs to be pending.
      * @param _orderId Active order id
      */
-    function approveOrder(uint _orderId, string memory sellerZipCode, string memory clientZipCode, uint _deliveryFee, uint _collateral) external orderIsActive(_orderId) orderIsPending(_orderId) senderIsSeller(_orderId) {
+    function approveOrder(uint _orderId, string memory sellerZipCode, string memory clientZipCode, uint _deliveryFee, uint _collateral) external orderIsPending(_orderId) senderIsSeller(_orderId) {
         Order storage order = orders[_orderId];
         require(_deliveryFee <= order.amount);
         order.status = OrderStatus.Approved;
@@ -41,7 +41,7 @@ abstract contract OrderManager is OrderFactory {
      *         The order needs to be approved by the seller.
      * @param _orderId Active order id
      */
-    function acceptOrder(uint _orderId) external orderIsActive(_orderId) orderIsApproved(_orderId) senderIsNotClientOrSeller(_orderId) {
+    function acceptOrder(uint _orderId) external orderIsApproved(_orderId) senderIsNotClientOrSeller(_orderId) {
         Order storage order = orders[_orderId];
         address deliveryService = _msgSender();
         require(IERC20(eurTnoContract).transferFrom(deliveryService, address(this), order.collateral));
@@ -57,7 +57,7 @@ abstract contract OrderManager is OrderFactory {
      *         The endpoint needs to be called by both parties to reach the consensus and move the order state to InTransit.
      * @param _orderId Active order id
      */
-    function transferOrder(uint _orderId) external orderIsActive(_orderId) orderIsTransferable(_orderId) senderIsProvidingService(_orderId) {
+    function transferOrder(uint _orderId) external orderIsTransferable(_orderId) senderIsProvidingService(_orderId) {
         Order storage order = orders[_orderId];
         address sender = _msgSender();
         if (sender == order.seller && order.status == OrderStatus.Accepted) {
@@ -79,7 +79,7 @@ abstract contract OrderManager is OrderFactory {
      *         The endpoint needs to be called by both parties to reach the consensus and move the order state to Completed.
      * @param _orderId Active order id
      */
-    function completeOrder(uint _orderId) external orderIsActive(_orderId) orderIsCompletable(_orderId) senderIsClientOrDeliveryService(_orderId) {
+    function completeOrder(uint _orderId) external orderIsCompletable(_orderId) senderIsClientOrDeliveryService(_orderId) {
         Order storage order = orders[_orderId];
         address sender = _msgSender();
         if (sender == order.client && order.status == OrderStatus.InTransit) {

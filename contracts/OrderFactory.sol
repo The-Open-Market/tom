@@ -59,14 +59,6 @@ abstract contract OrderFactory is Ownable {
     mapping (address => uint) deliveryServiceOrderCount;
 
     address eurTnoContract;
-    
-    // modifier checkDeliveryFee(uint _orderId, uint _deliveryFee) {
-    //     Order storage order = orders[_orderId];
-    //     require(
-    //         _deliveryFee <= order.amount
-    //     );
-    //     _;
-    // }
 
     modifier senderIsSeller(uint _orderId) {
         Order storage order = orders[_orderId];
@@ -121,46 +113,8 @@ abstract contract OrderFactory is Ownable {
         _;
     }
 
-    modifier validParticipant(uint _orderId) {
-        Order storage order = orders[_orderId];
-        address sender = _msgSender();
-        require(
-               sender == order.client
-            || sender == order.seller
-            || sender == order.deliveryService,
-            "The sender is not involved in the transaction"
-        );
-        _;
-    }
-
-    modifier orderIsActive(uint _orderId) {
-        require(_orderId < orders.length, "Invalid order id");
-        Order storage order = orders[_orderId];
-        require(
-               order.status != OrderStatus.Completed
-            || order.status != OrderStatus.Cancelled
-            || order.status != OrderStatus.Disputed,
-            "Order is inactive"
-        );
-        _;
-    }
-
-    modifier orderInProgress(uint _orderId) {
-        Order storage order = orders[_orderId];
-        require(
-               order.status == OrderStatus.Approved
-            || order.status == OrderStatus.Accepted
-            || order.status == OrderStatus.PickedUp
-            || order.status == OrderStatus.Transferred
-            || order.status == OrderStatus.InTransit
-            || order.status == OrderStatus.Received
-            || order.status == OrderStatus.Delivered,
-            "Order is in progress"
-        );
-        _;
-    }
-
     modifier orderIsPending(uint _orderId) {
+        require(_orderId < orders.length, "Invalid order id");
         Order storage order = orders[_orderId];
         require(
             order.status == OrderStatus.Pending,
@@ -172,13 +126,15 @@ abstract contract OrderFactory is Ownable {
     modifier orderIsApproved(uint _orderId) {
         Order storage order = orders[_orderId];
         require(
-            order.status == OrderStatus.Approved,
+            _orderId < orders.length
+            && order.status == OrderStatus.Approved,
             "Order is still pending or in progress"
         );
         _;
     }
 
     modifier orderIsTransferable(uint _orderId) {
+        require(_orderId < orders.length, "Invalid order id");
         Order storage order = orders[_orderId];
         require(
                order.status == OrderStatus.Accepted
@@ -190,6 +146,7 @@ abstract contract OrderFactory is Ownable {
     }
 
     modifier orderIsCompletable(uint _orderId) {
+        require(_orderId < orders.length, "Invalid order id");
         Order storage order = orders[_orderId];
         require(
                order.status == OrderStatus.InTransit
@@ -201,6 +158,7 @@ abstract contract OrderFactory is Ownable {
     }
 
     modifier orderIsCancelable(uint _orderId) {
+        require(_orderId < orders.length, "Invalid order id");
         Order storage order = orders[_orderId];
         require(
             order.status == OrderStatus.Pending,
