@@ -28,6 +28,7 @@ import Button from '@/components/shared/Button.vue';
 
 import { inject } from "vue";
 import { approveOrder, rejectOrder } from '@/endpoints/seller';
+import { getSellers } from '@/storage/seller';
 
 export default {
   name: "PendingOrders",
@@ -46,7 +47,10 @@ export default {
       const index = props.orders.findIndex(order => order.id === orderId);
       props.orders[index].loading = true;
       try {
-        const success = await approveOrder(orderId, props.orders[index].deliveryFee, props.orders[index].collateral);
+        const seller = getSellers().filter(seller => seller.etherAddress !== props.orders[index].seller).pop();
+        const origin = seller.address.zipCode;
+        const destination = props.orders[index].orderInformation.deliveryAddress.zip;
+        const success = await approveOrder(orderId, props.orders[index].deliveryFee, props.orders[index].collateral, origin, destination);
         if (!success) toast.error(`Error approving order #${orderId}`);
       } finally {
         props.orders[index].loading = false;

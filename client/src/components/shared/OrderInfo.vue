@@ -51,7 +51,6 @@
 <!-- Delivery view: -->
   <div v-if="pov === 'delivery'">
     <div class="border-b pb-3 mb-3">
-      <span class="text-sm italic">Possibility to integrate open maps</span>
       <div>
         <span class="font-medium">Origin: </span>
         {{ order.originZipCode }}

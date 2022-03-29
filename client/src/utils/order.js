@@ -74,7 +74,6 @@ const orderFromData = async (data, party = null, key = null) => {
     return order;
   } catch (error) {
     console.log(error);
-    return null;
   }
 }
 

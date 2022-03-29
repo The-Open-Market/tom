@@ -87,8 +87,10 @@ export default {
       const userKeys = await getCurrentKeysAsync();
       if (orders.every(order => order.id !== orderId)) {
         const order = await orderFromData(data, 'client', userKeys.symmetric);
-        orders.push(order);
-        toast.info(`Order #${orderId} is now ${OrderStatusMap[status].name.toLowerCase()}`);
+        if (order) {
+          orders.push(order);
+          toast.info(`Order #${orderId} is now ${OrderStatusMap[status].name.toLowerCase()}`);
+        }
         return;
       }
 
@@ -96,8 +98,10 @@ export default {
       
       if (orders[index].status.value < OrderStatusMap[status].value) {
         const order = await orderFromData(data, 'client', userKeys.symmetric);
-        orders[index] = order;
-        toast.info(`Order #${orderId} is now ${OrderStatusMap[status].name.toLowerCase()}`);
+        if (order) {
+          orders[index] = order;
+          toast.info(`Order #${orderId} is now ${OrderStatusMap[status].name.toLowerCase()}`);
+        }
       }
     }
 
