@@ -104,6 +104,7 @@ const attachIpfsData = async (order, party, key) => {
       }
       const sellerInfo = await decryptOrderInfo(orderInfo, key);
       order.orderInformation = sellerInfo;
+      order.destinationZipCode = sellerInfo['deliveryAddress']['zip'];
       break;
     case "delivery":
       order.hashedAddress = orderInfo.hashedAddress;

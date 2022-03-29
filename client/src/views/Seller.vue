@@ -84,6 +84,9 @@ export default {
   name: 'Seller',
 
   setup() {
+    // HARDCODE SELLER ZIP FOR NOW
+    const sellerZip = '1234AB';
+    
     const orders = reactive([]);
     const collateralPercentage = .5;
     let address = ref("");
@@ -93,7 +96,7 @@ export default {
       const index = orders.findIndex(order => order.id === orderId);
       orders[index].loading = true;
       try {
-        const success = await approveOrder(orderId, orders[index].deliveryFee, orders[index].collateral);
+        const success = await approveOrder(orderId, orders[index].deliveryFee, orders[index].collateral, orders[index].destinationZipCode, sellerZip);
         if (!success) toast.error(`Error approving order #${orderId}`);
       } finally {
         orders[index].loading = false;

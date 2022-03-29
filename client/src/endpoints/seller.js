@@ -11,12 +11,12 @@ const getOrdersBySeller = async (address, key = null) => {
   return orders;
 }
 
-const approveOrder = async (orderId, fee, collateral) => {
+const approveOrder = async (orderId, fee, collateral, clientZip, sellerZip) => {
     try {
         const { tnoEats } = await getSmartContract();
         const etherFee = ethers.utils.parseEther(fee.toString());
         const etherCollateral = ethers.utils.parseEther(collateral.toString());
-        const approveOrderTx = await tnoEats.approveOrder(orderId, "DummySellerZip", "DummyClientZip", etherFee, etherCollateral, { gasLimit: GAS_LIMIT });
+        const approveOrderTx = await tnoEats.approveOrder(orderId, sellerZip, clientZip, etherFee, etherCollateral, { gasLimit: GAS_LIMIT });
         await approveOrderTx.wait();
         return true;
     } catch (error) {
