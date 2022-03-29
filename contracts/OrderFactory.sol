@@ -58,7 +58,7 @@ abstract contract OrderFactory is Ownable {
     mapping (address => uint) sellerOrderCount;
     mapping (address => uint) deliveryServiceOrderCount;
 
-    address eurTnoContract;
+    address public eurTnoContract;
 
     modifier senderIsSeller(uint _orderId) {
         Order storage order = orders[_orderId];
@@ -107,7 +107,7 @@ abstract contract OrderFactory is Ownable {
         address sender = _msgSender();
         require(
                sender != order.client
-            || sender != order.seller,
+            && sender != order.seller,
             "The sender is client or seller"
         );
         _;

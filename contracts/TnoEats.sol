@@ -14,7 +14,7 @@ contract TnoEats is OrderHelper, OrderManager {
         eurTnoContract = _eurTnoContract;
     }
 
-    function changeEurTnoAddress(address _eurTnoContract) external onlyOwner {
+    function changeEurTnoAddress(address _eurTnoContract) external onlyOwner validAddress(_eurTnoContract) {
         eurTnoContract = _eurTnoContract;
     }
 }
