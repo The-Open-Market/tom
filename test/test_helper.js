@@ -80,73 +80,96 @@ contract("Test helper", accounts => {
     }
 
     it("test getOrdersByClient", async () => {
-        let result = await contract.getOrdersByClient(client_a);
-        assert.equal(result.length, 0);
+        {
+            let result = await contract.getOrdersByClient(client_a);
+            assert.equal(result.length, 0);
+        }
 
         const id0 = await completeOrder(client_a);
-        result = await contract.getOrdersByClient(client_a);
-        assert.equal(result.length, 1);
-        assert.equal(result[0].id, id0);
+        {
+            let result = await contract.getOrdersByClient(client_a);
+            assert.equal(result.length, 1);
+            assert.equal(result[0].id, id0);
+        }
 
         const id1 = await completeOrder(client_b);
-        result = await contract.getOrdersByClient(client_b);
-        assert.equal(result.length, 1);
-        assert.equal(result[0].id, id1);
-        
+        {
+            let result = await contract.getOrdersByClient(client_b);
+            assert.equal(result.length, 1);
+            assert.equal(result[0].id, id1);
+        }
+            
         const id2 = await cancelOrder(client_a);
-        result = await contract.getOrdersByClient(client_a);
-        assert.equal(result.length, 2);
-        assert.equal(result[0].id, id0);
-        assert.equal(result[1].id, id2);
-        
+        {
+            let result = await contract.getOrdersByClient(client_a);
+            assert.equal(result.length, 2);
+            assert.equal(result[0].id, id0);
+            assert.equal(result[1].id, id2);
+        }
     });
 
     it("test getOrdersBySeller", async () => {
-        let result = await contract.getOrdersBySeller(seller_a);
-        assert.equal(result.length, 0);
+        {
+            let result = await contract.getOrdersBySeller(seller_a);
+            assert.equal(result.length, 0);
+        }
 
         const id0 = await completeOrder(client_a, seller_a);
-        result = await contract.getOrdersBySeller(seller_a);
-        assert.equal(result.length, 1);
-        assert.equal(result[0].id, id0);
-
+        {
+            let result = await contract.getOrdersBySeller(seller_a);
+            assert.equal(result.length, 1);
+            assert.equal(result[0].id, id0);
+        }
+            
         const id1 = await completeOrder(client_a, seller_b);
-        result = await contract.getOrdersBySeller(seller_b);
-        assert.equal(result.length, 1);
-        assert.equal(result[0].id, id1);
-        
+        {
+            let result = await contract.getOrdersBySeller(seller_b);
+            assert.equal(result.length, 1);
+            assert.equal(result[0].id, id1);
+        }
+            
         const id2 = await cancelOrder(client_a, seller_a);
-        result = await contract.getOrdersBySeller(seller_a);
-        assert.equal(result.length, 2);
-        assert.equal(result[0].id, id0);
-        assert.equal(result[1].id, id2);
-        
+        {
+            let result = await contract.getOrdersBySeller(seller_a);
+            assert.equal(result.length, 2);
+            assert.equal(result[0].id, id0);
+            assert.equal(result[1].id, id2);
+        }
+            
         const id3 = await completeOrder(client_b, seller_a);
-        result = await contract.getOrdersBySeller(seller_a);
-        assert.equal(result.length, 3);
-        assert.equal(result[2].id, id3);
-        
+        {
+            let result = await contract.getOrdersBySeller(seller_a);
+            assert.equal(result.length, 3);
+            assert.equal(result[2].id, id3);
+        }
     });
 
     it("test getOrdersByDeliveryService", async () => {
-        let result = await contract.getOrdersByDeliveryService(delivery_a);
-        assert.equal(result.length, 0);
+        {
+            let result = await contract.getOrdersByDeliveryService(delivery_a);
+            assert.equal(result.length, 0);
+        }
 
         const id0 = await completeOrder(client_a, seller_a, delivery_a);
-        result = await contract.getOrdersByDeliveryService(delivery_a);
-        assert.equal(result.length, 1);
-        assert.equal(result[0].id, id0);
+        {
+            let result = await contract.getOrdersByDeliveryService(delivery_a);
+            assert.equal(result.length, 1);
+            assert.equal(result[0].id, id0);
+        }
 
         const id1 = await completeOrder(client_a, seller_a, delivery_b);
-        result = await contract.getOrdersByDeliveryService(delivery_b);
-        assert.equal(result.length, 1);
-        assert.equal(result[0].id, id1);
-        
+        {
+            let result = await contract.getOrdersByDeliveryService(delivery_b);
+            assert.equal(result.length, 1);
+            assert.equal(result[0].id, id1);
+        }
+            
         const id2 = await completeOrder(client_b, seller_b, delivery_a);
-        result = await contract.getOrdersByDeliveryService(delivery_a);
-        assert.equal(result.length, 2);
-        assert.equal(result[1].id, id2);
-        
+        {
+            let result = await contract.getOrdersByDeliveryService(delivery_a);
+            assert.equal(result.length, 2);
+            assert.equal(result[1].id, id2);
+        }
     });
 
     it("test getApprovedOrders", async () => {
@@ -175,7 +198,6 @@ contract("Test helper", accounts => {
             assert.equal(result.length, 1), "Accepting order should remove it from the list";
             assert.equal(result[0].id, id1, "Order1 should now be the first order");
         }
-        
     });
 
     it("test getClientOrderCount", async () => {
@@ -208,7 +230,6 @@ contract("Test helper", accounts => {
             assert.ok(result[COMPLETED].eqn(3), "Client b shouldn't influence completed orders of client a");
             assert.ok(result[CANCELLED].eqn(1), "Client b shouldn't influence cancelled orders of client a");
         }
-
     });
     
 });
