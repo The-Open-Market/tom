@@ -122,7 +122,7 @@ const isValidHash = async (clientAddress, saltString, hashedAddress) => {
 	  const hashInput = Uint8Array.from(decodeUTF8(clientAddress) + salt);
 
     return Buffer.from(hash(hashInput)).toString('hex') == hashPart;
-  } catch (err) {
+  } catch (error) {
     return false;
   }
 }

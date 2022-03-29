@@ -1,6 +1,6 @@
 <template>
   <div id="summary" class="w-full py-10">
-    <h1 class="font-semibold text-2xl border-b pb-8">Checkout</h1>
+    <h2 class="font-semibold border-b pb-8">Checkout</h2>
     <div class="flex justify-between mt-10 mb-5">
       <span class="font-semibold text-sm uppercase">Items {{ itemAmount }}</span>
       <span class="font-semibold text-sm">€ {{ totalCost }}</span>

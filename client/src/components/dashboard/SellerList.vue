@@ -1,5 +1,5 @@
 <template>
-  <h1 class="font-semibold text-2xl mb-2">Seller management</h1>
+  <h1 class="font-semibold text-2xl my-4">Seller management</h1>
   <p class="mb-4">These sellers are saved in your browser's local storage</p>
   <div class="overflow-x-auto rounded shadow drop-shadow">
     <table class="w-full text-sm text-left text-gray-500">
@@ -8,13 +8,13 @@
           <th scope="col" class="px-6 py-3">
             Name
           </th>
-          <th scope="col" class="px-6 py-3">
+          <th scope="col" class="px-6 py-3 hidden lg:table-cell">
             Phone
           </th>
-          <th scope="col" class="px-6 py-3">
+          <th scope="col" class="px-6 py-3 hidden lg:table-cell">
             Email
           </th>
-          <th scope="col" class="px-6 py-3">
+          <th scope="col" class="px-6 py-3 hidden md:table-cell">
             Address
           </th>
           <th scope="col" class="px-6 py-3">
@@ -27,13 +27,13 @@
             <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
               {{ seller.name }}
             </th>
-            <td class="px-6 py-4">
+            <td class="px-6 py-4  hidden lg:table-cell">
               {{ seller.phone }}
             </td>
-            <td class="px-6 py-4">
+            <td class="px-6 py-4  hidden lg:table-cell">
               {{ seller.email }}
             </td>
-            <td class="px-6 py-4">
+            <td class="px-6 py-4 hidden md:table-cell">
               {{ addressToString(seller.address) }}
             </td>
             <td class="px-6 py-4 flex gap-2">

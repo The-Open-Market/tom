@@ -1,26 +1,13 @@
 <template>
-  <div class="flex border-b pb-8 mb-10">
-    <h1 class="font-semibold text-2xl">Products</h1>
-  </div>
-  <div class="grid grid-cols-1 gap-y-10 sm:grid-cols-2 gap-x-6 lg:grid-cols-3 xl:grid-cols-4 xl:gap-x-8">
-    <div v-for="product in products" :key="product.id" href="#" class="group">
-      <div class="w-full aspect-w-1 aspect-h-1 bg-gray-200 rounded-lg overflow-hidden xl:aspect-w-7 xl:aspect-h-8">
-        <img :src="product.img" alt="Tall slender porcelain bottle with natural clay textured body and cork stopper." class="w-full h-full object-center object-cover group-hover:opacity-75">
-      </div>
-      <div class="flex flex-col md:flex-row justify-between items-center text-gray-900">
-          <div>
-              <h3 class="mt-4 text-sm text-gray-700">{{ product.name }}</h3>
-              <p class="mt-1 text-lg font-medium text-gray-900">€ {{ (Math.round(product.price * 100) / 100).toFixed(2) }}</p>
-          </div>
-          <button @click="addToCart(product)" class="px-6 py-2 mt-3 transition ease-in duration-200 uppercase rounded-full hover:bg-gray-800 hover:text-white border-2 border-gray-900 focus:outline-none">
-              + Add to cart
-          </button>
-      </div>
-    </div>
-  </div>
+  <Grid>
+    <ProductCard v-for="product in products" :key="product.id" :product="product" @click="addToCart(product)"/>
+  </Grid>
 </template>
 
 <script>
+import Grid from '@/components/shared/Grid.vue';
+import ProductCard from '@/components/client/ProductCard.vue';
+
 export default {
   name: "ProductList",
 
@@ -50,6 +37,11 @@ export default {
       products,
       addToCart
     };
+  },
+
+  components: {
+    Grid,
+    ProductCard
   }
 }
 </script>

@@ -1,5 +1,5 @@
 <template>
-  <div class="relative bg-gray-100 rounded shadow drop-shadow px-6 py-4 divide-y flex flex-col">
+  <Card>
     <div class="flex justify-between py-3">
       <h3 class="font-medium">
         Order <span class="text-sm">#</span>{{ order.id }}
@@ -19,10 +19,11 @@
     <div v-if="loading" class="flex absolute w-full h-full rounded top-0 left-0 z-10 bg-black/50">
       <Loader class="m-auto"/>
     </div>
-  </div>
+  </Card>
 </template>
 
 <script>
+import Card from '@/components/shared/Card.vue';
 import Loader from '@/components/shared/Loader.vue';
 
 import { OrderStatus } from '@/utils/order';
@@ -42,6 +43,7 @@ export default {
   },
 
   components: {
+    Card,
     Loader
   }
 }

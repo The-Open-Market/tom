@@ -1,132 +1,49 @@
 <template>
-  <OrderContainer title="Pending" flow="row">
-    <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Pending.value)" :key="order.id" :order="order" :loading="order.loading">
-      <template v-slot:contents>
-        <OrderInfo :order="order" pov="seller" />
-      </template>
-      <template v-slot:controls>
-        <Button text="Reject" class="red" @click="reject(order.id)" :disabled="order.loading"/>
-        <div class="flex flex-wrap justify-end gap-1 items-center">
-          <Input type="number" title="Collateral" class="small" v-model="order.collateral"/>
-          <Input type="number" title="Delivery fee" class="small" v-model="order.deliveryFee"/>
-          <Button text="Approve" class="green" @click="approve(order.id)" :disabled="order.loading || order.deliveryFee <= 0"/>
-        </div>
-      </template>
-    </OrderCard>
-  </OrderContainer>
-
-  <OrderContainer title="Approved" flow="row" class="mt-12">
-    <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Approved.value)" :key="order.id" :order="order" :loading="order.loading">
-      <template v-slot:contents>
-        <OrderInfo :order="order" pov="seller" />
-      </template>
-    </OrderCard>
-  </OrderContainer>
-
-  <OrderGrid :nrColumns="3" class="mt-12">
-    <OrderContainer title="Accepted">
-      <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Accepted.value)" :key="order.id" :order="order" :loading="order.loading">
-        <template v-slot:contents>
-          <OrderInfo :order="order" pov="seller" />
-        </template>
-        <template v-slot:controls>
-          <Button text="Transfer" class="blue" @click="transfer(order.id)" :disabled="order.loading"/>
-        </template>
-      </OrderCard>
-    </OrderContainer>
-    <OrderContainer title="In transit">
-      <OrderCard v-for="order in orders.filter(order => OrderStatus.PickedUp.value <= order.status.value && order.status.value <= OrderStatus.InTransit.value)" :key="order.id" :order="order" :loading="order.loading">
-        <template v-slot:contents>
-          <OrderInfo :order="order" pov="seller" />
-        </template>
-        <template v-slot:controls v-if="order.status.value === OrderStatus.PickedUp.value">
-          <Button text="Transfer" class="blue" @click="transfer(order.id)" :disabled="order.loading"/>
-        </template>
-      </OrderCard>
-    </OrderContainer>
-    <OrderContainer title="Completed">
-      <OrderCard v-for="order in orders.filter(order => OrderStatus.Received.value <= order.status.value && order.status.value <= OrderStatus.Completed.value)" :key="order.id" :order="order" :loading="order.loading">
-        <template v-slot:contents>
-          <OrderInfo :order="order" pov="seller" />
-        </template>
-      </OrderCard>
-    </OrderContainer>
-  </OrderGrid>
-
-  <OrderContainer title="Rejected and cancelled" flow="row" class="mt-12">
-    <OrderCard v-for="order in orders.filter(order => order.status.value === OrderStatus.Rejected.value || order.status.value === OrderStatus.Cancelled.value)" :key="order.id" :order="order" :loading="order.loading">
-      <template v-slot:contents>
-          <OrderInfo :order="order" pov="seller" />
-      </template>
-    </OrderCard>
-  </OrderContainer>
+  <StyledTabs>
+    <StyledTab name="Pending orders">
+      <PendingOrders :orders="orders.filter(order => order.status.value === OrderStatus.Pending.value)"/>
+    </StyledTab>
+    <StyledTab name="Active orders">
+      <ActiveOrders :orders="orders.filter(order => OrderStatus.Approved.value <= order.status.value 
+                                                 && order.status.value < OrderStatus.Completed.value
+                                                 && order.status.value !== OrderStatus.Rejected.value)"/>
+    </StyledTab>
+    <StyledTab name="Order history">
+      <OrderHistory :orders="orders.filter(order => order.status.value === OrderStatus.Rejected.value 
+                                                 || order.status.value === OrderStatus.Cancelled.value
+                                                 || order.status.value === OrderStatus.Completed.value)" />
+    </StyledTab>
+  </StyledTabs>  
 </template>
 
 <script>
-import OrderCard from '@/components/shared/OrderCard.vue';
-import Button from '@/components/shared/Button.vue';
-import Input from '@/components/shared/Input.vue';
-import OrderGrid from '@/components/shared/OrderGrid.vue';
-import OrderContainer from '@/components/shared/OrderContainer.vue';
-import OrderInfo from '@/components/shared/OrderInfo.vue';
+import StyledTabs from '@/components/shared/StyledTabs.vue';
+import StyledTab from '@/components/shared/StyledTab.vue';
+import PendingOrders from '@/components/seller/PendingOrders.vue';
+import ActiveOrders from '@/components/seller/ActiveOrders.vue';
+import OrderHistory from '@/components/seller/OrderHistory.vue';
 
 import { inject, ref, reactive, onMounted } from "vue";
-
 import { getSmartContract, getSignerAddress } from '@/services/ethereum';
-
-import { getOrdersBySeller, approveOrder, rejectOrder, transferOrder } from '@/endpoints/seller';
-
+import { getOrdersBySeller } from '@/endpoints/seller';
 import { OrderStatus, OrderStatusMap, orderFromData } from '@/utils/order';
-import { sellerData } from '@/utils/constants';
+import { getCurrentKeysAsync } from '@/storage/keys';
 
 export default {
   name: 'Seller',
 
   setup() {
-    const orders = reactive([]);
-    const collateralPercentage = .5;
-    let address = ref("");
     const toast = inject('$toast');
 
-    const approve = async (orderId) => {
-      const index = orders.findIndex(order => order.id === orderId);
-      orders[index].loading = true;
-      try {
-        const success = await approveOrder(orderId, orders[index].deliveryFee, orders[index].collateral);
-        if (!success) toast.error(`Error approving order #${orderId}`);
-      } finally {
-        orders[index].loading = false;
-      }
-    }
-
-    const reject = async (orderId) => {
-      const index = orders.findIndex(order => order.id === orderId);
-      orders[index].loading = true;
-      try {
-        const success = await rejectOrder(orderId);
-        if (!success) toast.error(`Error rejecting order #${orderId}`);
-      } finally {
-        orders[index].loading = false;
-      }
-    }
-
-    const transfer = async (orderId) => {
-      const index = orders.findIndex(order => order.id === orderId);
-      orders[index].loading = true;
-      try {
-        const success = await transferOrder(orderId);
-        if (!success) toast.error(`Error transferring order #${orderId}`);
-      } finally {
-        orders[index].loading = false;
-      }
-    }
+    const orders = reactive([]);
+    let address = ref("");
 
     const onOrderStatusChanged = async (id, amount, deliveryFee, collateral, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode) => {
       const orderId = parseInt(id._hex, 16);
       const data = {id, amount, deliveryFee, collateral, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode};
-
+      const userKeys = await getCurrentKeysAsync();
       if (orders.every(order => order.id !== orderId)) {
-        const order = await orderFromData(data, 'seller', sellerData.keys.private);
+        const order = await orderFromData(data, 'seller', userKeys.private);
         orders.push(order);
         toast.info(`Order #${orderId} is now ${OrderStatusMap[status].name.toLowerCase()}`);
         return;
@@ -135,7 +52,7 @@ export default {
       const index = orders.findIndex(order => order.id === orderId);
       
       if (orders[index].status.value < OrderStatusMap[status].value) {
-        const order = await orderFromData(data, 'seller', sellerData.keys.private);
+        const order = await orderFromData(data, 'seller', userKeys.private);
         orders[index] = order;
         toast.info(`Order #${orderId} is now ${OrderStatusMap[status].name.toLowerCase()}`);
       }
@@ -144,8 +61,10 @@ export default {
     const onAccountChanged = async () => {
       orders.splice(0);
 
+      const userKeys = await getCurrentKeysAsync();
+
       address.value = await getSignerAddress();
-      const myOrders = await getOrdersBySeller(address.value, sellerData.keys.private);
+      const myOrders = await getOrdersBySeller(address.value, userKeys.private);
       orders.push(...myOrders);
 
       const { tnoEats } = await getSmartContract();
@@ -164,20 +83,16 @@ export default {
 
     return {
       orders,
-      approve,
-      reject,
-      transfer,
       OrderStatus
     }
   },
 
   components: {
-    OrderGrid,
-    OrderContainer,
-    OrderCard,
-    Button,
-    Input,
-    OrderInfo,
+    StyledTabs,
+    StyledTab,
+    PendingOrders,
+    ActiveOrders,
+    OrderHistory
   },
 }
 </script>
