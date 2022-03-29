@@ -81,7 +81,7 @@ contract("TnoEats token test", accounts => {
         return orderId;
     }
 
-    it("approving to little funds should fail", async () => {
+    it("approving too little funds should fail", async () => {
         await euroContract.approve(contract.address, 10, { from: client_a });
         truffleAssert.fails(contract.placeOrder(seller_a, "IPFS_LINK", 20, { from: client_a }));
     });
@@ -92,7 +92,7 @@ contract("TnoEats token test", accounts => {
         truffleAssert.eventEmitted(result, 'OrderStatusChanged');
     });
 
-    it("approving to much funds should succeed", async () => {
+    it("approving too much funds should succeed", async () => {
         await euroContract.approve(contract.address, 20, { from: client_a });
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", 10, { from: client_a });
         truffleAssert.eventEmitted(result, 'OrderStatusChanged');
