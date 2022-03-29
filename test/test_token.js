@@ -145,7 +145,16 @@ contract("TnoEats token test", accounts => {
         assert.ok(expSellerBalance.eq(endSellerBalance));
         assert.ok(expDeliveryBalance.eq(endDeliveryBalance));
         
-    })
-    
+    });
+
+    it("set new token contract address", async () => {
+        truffleAssert.fails(contract.changeEurTnoAddress(contract.address, { from: delivery_b }));
+        truffleAssert.fails(contract.changeEurTnoAddress(NULL_ADDRESS));
+        const initialAddress = await contract.eurTnoContract.call();
+        assert.equal(initialAddress, euroContract.address);
+        await contract.changeEurTnoAddress(contract.address);
+        const newAddress = await contract.eurTnoContract.call();
+        assert.equal(newAddress, contract.address);
+    });
     
 });

@@ -58,7 +58,7 @@ abstract contract OrderFactory is Ownable {
     mapping (address => uint) sellerOrderCount;
     mapping (address => uint) deliveryServiceOrderCount;
 
-    address eurTnoContract;
+    address public eurTnoContract;
 
     modifier senderIsSeller(uint _orderId) {
         Order storage order = orders[_orderId];
