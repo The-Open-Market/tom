@@ -38,6 +38,20 @@ contract("Test helper", accounts => {
         contract = await TnoEats.new(euroContract.address);
     });
     
+    async function approveOrder(client, seller=seller_a) {
+        await euroContract.approve(contract.address, amount, { from: client });
+        const result = await contract.placeOrder(seller, "IPFS_LINK", amount, { from: client });
+        const orderId =  result.logs[0].args.id.toNumber();
+        
+        await contract.approveOrder(orderId, SELLER_ZIP, CLIENT_ZIP, deliveryFee, collateral, { from: seller });
+        return orderId;
+    }
+    
+    async function acceptOrder(orderId, deliverer=delivery_a) {
+        await euroContract.approve(contract.address, collateral, { from: deliverer });
+        await contract.acceptOrder(orderId, { from: deliverer });
+    }
+    
     async function completeOrder(client, seller=seller_a, deliverer=delivery_a) {
         await euroContract.approve(contract.address, amount, { from: client });
         const result = await contract.placeOrder(seller, "IPFS_LINK", amount, { from: client });
@@ -132,6 +146,35 @@ contract("Test helper", accounts => {
         result = await contract.getOrdersByDeliveryService(delivery_a);
         assert.equal(result.length, 2);
         assert.equal(result[1].id, id2);
+        
+    });
+
+    it("test getApprovedOrders", async () => {
+        {
+            let result = await contract.getApprovedOrders();
+            assert.equal(result.length, 0, "Approved orders should be empty");
+        }
+        
+        const id0 = await approveOrder(client_a, seller_a);
+        {
+            let result = await contract.getApprovedOrders();
+            assert.equal(result.length, 1, "Approving order should be retrievable");
+            assert.equal(result[0].id, id0, "The orderId should be expected");
+        }
+        
+        const id1 = await approveOrder(client_b, seller_b);
+        {
+            let result = await contract.getApprovedOrders();
+            assert.equal(result.length, 2, "Retrieve orders independent of client/seller");
+            assert.equal(result[1].id, id1, "The newest order should be appended");
+        }
+
+        await acceptOrder(id0, delivery_a);
+        {
+            let result = await contract.getApprovedOrders();
+            assert.equal(result.length, 1), "Accepting order should remove it from the list";
+            assert.equal(result[0].id, id1, "Order1 should now be the first order");
+        }
         
     });
 
