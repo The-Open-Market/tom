@@ -107,7 +107,7 @@ abstract contract OrderFactory is Ownable {
         address sender = _msgSender();
         require(
                sender != order.client
-            || sender != order.seller,
+            && sender != order.seller,
             "The sender is client or seller"
         );
         _;

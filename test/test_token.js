@@ -92,13 +92,17 @@ contract("TnoEats token test", accounts => {
         truffleAssert.eventEmitted(result, 'OrderStatusChanged');
     });
 
-    // Should it though?
     it("approving to much funds should succeed", async () => {
         await euroContract.approve(contract.address, 20, { from: client_a });
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", 10, { from: client_a });
         truffleAssert.eventEmitted(result, 'OrderStatusChanged');
     });
-    
+
+    it("accepting with little funds should fail", async () => {
+        await euroContract.approve(contract.address, collateral - 1, { from: client_a });
+        const orderId = await approveOrder();
+        truffleAssert.fails(contract.acceptOrder(orderId, { from: delivery_a }))
+    });
 
     it("cancelling an order should reimburse the client", async () => {
         const balanceStart = await euroContract.balanceOf(client_a);
