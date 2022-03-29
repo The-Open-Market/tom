@@ -31,7 +31,7 @@ contract("Test helper", accounts => {
     const collateral = 300;
     
     const COMPLETED = '0';
-    const CANCELED = '1';
+    const CANCELLED = '1';
 
     beforeEach(async () => {
         euroContract = await EurTno.deployed();
@@ -179,23 +179,35 @@ contract("Test helper", accounts => {
     });
 
     it("test getClientOrderCount", async () => {
-        let result = await contract.getClientOrderCount(client_a);
-        assert.ok(result[COMPLETED].eqn(0));
-        assert.ok(result[CANCELED].eqn(0));
+        {
+            let result = await contract.getClientOrderCount(client_a);
+            assert.ok(result[COMPLETED].eqn(0), "Completed order count should start at 0");
+            assert.ok(result[CANCELLED].eqn(0), "Cancelled order count should start at 0");
+        }
 
         await completeOrder(client_a);
         await completeOrder(client_a);
         await completeOrder(client_a);
+        {
+            let result = await contract.getClientOrderCount(client_a);
+            assert.ok(result[COMPLETED].eqn(3), "Completing orders should be reflected");
+            assert.ok(result[CANCELLED].eqn(0));
+        }
+
         await cancelOrder(client_a);
-        result = await contract.getClientOrderCount(client_a);
-        assert.ok(result[COMPLETED].eqn(3));
-        assert.ok(result[CANCELED].eqn(1));
+        {
+            let result = await contract.getClientOrderCount(client_a);
+            assert.ok(result[COMPLETED].eqn(3));
+            assert.ok(result[CANCELLED].eqn(1), "Cancelling orders should be reflected");
+        }
 
         await completeOrder(client_b);
         await cancelOrder(client_b);
-        result = await contract.getClientOrderCount(client_a);
-        assert.ok(result[COMPLETED].eqn(3));
-        assert.ok(result[CANCELED].eqn(1));
+        {
+            let result = await contract.getClientOrderCount(client_a);
+            assert.ok(result[COMPLETED].eqn(3), "Client b shouldn't influence completed orders of client a");
+            assert.ok(result[CANCELLED].eqn(1), "Client b shouldn't influence cancelled orders of client a");
+        }
 
     });
     
