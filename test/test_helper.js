@@ -9,6 +9,7 @@ contract("Test helper", accounts => {
         'Approved',    /* order is approved by a seller                        */
         'Rejected',    /* order is rejected by a seller                        */
         'Accepted',    /* order is accepted by a delivery service              */
+        'Ready',       /* order is ready for pickup                            */
         'PickedUp',    /* order is picked up by a delivery service             */
         'Transferred', /* order is transferred by a seller to delivery service */
         'InTransit',   /* order is being delivered by the delivery service     */
@@ -57,7 +58,9 @@ contract("Test helper", accounts => {
         const result = await contract.placeOrder(seller, "IPFS_LINK", amount, { from: client });
         const orderId =  result.logs[0].args.id.toNumber();
         
-        await contract.approveOrder(orderId, SELLER_ZIP, CLIENT_ZIP, deliveryFee, collateral, { from: seller });
+        await contract.approveOrder(orderId, SELLER_ZIP, CLIENT_ZIP, deliveryFee, collateral, true, { from: seller });
+        
+        await contract.preparedOrder(orderId, { from: seller });
 
         await euroContract.approve(contract.address, collateral, { from: deliverer });
         await contract.acceptOrder(orderId, { from: deliverer });

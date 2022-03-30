@@ -33,6 +33,17 @@ const getSignerAddress = async () => {
     const signer = provider.getSigner();
     return signer ? await signer.getAddress() : null;
   }
+};
+
+
+const listenToAccountChanges = (callback) => {
+  if (!window.ethereum) {
+    return;  // Fails silently
+  }
+
+  window.ethereum.on('accountsChanged', async (accounts) => {
+    await callback();
+  });
 }
 
-export { getSmartContract, getSignerAddress };
+export { getSmartContract, getSignerAddress, listenToAccountChanges };

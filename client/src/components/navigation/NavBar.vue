@@ -32,7 +32,8 @@
 
         <!-- Secondary Navbar items -->
         <div class="hidden md:flex items-center space-x-3 ">
-          <span class="text-black text-sm font-semibold">{{ address }}</span>
+          <span v-if="address" class="text-black text-sm font-semibold">{{ address }}</span>
+          <a v-else class="font-semibold text-sm text-red-500 italic hover:underline" href="https://metamask.io/" target="_blank">Install MetaMask</a>
         </div>
 
         <!-- Mobile menu button -->
@@ -88,7 +89,7 @@
 <script>
 import { ref, onMounted } from 'vue';
 
-import { getSignerAddress } from '@/services/ethereum';
+import { getSignerAddress, listenToAccountChanges } from '@/services/ethereum';
 
 export default {
   name: "NavBar",
@@ -101,8 +102,7 @@ export default {
     };
 
     onMounted(updateAddress);
-
-    window.ethereum.on('accountsChanged', updateAddress);
+    listenToAccountChanges(updateAddress);
 
     const toggleMobileMenu = () => {
       const menu = document.querySelector(".mobile-menu");

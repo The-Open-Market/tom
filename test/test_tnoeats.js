@@ -9,6 +9,7 @@ contract("TnoEats", accounts => {
         'Approved',    /* order is approved by a seller                        */
         'Rejected',    /* order is rejected by a seller                        */
         'Accepted',    /* order is accepted by a delivery service              */
+        'Ready',       /* order is ready for pickup                            */
         'PickedUp',    /* order is picked up by a delivery service             */
         'Transferred', /* order is transferred by a seller to delivery service */
         'InTransit',   /* order is being delivered by the delivery service     */
@@ -56,7 +57,7 @@ contract("TnoEats", accounts => {
     
     async function approveOrder() {
         const orderId = await placeOrder();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, collateral, { from: seller_a });
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, collateral, true, { from: seller_a });
         return orderId;
     }
     
@@ -67,8 +68,14 @@ contract("TnoEats", accounts => {
         return orderId;
     }
     
-    async function transferOrder() {
+    async function preparedOrder() {
         const orderId = await acceptOrder();
+        await contract.preparedOrder(orderId, { from: seller_a });
+        return orderId;
+    }
+    
+    async function transferOrder() {
+        const orderId = await preparedOrder();
         await contract.transferOrder(orderId, { from: delivery_a });
         await contract.transferOrder(orderId, { from: seller_a });
         return orderId;
@@ -94,7 +101,7 @@ contract("TnoEats", accounts => {
         const pendingOrder = await contract.orders.call(orderId);
         assert.equal('Pending', ORDER_STATUSES[pendingOrder.status.toNumber()]);
         let deliveryFee = 500;
-        const approvedResult = await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, collateral, { from: seller_a });
+        const approvedResult = await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, collateral, true, { from: seller_a });
         truffleAssert.eventEmitted(approvedResult, 'OrderStatusChanged');
         const approvedOrder = await contract.orders.call(orderId);
         assert.equal('Approved', ORDER_STATUSES[approvedOrder.status.toNumber()]);
@@ -233,6 +240,7 @@ contract("TnoEats", accounts => {
 
     it("external party should not be able to complete different seller order", async () => {
         const orderId = await acceptOrder();
+        console.log(contract.completeOrder(orderId, { from: seller_b }));
         truffleAssert.fails(contract.completeOrder(orderId, { from: seller_b }));
         truffleAssert.fails(contract.completeOrder(orderId, { from: delivery_b }));
         truffleAssert.fails(contract.completeOrder(orderId, { from: client_b }));

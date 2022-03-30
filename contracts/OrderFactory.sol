@@ -117,10 +117,9 @@ abstract contract OrderFactory is Ownable {
     }
 
     modifier orderIsPending(uint _orderId) {
-        require(_orderId < orders.length, "Invalid order id");
-        Order storage order = orders[_orderId];
         require(
-            order.status == OrderStatus.Pending,
+            _orderId < orders.length
+            && orders[_orderId].status == OrderStatus.Pending,
             "Order is already accepted"
         );
         _;
@@ -136,10 +135,9 @@ abstract contract OrderFactory is Ownable {
     }
 
     modifier orderIsAccepted(uint _orderId) {
-        require(_orderId < orders.length, "Invalid order id");
-        Order storage order = orders[_orderId];
         require(
-            order.status == OrderStatus.Accepted,
+            _orderId < orders.length
+            && orders[_orderId].status == OrderStatus.Accepted,
             "Order is not accepted"
         );
         _;
@@ -170,10 +168,9 @@ abstract contract OrderFactory is Ownable {
     }
 
     modifier orderIsCancelable(uint _orderId) {
-        require(_orderId < orders.length, "Invalid order id");
-        Order storage order = orders[_orderId];
         require(
-            order.status == OrderStatus.Pending,
+            _orderId < orders.length
+            && orders[_orderId].status == OrderStatus.Pending,
             "Order is already being prepared"
         );
         _;

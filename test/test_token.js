@@ -9,6 +9,7 @@ contract("TnoEats token test", accounts => {
         'Approved',    /* order is approved by a seller                        */
         'Rejected',    /* order is rejected by a seller                        */
         'Accepted',    /* order is accepted by a delivery service              */
+        'Ready',       /* order is ready for pickup                            */
         'PickedUp',    /* order is picked up by a delivery service             */
         'Transferred', /* order is transferred by a seller to delivery service */
         'InTransit',   /* order is being delivered by the delivery service     */
@@ -56,7 +57,7 @@ contract("TnoEats token test", accounts => {
     
     async function approveOrder() {
         const orderId = await placeOrder();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, collateral, { from: seller_a });
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, collateral, false, { from: seller_a });
         return orderId;
     }
     

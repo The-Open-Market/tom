@@ -24,7 +24,7 @@ import ActiveOrders from '@/components/seller/ActiveOrders.vue';
 import OrderHistory from '@/components/seller/OrderHistory.vue';
 
 import { inject, ref, reactive, onMounted } from "vue";
-import { getSmartContract, getSignerAddress } from '@/services/ethereum';
+import { getSmartContract, getSignerAddress, listenToAccountChanges } from '@/services/ethereum';
 import { getOrdersBySeller } from '@/endpoints/seller';
 import { OrderStatus, OrderStatusMap, orderFromData } from '@/utils/order';
 import { getCurrentKeysAsync } from '@/storage/keys';
@@ -80,10 +80,7 @@ export default {
     }
 
     onMounted(onAccountChanged);
-
-    window.ethereum.on('accountsChanged', async (accounts) => {
-      await onAccountChanged();
-    });
+    listenToAccountChanges(onAccountChanged);
 
     return {
       orders,

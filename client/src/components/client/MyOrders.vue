@@ -30,7 +30,7 @@ import OrderInfo from '@/components/shared/OrderInfo.vue';
 
 import { ref, reactive, onMounted, inject } from "vue";
 
-import { getSmartContract, getSignerAddress } from '@/services/ethereum';
+import { getSmartContract, getSignerAddress, listenToAccountChanges } from '@/services/ethereum';
 
 import { getOrdersByClient, cancelOrder, receiveOrder, sendTip } from '@/endpoints/client';
 
@@ -123,10 +123,7 @@ export default {
     };
 
     onMounted(onAccountChanged);
-
-    window.ethereum.on('accountsChanged', async (accounts) => {
-      await onAccountChanged();
-    });
+    listenToAccountChanges(onAccountChanged);
 
     return {
       orders,

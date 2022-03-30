@@ -12,19 +12,18 @@ import NavBar from "@/components/navigation/NavBar.vue";
 
 import { onBeforeMount } from 'vue';
 
+import { listenToAccountChanges } from '@/services/ethereum';
 import { setupKeysAsync } from '@/storage/keys';
 import { getSellers } from '@/storage/seller';
 
 export default {
   setup () {
     onBeforeMount(async () => {
-      getSellers();
-      await setupKeysAsync();
+      getSellers(); // sets up sellers and their keys
+      await setupKeysAsync(); // sets up currently connected address keys
     });
 
-    window.ethereum.on('accountsChanged', async (accounts) => {
-      await setupKeysAsync();
-    });
+    listenToAccountChanges(setupKeysAsync);
   },
 
   components: {
