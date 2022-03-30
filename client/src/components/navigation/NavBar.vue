@@ -5,7 +5,7 @@
         <div class="flex space-x-7">
           <div>
             <!-- Website Logo -->
-            <a :to="`${publicPath}/`" class="flex flex-col items-center py-1 px-2">
+            <a :href="`${publicPath}/`" class="flex flex-col items-center py-1 px-2">
               <span class="font-semibold text-yellow-600 text-lg">T.O.M.</span>
               <span class="text-xs text-gray-500 text-lg">The Open Market</span>
             </a>
