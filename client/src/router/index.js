@@ -6,9 +6,11 @@ import Seller from "@/views/Seller.vue"
 import Delivery from "@/views/Delivery.vue"
 import Styles from "@/views/Styles.vue"
 
+const publicPath = process.env.NODE_ENV === 'production' ? '/tno-eats' : '';
+
 const routes = [
   {
-    path: "/",
+    path: `${publicPath}/`,
     name: "Home",
     component: Home,
     meta: {
@@ -16,7 +18,7 @@ const routes = [
     },
   },
   {
-    path: "/dashboard",
+    path: `${publicPath}/dashboard`,
     name: "Dashboard",
     component: Dashboard,
     meta: {
@@ -24,7 +26,7 @@ const routes = [
     },
   },
   {
-    path: "/seller",
+    path: `${publicPath}/seller`,
     name: "Seller",
     component: Seller,
     meta: { 
@@ -32,7 +34,7 @@ const routes = [
     },
   },
   {
-    path: "/delivery",
+    path: `${publicPath}/delivery`,
     name: "Delivery",
     component: Delivery,
     meta: { 
@@ -40,7 +42,7 @@ const routes = [
     },
   },
   {
-    path: "/client",
+    path: `${publicPath}/client`,
     name: "Client",
     component: Client,
     meta: { 
@@ -48,7 +50,7 @@ const routes = [
     },
   },
   {
-    path: "/styles",
+    path: `${publicPath}/styles`,
     name: "Styles",
     component: Styles,
     meta: { 
