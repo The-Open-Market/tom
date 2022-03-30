@@ -22,3 +22,7 @@ $ docker-compose down
 # then start geth docker
 $ docker-compose -f docker-compose-geth.yaml up
 ```
+
+## Could not decrypt Error
+
+If there are any errors for not being able to decrypt an order. Simply delete the local storage in the web-application.

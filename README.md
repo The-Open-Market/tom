@@ -12,7 +12,7 @@ TNO-Eats implements a city distribution framework for supply-chain management ov
 - Delivery Service delivers the order to the Client and Client receives the order from the Delivery Service
 - Additionally, the Client can tip the Delivery Service
 
-Payments and collateral are using an ERC20 token (EURTno Token).
+Payments and collateral are using an ERC20 token (EURTno Token). The EURTno tokens are distributed to the pre-defined accounts for development, and can additionally be minted by any address for usage of the web-application, using the dashboard in the application.
 
 ## Usage
 
