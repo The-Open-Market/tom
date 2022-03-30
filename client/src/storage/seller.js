@@ -1,7 +1,5 @@
 import { reactive, readonly } from "vue";
-import { box } from 'tweetnacl';
-import { encodeBase64 } from 'tweetnacl-util';
-import { setKeys } from '@/storage/keys';
+import { generateKeys, setKeys } from '@/storage/keys';
 
 const key = "sellers";
 
@@ -99,15 +97,17 @@ const saveSeller = (seller) => {
 const addSeller = (seller) => {
   const maxId = Math.max.apply(Math, sellers.map(function(s) { return s.id; }));
   seller.id = maxId + 1;
-  const keys = box.keyPair();
-  seller.keys.private = encodeBase64(keys.secretKey);
-  seller.keys.public = encodeBase64(keys.publicKey);
+  seller.keys = generateKeys(seller.etherAddress);
   sellers.push(seller);
   setSellers(sellers);
 }
 
 const updateSeller = (seller) => {
   const index = sellers.findIndex(s => s.id === seller.id);
+  const prevSeller = sellers[index];
+  if (prevSeller.etherAddress !== seller.etherAddress) {
+    seller.keys = generateKeys(seller.etherAddress);
+  }
   sellers[index] = seller;
   setSellers(sellers);
 }

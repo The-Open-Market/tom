@@ -25,5 +25,18 @@ const checkAllowance = async (address) => {
         return 0;
     }
 }
+
+const getEuroTokens = async (address, amount) => {
+    try {
+        const { eurTno } = await getSmartContract();
+        const etherAmount = ethers.utils.parseEther(amount.toString());
+        const tx = await eurTno.mint(address, etherAmount);
+        await tx.wait();
+        return true;
+    } catch (error) {
+        console.log(error);
+        return false;
+    }
+}
   
-export { approveTransaction, checkAllowance }
+export { approveTransaction, checkAllowance, getEuroTokens }

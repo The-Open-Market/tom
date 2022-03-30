@@ -34,7 +34,7 @@
         <!-- Secondary Navbar items -->
         <div class="hidden md:flex items-center space-x-3 ">
           <span v-if="address" class="text-black text-sm font-semibold">{{ address }}</span>
-          <a v-else class="font-semibold text-sm text-red-500 italic hover:underline" href="https://metamask.io/" target="_blank">Install MetaMask</a>
+          <a v-else class="font-semibold text-sm text-red-500 italic hover:underline" href="https://metamask.io/" target="_blank">Use a web3 enabled browser</a>
         </div>
 
         <!-- Mobile menu button -->

@@ -7,4 +7,8 @@ contract EurTno is ERC20 {
     constructor(uint256 initialSupply) ERC20("Euro TNO", "EURT") {
         _mint(msg.sender, initialSupply);
     }
+
+    function mint(address receiver, uint256 amount) external {
+        _mint(receiver, amount);
+    }
 }
