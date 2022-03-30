@@ -20,9 +20,10 @@ The contract is deployed on the Kovan testnet, and the web-application is deploy
 
 To use the application, metamask is required and should be set to use the Kovan testnet (chainId: 42). The application can be run with any Ethereum addresses, however it requires EURT tokens, which can be requested here by opening an issue and including the addresses to be funded with EURT.
 
+
 ## Development setup
 
-There a couple of options for running a development environment. Either it can be run with ganache, or a private network (running PoA). 
+There a couple of options for running a development environment. Either it can be run with ganache, or a private network (running PoA). **Note** the mnemonic and the private keys of the accounts used for development are constructable with the information in this repository, hence never use these with actual real Ethereum tokens!
 
 ### Ganache
 
@@ -38,13 +39,13 @@ You can attach to any of the containers. To detach run `exit`, however this also
 
 ```bash
 # Attach to the truffle container
-docker exec -ti tno-eats bash
+$ docker exec -ti tno-eats bash
 ```
 
 Then you can run any truffle commands in the truffle container.
 
 ```bash
-truffle compile
+$ truffle compile
 ```
 
 ### PoA Private Geth Network
@@ -57,4 +58,8 @@ All accounts are the same as with the ganache setup and are all pre-funded. The 
 $ docker-compose -f docker-compose-geth.yaml up
 ```
 
-Note, it will take some time to startup the first time. For using it with metamask on the frontend, we need to change the associated chainId metamask sets for the network (it'll show under localhost:8545). To set the chainId go to the metamask settings, select networks, and set the chainId to `42069`.
+Note, it will take some time to startup the first time. For using it with metamask on the frontend, we need to change the associated chainId metamask sets for the network (it'll show under localhost:8545). To set the chainId go to the metamask settings, select networks, and set the chainId to `42069`. Additionally, when switching from ganache to geth, the containers need to be reset.
+
+### Troubleshooting
+
+We provide an additional [troubleshooting guide](TROUBLESHOOTING.md) for common issues we came across and how to solve them.
