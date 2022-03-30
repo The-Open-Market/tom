@@ -3,6 +3,21 @@
 ![Smart Contract Test](https://github.com/neat-monte/tno-eats/actions/workflows/main.yml/badge.svg)
 ![Test Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/neat-monte/38e17eaacdbbcd485a265bb6f916c704/raw/coverage.badge.json)
 
+TNO-Eats implements a city distribution framework for supply-chain management over an Ethereum smart contract, without any intermediate parties. We additionally provide a prototype web-application to demonstrate interacting with the smart contract. The contract allows connecting client, seller, and delivery service and providing the following functions:
+
+- Clients can select a seller and place an order
+- Sellers can accept orders from a client and set a delivery reward and collateral required from the delivery service
+- Delivery Service can accept an order and provides the collateral
+- Seller transfers goods to the Delivery Service and Delivery Service picks up the goods from the Seller
+- Delivery Service delivers the order to the Client and Client receives the order from the Delivery Service
+- Additionally, the Client can tip the Delivery Service
+
+## Usage
+
+The contract is deployed on the Kovan testnet, and the web-application is deployed at [neat-monte.github.io/tno-eats](https://neat-monte.github.io/tno-eats), and serves the views of all involved parties. Namely, the client, the delivery service, and the seller view.
+
+To use the application, metamask is required and should be set to use the Kovan testnet (chainId: 42). The application can be run with any Ethereum addresses, however it requires EURT tokens, which can be requested here by opening an issue and including the addresses to be funded with EURT.
+
 ## Development setup
 
 There a couple of options for running a development environment. Either it can be run with ganache, or a private network (running PoA). 
