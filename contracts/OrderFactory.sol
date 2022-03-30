@@ -23,7 +23,21 @@ abstract contract OrderFactory is Ownable {
         string destinationZipCode,
         bool waitOnReady
     );
-    
+    event ApprovedOrder(
+        uint id,
+        uint amount,
+        uint deliveryFee,
+        uint collateral,
+        OrderStatus indexed status,
+        address client,
+        address seller,
+        address deliveryService,
+        string orderContentsUrl,
+        string originZipCode,
+        string destinationZipCode,
+        bool waitOnReady
+    );
+
     struct Order {
         uint id;
         uint amount;
@@ -42,17 +56,16 @@ abstract contract OrderFactory is Ownable {
     enum OrderStatus {
         Pending,     /* 0  order is submitted by a client                       */
         Approved,    /* 1  order is approved by a seller                        */
-        Rejected,    /* 2  order is rejected by a seller                        */
-        Accepted,    /* 3  (optional) order is accepted by a delivery service   */
-        Ready,       /* 4  order is ready for pickup                            */
-        PickedUp,    /* 5  order is picked up by a delivery service             */
-        Transferred, /* 6  order is transferred by a seller to delivery service */
-        InTransit,   /* 7  order is being delivered by the delivery service     */
-        Received,    /* 8  order is received by a client                        */
-        Delivered,   /* 9  order is delivered by a delivery service             */
-        Completed,   /* 10  order is sucessfully completed                      */
-        Disputed,    /* 11 order is disputed by one of the parties              */
-        Cancelled    /* 12 order is cancelled before reaching Processing status */
+        Accepted,    /* 2  (optional) order is accepted by a delivery service   */
+        Ready,       /* 3  order is ready for pickup                            */
+        PickedUp,    /* 4  order is picked up by a delivery service             */
+        Transferred, /* 5  order is transferred by a seller to delivery service */
+        InTransit,   /* 6  order is being delivered by the delivery service     */
+        Received,    /* 7  order is received by a client                        */
+        Delivered,   /* 8  order is delivered by a delivery service             */
+        Completed,   /* 9  order is sucessfully completed                       */
+        Cancelled,   /* 10 order is cancelled before reaching Processing status */
+        Rejected     /* 11  order is rejected by a seller                       */
     }
 
     Order[] public orders;

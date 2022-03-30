@@ -34,6 +34,7 @@ abstract contract OrderManager is OrderFactory {
         order.deliveryFee = _deliveryFee;
         order.collateral = _collateral;
         order.waitOnReady = _waitOnReady;
+        emit ApprovedOrder(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode, order.waitOnReady);
         emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode, order.waitOnReady);
     }
 

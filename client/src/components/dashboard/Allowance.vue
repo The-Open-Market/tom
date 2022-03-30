@@ -4,8 +4,8 @@
   <div class="flex flex-col justify-between gap-4">
     <div class="flex items-end gap-4">
       <span class="text-sm">Current allowance:</span>
-      <span v-if="currentAllowance">{{ currentAllowance }} <span class="italic font-semibold text-xs">EURT</span></span>
-      <Loader v-else class="text-black"/>
+      <span v-if="currentAllowance >= 0">{{ currentAllowance }} <span class="italic font-semibold text-xs">EURT</span></span>
+      <Loader v-else/>
     </div>
     <div class="flex items-end gap-4">
       <span class="text-sm">Set new allowance:</span>
@@ -23,7 +23,7 @@ import Loader from '@/components/shared/Loader';
 import { ref, inject, onMounted } from 'vue';
 
 import { approveTransaction, checkAllowance } from '@/endpoints/euroToken';
-import { getSignerAddress, listenToAccountChanges } from '@/services/ethereum';
+import { getSmartContract, getSignerAddress, listenToAccountChanges } from '@/services/ethereum';
 
 export default {
   name: "Allowance",
@@ -33,7 +33,7 @@ export default {
 
     const currentAllowance = ref();
     const newAllowance = ref(0);
-    
+
     const updateAllowance = async () => {
       const address = await getSignerAddress();
       currentAllowance.value = await checkAllowance(address);
@@ -43,14 +43,22 @@ export default {
     const setAllowance = async () => {
       if (!await approveTransaction(newAllowance.value)) {
         toast.error('Error approving euro transaction');
-        return;
       }
+    };
+
+    const onAccountChanged = async () => {
+      const address = await getSignerAddress();
+      
+      const { eurTno } = await getSmartContract();
+
+      const filteredEventListener = eurTno.filters.Approval(address.value, null, null);
+      eurTno.on(filteredEventListener, updateAllowance);
 
       await updateAllowance();
     };
 
-    onMounted(updateAllowance);
-    listenToAccountChanges(updateAllowance);
+    onMounted(onAccountChanged);
+    listenToAccountChanges(onAccountChanged);
 
     return {
       currentAllowance,

@@ -5,8 +5,7 @@
     </StyledTab>
     <StyledTab name="Active orders">
       <ActiveOrders :orders="orders.filter(order => OrderStatus.Approved.value <= order.status.value 
-                                                 && order.status.value < OrderStatus.Completed.value
-                                                 && order.status.value !== OrderStatus.Rejected.value)"/>
+                                                 && order.status.value < OrderStatus.Completed.value)"/>
     </StyledTab>
     <StyledTab name="Order history">
       <OrderHistory :orders="orders.filter(order => order.status.value === OrderStatus.Rejected.value 

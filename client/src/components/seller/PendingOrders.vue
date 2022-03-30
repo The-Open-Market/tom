@@ -10,6 +10,7 @@
       <template v-slot:controls>
         <Button text="Reject" class="red" @click="reject(order.id)" :disabled="order.loading"/>
         <div class="flex flex-wrap justify-end gap-1 items-center">
+          <Input type="checkbox" title="Wait on ready" class="small" v-model="order.waitOnReady"/>
           <Input type="number" title="Collateral" class="small" v-model="order.collateral"/>
           <Input type="number" title="Delivery fee" class="small" v-model="order.deliveryFee"/>
           <Button text="Approve" class="green" @click="approve(order.id)" :disabled="order.loading || order.deliveryFee <= 0"/>
@@ -47,10 +48,10 @@ export default {
       const index = props.orders.findIndex(order => order.id === orderId);
       props.orders[index].loading = true;
       try {
-        const seller = getSellers().filter(seller => seller.etherAddress !== props.orders[index].seller).pop();
+        const seller = getSellers().filter(s => s.etherAddress !== props.orders[index].seller).pop();
         const origin = seller.address.zipCode;
         const destination = props.orders[index].orderInformation.deliveryAddress.zip;
-        const success = await approveOrder(orderId, props.orders[index].deliveryFee, props.orders[index].collateral, origin, destination);
+        const success = await approveOrder(orderId, props.orders[index].deliveryFee, props.orders[index].collateral, origin, destination, props.orders[index].waitOnReady);
         if (!success) toast.error(`Error approving order #${orderId}`);
       } finally {
         props.orders[index].loading = false;

@@ -11,12 +11,12 @@ const getOrdersBySeller = async (address, key = null) => {
   return orders;
 }
 
-const approveOrder = async (orderId, fee, collateral, originZipCode, destinationZipCode) => {
+const approveOrder = async (orderId, fee, collateral, originZipCode, destinationZipCode, waitOnReady) => {
     try {
         const { tnoEats } = await getSmartContract();
         const etherFee = ethers.utils.parseEther(fee.toString());
         const etherCollateral = ethers.utils.parseEther(collateral.toString());
-        const approveOrderTx = await tnoEats.approveOrder(orderId, originZipCode, destinationZipCode, etherFee, etherCollateral, { gasLimit: GAS_LIMIT });
+        const approveOrderTx = await tnoEats.approveOrder(orderId, originZipCode, destinationZipCode, etherFee, etherCollateral, waitOnReady, { gasLimit: GAS_LIMIT });
         await approveOrderTx.wait();
         return true;
     } catch (error) {
@@ -49,4 +49,16 @@ const transferOrder = async (orderId) => {
     }
 }
 
-export { getOrdersBySeller, approveOrder, rejectOrder, transferOrder }
+const preparedOrder = async (orderId) => {
+    try {
+        const { tnoEats } = await getSmartContract();
+        const transferOrderTx = await tnoEats.preparedOrder(orderId, { gasLimit: GAS_LIMIT });
+        await transferOrderTx.wait();
+        return true;
+    } catch (error) {
+        console.log(error);
+        return false;
+    }
+}
+
+export { getOrdersBySeller, approveOrder, rejectOrder, transferOrder, preparedOrder }

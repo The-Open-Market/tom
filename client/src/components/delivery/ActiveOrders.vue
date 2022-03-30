@@ -9,7 +9,7 @@
         <OrderInfo :order="order" pov="delivery"/>
       </template>
       <template v-slot:controls
-                v-if="OrderStatus.Accepted.value <= order.status.value 
+                v-if="OrderStatus.Ready.value <= order.status.value 
                    && order.status.value < OrderStatus.InTransit.value
                    && order.status.value !== OrderStatus.PickedUp.value">
         <Button text="Pick up" class="blue" @click="pickup(order.id)" :disabled="order.loading"/>
