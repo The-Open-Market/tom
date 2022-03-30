@@ -20,9 +20,24 @@ abstract contract OrderFactory is Ownable {
         address indexed deliveryService,
         string orderContentsUrl,
         string originZipCode,
-        string destinationZipCode
+        string destinationZipCode,
+        bool waitOnReady
     );
-    
+    event ApprovedOrder(
+        uint id,
+        uint amount,
+        uint deliveryFee,
+        uint collateral,
+        OrderStatus indexed status,
+        address client,
+        address seller,
+        address deliveryService,
+        string orderContentsUrl,
+        string originZipCode,
+        string destinationZipCode,
+        bool waitOnReady
+    );
+
     struct Order {
         uint id;
         uint amount;
@@ -35,21 +50,22 @@ abstract contract OrderFactory is Ownable {
         string orderContentsUrl;
         string originZipCode;
         string destinationZipCode;
+        bool waitOnReady;
     }
 
     enum OrderStatus {
         Pending,     /* 0  order is submitted by a client                       */
         Approved,    /* 1  order is approved by a seller                        */
-        Rejected,    /* 2  order is rejected by a seller                        */
-        Accepted,    /* 3  order is accepted by a delivery service              */
+        Accepted,    /* 2  (optional) order is accepted by a delivery service   */
+        Ready,       /* 3  order is ready for pickup                            */
         PickedUp,    /* 4  order is picked up by a delivery service             */
         Transferred, /* 5  order is transferred by a seller to delivery service */
         InTransit,   /* 6  order is being delivered by the delivery service     */
         Received,    /* 7  order is received by a client                        */
         Delivered,   /* 8  order is delivered by a delivery service             */
         Completed,   /* 9  order is sucessfully completed                       */
-        Disputed,    /* 10 order is disputed by one of the parties              */
-        Cancelled     /* 11 order is cancelled before reaching Processing status */
+        Cancelled,   /* 10 order is cancelled before reaching Processing status */
+        Rejected     /* 11  order is rejected by a seller                       */
     }
 
     Order[] public orders;
@@ -114,21 +130,28 @@ abstract contract OrderFactory is Ownable {
     }
 
     modifier orderIsPending(uint _orderId) {
-        require(_orderId < orders.length, "Invalid order id");
-        Order storage order = orders[_orderId];
         require(
-            order.status == OrderStatus.Pending,
+            _orderId < orders.length
+            && orders[_orderId].status == OrderStatus.Pending,
             "Order is already accepted"
         );
         _;
     }
 
     modifier orderIsApproved(uint _orderId) {
-        Order storage order = orders[_orderId];
         require(
             _orderId < orders.length
-            && order.status == OrderStatus.Approved,
+            && orders[_orderId].status == OrderStatus.Approved,
             "Order is still pending or in progress"
+        );
+        _;
+    }
+
+    modifier orderIsAccepted(uint _orderId) {
+        require(
+            _orderId < orders.length
+            && orders[_orderId].status == OrderStatus.Accepted,
+            "Order is not accepted"
         );
         _;
     }
@@ -137,7 +160,7 @@ abstract contract OrderFactory is Ownable {
         require(_orderId < orders.length, "Invalid order id");
         Order storage order = orders[_orderId];
         require(
-               order.status == OrderStatus.Accepted
+               order.status == OrderStatus.Ready
             || order.status == OrderStatus.Transferred
             || order.status == OrderStatus.PickedUp,
             "Order is is not in transferable"
@@ -158,10 +181,9 @@ abstract contract OrderFactory is Ownable {
     }
 
     modifier orderIsCancelable(uint _orderId) {
-        require(_orderId < orders.length, "Invalid order id");
-        Order storage order = orders[_orderId];
         require(
-            order.status == OrderStatus.Pending,
+            _orderId < orders.length
+            && orders[_orderId].status == OrderStatus.Pending,
             "Order is already being prepared"
         );
         _;
@@ -180,9 +202,9 @@ abstract contract OrderFactory is Ownable {
     function _createOrder(address _seller, string memory _orderInfo, uint _amount) internal {
         address client = _msgSender();
         uint id = orders.length;
-        orders.push(Order(id, _amount, 0, 0, OrderStatus.Pending, client, _seller, address(0), _orderInfo, "", ""));
+        orders.push(Order(id, _amount, 0, 0, OrderStatus.Pending, client, _seller, address(0), _orderInfo, "", "", true));
         clientOrderCount[client]++;
         sellerOrderCount[_seller]++;
-        emit OrderStatusChanged(id, _amount, 0, 0, OrderStatus.Pending, client, _seller, address(0), _orderInfo, "", "");
+        emit OrderStatusChanged(id, _amount, 0, 0, OrderStatus.Pending, client, _seller, address(0), _orderInfo, "", "", true);
     }
 }

@@ -7,8 +7,12 @@
       <template v-slot:contents>
         <OrderInfo :order="order" pov="seller" />
       </template>
+      <template v-slot:controls
+                v-if="order.waitOnReady && order.status.value === OrderStatus.Accepted.value">
+        <Button text="Ready" class="blue" @click="prepared(order.id)" :disabled="order.loading"/>
+      </template>
       <template v-slot:controls 
-                v-if="OrderStatus.Accepted.value <= order.status.value 
+                v-if="OrderStatus.Ready.value <= order.status.value 
                    && order.status.value < OrderStatus.InTransit.value
                    && order.status.value !== OrderStatus.Transferred.value">
         <Button text="Transfer" class="blue" @click="transfer(order.id)" :disabled="order.loading"/>
@@ -24,7 +28,7 @@ import OrderInfo from '@/components/shared/OrderInfo.vue';
 import Button from '@/components/shared/Button.vue';
 
 import { inject } from "vue";
-import { transferOrder } from '@/endpoints/seller';
+import { transferOrder, preparedOrder } from '@/endpoints/seller';
 import { OrderStatus } from '@/utils/order';
 
 export default {
@@ -40,6 +44,17 @@ export default {
   setup (props) {
     const toast = inject('$toast');
 
+    const prepared = async (orderId) => {
+      const index = props.orders.findIndex(order => order.id === orderId);
+      props.orders[index].loading = true;
+      try {
+        const success = await preparedOrder(orderId);
+        if (!success) toast.error(`Error preparing order #${orderId}`);
+      } finally {
+        props.orders[index].loading = false;
+      }
+    }
+
     const transfer = async (orderId) => {
       const index = props.orders.findIndex(order => order.id === orderId);
       props.orders[index].loading = true;
@@ -52,6 +67,7 @@ export default {
     }
     
     return {
+      prepared,
       transfer,
       OrderStatus
     }

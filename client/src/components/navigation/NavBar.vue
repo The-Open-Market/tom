@@ -5,8 +5,9 @@
         <div class="flex space-x-7">
           <div>
             <!-- Website Logo -->
-            <a href="/" class="flex items-center py-4 px-2">
-              <span class="font-semibold text-gray-500 text-lg">TNO-Eats</span>
+            <a href="/" class="flex flex-col items-center py-1 px-2">
+              <span class="font-semibold text-yellow-600 text-lg">T.O.M.</span>
+              <span class="text-xs text-gray-500 text-lg">The Open Market</span>
             </a>
           </div>
 
@@ -32,7 +33,8 @@
 
         <!-- Secondary Navbar items -->
         <div class="hidden md:flex items-center space-x-3 ">
-          <span class="text-black text-sm font-semibold">{{ address }}</span>
+          <span v-if="address" class="text-black text-sm font-semibold">{{ address }}</span>
+          <a v-else class="font-semibold text-sm text-red-500 italic hover:underline" href="https://metamask.io/" target="_blank">Install MetaMask</a>
         </div>
 
         <!-- Mobile menu button -->
@@ -88,7 +90,7 @@
 <script>
 import { ref, onMounted } from 'vue';
 
-import { getSignerAddress } from '@/services/ethereum';
+import { getSignerAddress, listenToAccountChanges } from '@/services/ethereum';
 
 export default {
   name: "NavBar",
@@ -101,8 +103,7 @@ export default {
     };
 
     onMounted(updateAddress);
-
-    window.ethereum.on('accountsChanged', updateAddress);
+    listenToAccountChanges(updateAddress);
 
     const toggleMobileMenu = () => {
       const menu = document.querySelector(".mobile-menu");

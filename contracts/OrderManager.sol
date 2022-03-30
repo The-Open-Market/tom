@@ -25,7 +25,7 @@ abstract contract OrderManager is OrderFactory {
      *         Can be called only by the seller and the order needs to be pending.
      * @param _orderId Active order id
      */
-    function approveOrder(uint _orderId, string memory sellerZipCode, string memory clientZipCode, uint _deliveryFee, uint _collateral) external orderIsPending(_orderId) senderIsSeller(_orderId) {
+    function approveOrder(uint _orderId, string memory sellerZipCode, string memory clientZipCode, uint _deliveryFee, uint _collateral, bool _waitOnReady) external orderIsPending(_orderId) senderIsSeller(_orderId) {
         Order storage order = orders[_orderId];
         require(_deliveryFee <= order.amount);
         order.status = OrderStatus.Approved;
@@ -33,7 +33,9 @@ abstract contract OrderManager is OrderFactory {
         order.destinationZipCode = clientZipCode;
         order.deliveryFee = _deliveryFee;
         order.collateral = _collateral;
-        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
+        order.waitOnReady = _waitOnReady;
+        emit ApprovedOrder(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode, order.waitOnReady);
+        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode, order.waitOnReady);
     }
 
     /**
@@ -46,9 +48,24 @@ abstract contract OrderManager is OrderFactory {
         address deliveryService = _msgSender();
         require(IERC20(eurTnoContract).transferFrom(deliveryService, address(this), order.collateral));
         order.deliveryService = deliveryService;
-        order.status = OrderStatus.Accepted;
+        if (order.waitOnReady) {
+            order.status = OrderStatus.Accepted;
+        } else {
+            order.status = OrderStatus.Ready;
+        }
         deliveryServiceOrderCount[deliveryService]++;
-        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
+        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode, order.waitOnReady);
+    }
+
+    /**
+     * @notice Seller marks order as ready.
+     *         The order needs to be accepted by a deliveryService.
+     * @param _orderId Active order id
+     */
+    function preparedOrder(uint _orderId) external orderIsAccepted(_orderId) senderIsSeller(_orderId) {
+        Order storage order = orders[_orderId];
+        order.status = OrderStatus.Ready;
+        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode, order.waitOnReady);
     }
 
     /**
@@ -60,9 +77,9 @@ abstract contract OrderManager is OrderFactory {
     function transferOrder(uint _orderId) external orderIsTransferable(_orderId) senderIsProvidingService(_orderId) {
         Order storage order = orders[_orderId];
         address sender = _msgSender();
-        if (sender == order.seller && order.status == OrderStatus.Accepted) {
+        if (sender == order.seller && order.status == OrderStatus.Ready) {
             order.status = OrderStatus.Transferred;
-        } else if (sender == order.deliveryService && order.status == OrderStatus.Accepted) {
+        } else if (sender == order.deliveryService && order.status == OrderStatus.Ready) {
             order.status = OrderStatus.PickedUp;
         } else if (sender == order.seller          && order.status == OrderStatus.PickedUp 
                 || sender == order.deliveryService && order.status == OrderStatus.Transferred) {
@@ -70,7 +87,7 @@ abstract contract OrderManager is OrderFactory {
         } else {
             revert("Illegal operation, cannot set order in transit twice with the same account");
         }
-        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
+        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode, order.waitOnReady);
     }
 
     /**
@@ -94,7 +111,7 @@ abstract contract OrderManager is OrderFactory {
         } else {
             revert("Illegal operation, cannot complete order twice with the same account");
         }
-        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
+        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode, order.waitOnReady);
     }
 
     /**
@@ -107,7 +124,7 @@ abstract contract OrderManager is OrderFactory {
         Order storage order = orders[_orderId];
         order.status = OrderStatus.Cancelled;
         require(IERC20(eurTnoContract).transfer(order.client, order.amount));
-        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
+        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode, order.waitOnReady);
     }
 
     /**
@@ -119,6 +136,6 @@ abstract contract OrderManager is OrderFactory {
         Order storage order = orders[_orderId];
         order.status = OrderStatus.Rejected;
         require(IERC20(eurTnoContract).transfer(order.client, order.amount));
-        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode);
+        emit OrderStatusChanged(order.id, order.amount, order.deliveryFee, order.collateral, order.status, order.client, order.seller, order.deliveryService, order.orderContentsUrl, order.originZipCode, order.destinationZipCode, order.waitOnReady);
     }
 }

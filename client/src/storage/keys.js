@@ -2,6 +2,7 @@ import { reactive, readonly } from "vue";
 import { secretbox, box, randomBytes } from 'tweetnacl';
 import { encodeBase64 } from 'tweetnacl-util';
 import { getSignerAddress } from '@/services/ethereum';
+import { ethers } from 'ethers';
 
 const key = "keys";
 
@@ -31,13 +32,16 @@ const setupKeysAsync = async (reset = false) => {
 }
 
 const generateKeys = (address) => {
-  const asymmetric = box.keyPair();
-  const symmetric = randomBytes(secretbox.keyLength);
+  /* Generate deterministic keys (not secure, we store them locally either way) for example purposes only.
+     They have to be deterministic if the same address is connected to another computer or browser. */
+  const secretBytes = ethers.utils.arrayify(address);
+  const symmetric = new Uint8Array([ ...secretBytes.slice(0, 32), ...secretBytes.slice(0, Math.max(0, 32 - secretBytes.length)) ]);
+  const asymmetric = box.keyPair.fromSecretKey(symmetric);
   const keys = {
     private: encodeBase64(asymmetric.secretKey),
     public: encodeBase64(asymmetric.publicKey),
-    symmetric: encodeBase64(symmetric)
-  }
+    symmetric: encodeBase64(symmetric),
+  };
   setKeys(address, keys);
   return keys;
 }

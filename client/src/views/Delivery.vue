@@ -20,7 +20,7 @@ import ActiveOrders from '@/components/delivery/ActiveOrders.vue';
 import OrderHistory from '@/components/delivery/OrderHistory.vue';
 
 import { inject, ref, reactive, onMounted } from 'vue';
-import { getSmartContract, getSignerAddress } from '@/services/ethereum';
+import { getSmartContract, getSignerAddress, listenToAccountChanges } from '@/services/ethereum';
 import { getOrdersByDeliveryService, getApprovedOrders } from '@/endpoints/deliveryService';
 import { OrderStatus, OrderStatusMap, orderFromData } from '@/utils/order';
 
@@ -73,13 +73,13 @@ export default {
 
       const filteredEventListener = tnoEats.filters.OrderStatusChanged(null, null, null, null, null, null, null, address.value, null, null, null);
       tnoEats.on(filteredEventListener, onOrderStatusChanged);
+
+      const approvedEventListener = tnoEats.filters.ApprovedOrder(null, null, null, null, OrderStatus.Approved.value, null, null, null, null, null, null);
+      tnoEats.on(approvedEventListener, onOrderStatusChanged);
     }
 
     onMounted(onAccountChanged);
-
-    window.ethereum.on('accountsChanged', async (accounts) => {
-      await onAccountChanged();
-    });
+    listenToAccountChanges(onAccountChanged);
 
     return {
       orders,
