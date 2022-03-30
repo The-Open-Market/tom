@@ -43,8 +43,8 @@ abstract contract OrderFactory is Ownable {
         Pending,     /* 0  order is submitted by a client                       */
         Approved,    /* 1  order is approved by a seller                        */
         Rejected,    /* 2  order is rejected by a seller                        */
-        Accepted,    /* 3  order is accepted by a delivery service              */
-        Ready,       /* 4  (optional) order is ready for pickup                 */
+        Accepted,    /* 3  (optional) order is accepted by a delivery service   */
+        Ready,       /* 4  order is ready for pickup                            */
         PickedUp,    /* 5  order is picked up by a delivery service             */
         Transferred, /* 6  order is transferred by a seller to delivery service */
         InTransit,   /* 7  order is being delivered by the delivery service     */
@@ -127,10 +127,9 @@ abstract contract OrderFactory is Ownable {
     }
 
     modifier orderIsApproved(uint _orderId) {
-        Order storage order = orders[_orderId];
         require(
             _orderId < orders.length
-            && order.status == OrderStatus.Approved,
+            && orders[_orderId].status == OrderStatus.Approved,
             "Order is still pending or in progress"
         );
         _;
