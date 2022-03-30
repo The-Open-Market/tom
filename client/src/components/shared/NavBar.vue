@@ -42,6 +42,7 @@
             <a :href="publicPath + 'delivery'" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Delivery POV</a>
 
             <div class="ml-auto flex items-center">
+              <span class="text-white mr-10">Allowance: {{ allowance }} EURT</span>
               <span class="text-white">{{ address }}</span>
             </div>
           </div>
@@ -54,18 +55,30 @@
 
 <script>
 import { ref, onMounted } from 'vue';
-
+import { checkAllowance } from '@/endpoints/euroToken';
 import { getSignerAddress } from '@/services/ethereum';
 
 export default {
   name: "NavBar",
 
+  created() {
+    this.emitter.on('update-allowance', () => {
+      updateAllowance();
+    });
+  },
+
   setup() {
     const address = ref("");
+    const allowance = ref("");
 
     const updateAddress = async () => {
       address.value = await getSignerAddress();
+      updateAllowance();
     };
+
+    const updateAllowance = async () => {
+      allowance.value = await checkAllowance(address.value);
+    }
 
     onMounted(updateAddress);
     window.ethereum.on('accountsChanged', updateAddress);
@@ -76,6 +89,7 @@ export default {
 
     return {
       address,
+      allowance,
       publicPath,
     };
   },
