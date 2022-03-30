@@ -12,6 +12,8 @@ TNO-Eats implements a city distribution framework for supply-chain management ov
 - Delivery Service delivers the order to the Client and Client receives the order from the Delivery Service
 - Additionally, the Client can tip the Delivery Service
 
+Payments and collateral are using an ERC20 token (EURTno Token).
+
 ## Usage
 
 The contract is deployed on the Kovan testnet, and the web-application is deployed at [neat-monte.github.io/tno-eats](https://neat-monte.github.io/tno-eats), and serves the views of all involved parties. Namely, the client, the delivery service, and the seller view.
