@@ -1,8 +1,8 @@
 <template>
   <div class="w-full bg-white py-10">
     <div class="flex justify-between border-b pb-8 mb-10">
-      <h1 class="font-semibold text-2xl">Shopping Cart</h1>
-      <h2 class="font-semibold text-2xl">{{ cartContents.map(x => x.quantity).reduce((prev, current) => prev + current, 0) }} Items</h2>
+      <h2 class="font-semibold">Shopping Cart</h2>
+      <h2 class="font-semibold">{{ cartContents.map(x => x.quantity).reduce((prev, current) => prev + current, 0) }} Items</h2>
     </div>
     <div class="flex mb-5">
       <h3 class="font-semibold text-gray-600 text-xs uppercase w-2/5">Product Details</h3>

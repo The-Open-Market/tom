@@ -1,18 +1,34 @@
 <template>
   <NavBar />
-  <main class="container mx-auto px-2 pt-6">
+  <main class="container max-w-6xl mx-auto px-4">
     <router-view />
   </main>
 </template>
 
 <script>
-import NavBar from "@/components/shared/NavBar.vue";
-
 import 'vue-toast-notification/dist/theme-sugar.css';
 
+import NavBar from "@/components/navigation/NavBar.vue";
+
+import { onBeforeMount } from 'vue';
+
+import { setupKeysAsync } from '@/storage/keys';
+import { getSellers } from '@/storage/seller';
+
 export default {
+  setup () {
+    onBeforeMount(async () => {
+      getSellers();
+      await setupKeysAsync();
+    });
+
+    window.ethereum.on('accountsChanged', async (accounts) => {
+      await setupKeysAsync();
+    });
+  },
+
   components: {
     NavBar,
-  },
+  }
 };
 </script>
