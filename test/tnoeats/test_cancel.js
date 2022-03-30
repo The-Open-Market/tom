@@ -81,7 +81,6 @@ contract("TnoEats cancel", accounts => {
         return orderId;
     }
 
-
     it("client should be able to instantly refund not processed order", async () => {
         const orderId = await placeOrder();
         const canceledResult = await contract.cancelOrder(orderId, { from: client_a });
@@ -93,7 +92,6 @@ contract("TnoEats cancel", accounts => {
     it("client/seller should not be able to refund/reject approved order", async () => {
         const orderId = await approveOrder();
         truffleAssert.fails(contract.cancelOrder(orderId, { from: client_a }));
-        truffleAssert.fails(contract.rejectOrder(orderId, { from: seller_a }));
     });
 
     it("client should not be able to refund processing order", async () => {
@@ -103,17 +101,16 @@ contract("TnoEats cancel", accounts => {
         truffleAssert.fails(contract.cancelOrder(orderId, { from: delivery_a }));
     });
 
-    // possibly incorrect
-    it("external seller should not be able to refund different seller order", async () => {
-        const orderId = await placeOrder();
-        truffleAssert.fails(contract.cancelOrder(orderId, { from: seller_b }));
-    });
-
     it("intransit order cannot be canceled", async () => {
         const orderId = await transferOrder();
         truffleAssert.fails(contract.cancelOrder(orderId, { from: client_a }));
         truffleAssert.fails(contract.cancelOrder(orderId, { from: seller_a }));
         truffleAssert.fails(contract.cancelOrder(orderId, { from: delivery_a }));
+    });
+
+    it("external seller should not be able to refund different seller order", async () => {
+        const orderId = await placeOrder();
+        truffleAssert.fails(contract.cancelOrder(orderId, { from: seller_b }));
     });
     
 });
