@@ -81,7 +81,7 @@ contract("TnoEats token test", accounts => {
         return orderId;
     }
 
-    it("approving to little funds should fail", async () => {
+    it("approving too little funds should fail", async () => {
         await euroContract.approve(contract.address, 10, { from: client_a });
         truffleAssert.fails(contract.placeOrder(seller_a, "IPFS_LINK", 20, { from: client_a }));
     });
@@ -92,13 +92,17 @@ contract("TnoEats token test", accounts => {
         truffleAssert.eventEmitted(result, 'OrderStatusChanged');
     });
 
-    // Should it though?
-    it("approving to much funds should succeed", async () => {
+    it("approving too much funds should succeed", async () => {
         await euroContract.approve(contract.address, 20, { from: client_a });
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", 10, { from: client_a });
         truffleAssert.eventEmitted(result, 'OrderStatusChanged');
     });
-    
+
+    it("accepting with little funds should fail", async () => {
+        await euroContract.approve(contract.address, collateral - 1, { from: client_a });
+        const orderId = await approveOrder();
+        truffleAssert.fails(contract.acceptOrder(orderId, { from: delivery_a }))
+    });
 
     it("cancelling an order should reimburse the client", async () => {
         const balanceStart = await euroContract.balanceOf(client_a);
@@ -145,7 +149,16 @@ contract("TnoEats token test", accounts => {
         assert.ok(expSellerBalance.eq(endSellerBalance));
         assert.ok(expDeliveryBalance.eq(endDeliveryBalance));
         
-    })
-    
+    });
+
+    it("set new token contract address", async () => {
+        truffleAssert.fails(contract.changeEurTnoAddress(contract.address, { from: delivery_b }));
+        truffleAssert.fails(contract.changeEurTnoAddress(NULL_ADDRESS));
+        const initialAddress = await contract.eurTnoContract.call();
+        assert.equal(initialAddress, euroContract.address);
+        await contract.changeEurTnoAddress(contract.address);
+        const newAddress = await contract.eurTnoContract.call();
+        assert.equal(newAddress, contract.address);
+    });
     
 });
