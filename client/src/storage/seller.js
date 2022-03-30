@@ -23,9 +23,9 @@ const addTestData = () => {
     },
     etherAddress: "0x59Ce492d182688239C118AcFEb1A4872Ce3B1231",
     keys: {
-      private: 'z6bXpb5tnHlTc/B9N53ig455/o0lX3eienBkcHbNLeM=',
-      public: 'sm0/a19e0Ojgh05dXX7nwL7QiGJ02HiKgZQGiLvW70w=',
-      symmetric: "",
+      "private": "Wc5JLRgmiCOcEYrP6xpIcs47EjFZzkktGCaII5wRis8=",
+      "public": "3wn7e0hCji40iyiwhaB4Sr6cUmuoRvATplPMdUxK6G0=",
+      "symmetric": "Wc5JLRgmiCOcEYrP6xpIcs47EjFZzkktGCaII5wRis8="
     },
   });
   sellersArray.push({
@@ -43,10 +43,10 @@ const addTestData = () => {
     },
     etherAddress: "0x15f5319b330D8Da1E3a3852Fabcc60BFBA062919",
     keys: {
-      private: "mnLXWZdHLklyCSwV+1KJDWRFsVOw6W3wToOhWEIudj0=",
-      public: "5qNxFOxGo1MnMNMUJwBYLl/QVBXBuWb1tHBiLobvq30=",
-      symmetric: "",
-    }
+      "private": "FfUxmzMNjaHjo4Uvq8xgv7oGKRkV9TGbMw2NoeOjhS8=",
+      "public": "dEF5pWL4CUEehUa/2QEwcud62szeUKUvUJtlY5vR8HU=",
+      "symmetric": "FfUxmzMNjaHjo4Uvq8xgv7oGKRkV9TGbMw2NoeOjhS8="
+    },
   });
   setKeys(sellersArray[0].etherAddress, sellersArray[0].keys);
   setKeys(sellersArray[1].etherAddress, sellersArray[1].keys);

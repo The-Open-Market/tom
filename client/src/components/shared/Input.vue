@@ -14,7 +14,7 @@
     <template v-else-if="type === 'checkbox'">
       <input :type="type"
            :checked="modelValue"
-           @input="onInput"
+           @change="onChecked"
            :class="`h-7 text-sm pl-1 border border-gray-400 focus:border-sky-700 outline-none rounded ${inputClass}`"/>
     </template>
     <template v-else>
@@ -66,8 +66,12 @@ export default {
     const onInput = (e) => {
       context.emit("update:modelValue", e.currentTarget.value);
     }
+    const onChecked = (e) => {
+      context.emit("update:modelValue", e.currentTarget.checked);
+    }
     return {
-      onInput
+      onInput,
+      onChecked
     }
   }
 }
