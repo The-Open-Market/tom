@@ -5,20 +5,20 @@ const truffleAssert = require('truffle-assertions');
 contract("TnoEats", accounts => {
     // This is copied from the smart contract, enums are returned as integer
     const ORDER_STATUSES = [
-        'Pending',     /* order is submitted by a client                       */
-        'Approved',    /* order is approved by a seller                        */
-        'Rejected',    /* order is rejected by a seller                        */
-        'Accepted',    /* order is accepted by a delivery service              */
-        'Ready',       /* order is ready for pickup                            */
-        'PickedUp',    /* order is picked up by a delivery service             */
-        'Transferred', /* order is transferred by a seller to delivery service */
-        'InTransit',   /* order is being delivered by the delivery service     */
-        'Received',    /* order is received by a client                        */
-        'Delivered',   /* order is delivered by a delivery service             */
-        'Completed',   /* order is sucessfully completed                       */
-        'Disputed',    /* order is disputed by one of the parties              */
-        'Canceled'     /* order is cancelled before reaching Processing status */
+        'Pending',     /* 0  order is submitted by a client                       */
+        'Approved',    /* 1  order is approved by a seller                        */
+        'Accepted',    /* 2  (optional) order is accepted by a delivery service   */
+        'Ready',       /* 3  order is ready for pickup                            */
+        'PickedUp',    /* 4  order is picked up by a delivery service             */
+        'Transferred', /* 5  order is transferred by a seller to delivery service */
+        'InTransit',   /* 6  order is being delivered by the delivery service     */
+        'Received',    /* 7  order is received by a client                        */
+        'Delivered',   /* 8  order is delivered by a delivery service             */
+        'Completed',   /* 9  order is sucessfully completed                       */
+        'Cancelled',   /* 10 order is cancelled before reaching Processing status */
+        'Rejected'     /* 11  order is rejected by a seller                       */
     ];
+
 
     const [
         SELLER_A_ZIP,
@@ -151,7 +151,7 @@ contract("TnoEats", accounts => {
         const orderId = await placeOrder();
         const canceledResult = await contract.cancelOrder(orderId, { from: client_a });
         const canceledOrder = await contract.orders.call(orderId);
-        assert.equal('Canceled', ORDER_STATUSES[canceledOrder.status.toNumber()]);
+        assert.equal('Cancelled', ORDER_STATUSES[canceledOrder.status.toNumber()]);
         truffleAssert.eventEmitted(canceledResult, 'OrderStatusChanged');
     });
 
@@ -213,6 +213,12 @@ contract("TnoEats", accounts => {
     it("seller should not be able to complete order", async () => {
         const orderId = await acceptOrder();
         truffleAssert.fails(contract.completeOrder(orderId, { from: seller_a }));
+    });
+
+    it("should not be able to prepare invalid order", async () => {
+        truffleAssert.fails(contract.preparedOrder(1000, { from: seller_a }));
+        truffleAssert.fails(contract.preparedOrder(1000, { from: delivery_a }));
+        truffleAssert.fails(contract.preparedOrder(1000, { from: seller_a }));
     });
 
     it("should not be able to transfer invalid order", async () => {
