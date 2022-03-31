@@ -25,4 +25,4 @@ $ docker-compose -f docker-compose-geth.yaml up
 
 ## Could not decrypt Error
 
-If there are any errors for not being able to decrypt an order. Simply delete the local storage in the web-application.
+If there are any errors for not being able to decrypt an order. Simply delete the all the keys from local storage in the web-application (under dev. settings for the page -> Storage -> Local Storage) and refresh the page to regenerate the encryption/decryption keys.
