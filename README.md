@@ -20,6 +20,10 @@ The contract is deployed on the Kovan testnet, and the web-application is deploy
 
 To use the application, metamask is required and should be set to use the Kovan testnet (chainId: 42). The application can be run with any Ethereum addresses, however it requires EURT tokens, which can be requested in the dashboard. To use custom addresses for sellers, simply change the Ethereum address for the seller in the dashboard or add a new seller with the custom address. Additionally, when changing views (e.g. from client to seller view) change the active account in the web3 client such as metamask, and the view will refresh to depict that accounts' orders. Accounts require to be connected to the application (metamask will ask to connect the account on startup) and the connected address should then be shown in the NavBar.
 
+When the delivery service picks up an order from the seller, the seller will physically provide the delivery service with the address and the salt that was used to generate the hash of the address. Using this salt and the address the delivery service can get the original hash from IPFS and compare to the hash that he generates, ensuring the address is correct. For demonstration purposes we provide the salt and hash in the views of the seller and the client, to be copied into the verification fields on the delivery view. **Note** when copying the address all commas and spaces between the address fields (except for the space in the street) need to be removed.
+
+For example an address for `Testing Street 1234 A, ZIP01` should like like this `Testing Street1234AZIP01`.
+
 ## Development setup
 
 There a couple of options for running a development environment. Either it can be run with ganache, or a private network (running PoA). **Note** the mnemonic and the private keys of the accounts used for development are constructable with the information in this repository, hence never use these with actual real Ethereum tokens!
