@@ -72,7 +72,7 @@
       <span class="font-medium">Delivery Fee: </span>
       {{ 0 < order.deliveryFee ? `€${order.deliveryFee.toFixed(2)}` : 'N/a' }}
     </div>
-    <div v-if="order.waitOnReady" class="text-orange-500">
+    <div v-if="order.waitOnReady && order.status.value < OrderStatus.Ready.value" class="text-orange-500">
       <span class="text-sm font-semibold">
         Order is not ready on acceptance
         <span class="text-lg text-red-500">!</span>
