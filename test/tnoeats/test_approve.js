@@ -24,26 +24,6 @@ contract("TnoEats approve", accounts => {
         await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, DELIVERY_FEE, COLLATERAL, true, { from: seller_a });
         return orderId;
     }
-    
-    async function acceptOrder() {
-        const orderId = await approveOrder();
-        await euroContract.approve(contract.address, COLLATERAL, { from: delivery_a });
-        await contract.acceptOrder(orderId, { from: delivery_a });
-        return orderId;
-    }
-    
-    async function preparedOrder() {
-        const orderId = await acceptOrder();
-        await contract.preparedOrder(orderId, { from: seller_a });
-        return orderId;
-    }
-    
-    async function transferOrder() {
-        const orderId = await preparedOrder();
-        await contract.transferOrder(orderId, { from: delivery_a });
-        await contract.transferOrder(orderId, { from: seller_a });
-        return orderId;
-    }
 
     it("seller should be able to approve incoming order", async () => {
         const orderId = await placeOrder();

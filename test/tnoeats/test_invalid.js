@@ -12,38 +12,6 @@ contract("TnoEats invalid address", accounts => {
         contract = await TnoEats.deployed();
         euroContract = await EurTno.deployed();
     });
-    
-    async function placeOrder() {
-        await euroContract.approve(contract.address, AMOUNT, { from: client_a });
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", AMOUNT, { from: client_a });
-        return result.logs[0].args.id.toNumber();
-    }
-    
-    async function approveOrder() {
-        const orderId = await placeOrder();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, DELIVERY_FEE, COLLATERAL, true, { from: seller_a });
-        return orderId;
-    }
-    
-    async function acceptOrder() {
-        const orderId = await approveOrder();
-        await euroContract.approve(contract.address, COLLATERAL, { from: delivery_a });
-        await contract.acceptOrder(orderId, { from: delivery_a });
-        return orderId;
-    }
-    
-    async function preparedOrder() {
-        const orderId = await acceptOrder();
-        await contract.preparedOrder(orderId, { from: seller_a });
-        return orderId;
-    }
-    
-    async function transferOrder() {
-        const orderId = await preparedOrder();
-        await contract.transferOrder(orderId, { from: delivery_a });
-        await contract.transferOrder(orderId, { from: seller_a });
-        return orderId;
-    }
 
     it("should not be able to accept an invalid order", async () => {
         truffleAssert.fails(contract.approveOrder(1000, SELLER_A_ZIP, CLIENT_A_ZIP, DELIVERY_FEE, COLLATERAL, true, { from: seller_a }));
