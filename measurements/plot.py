@@ -1,5 +1,6 @@
 from statistics import mean, stdev
 import matplotlib.pyplot as plt
+import numpy as np
 import json
 
 
@@ -34,16 +35,20 @@ download_std = _stdev(data, 2)
 dec_means = _mean(data, 3)
 dec_std = _stdev(data, 3)
 
-width = 0.5
+width = 0.25
+
+markers = np.arange(1,6)
 
 fig, ax = plt.subplots()
-ax.bar(labels, enc_means, width, yerr=enc_std, label='Encrypt')
-ax.bar(labels, upload_means, width, yerr=upload_std, bottom=enc_means, label='Upload')
-ax.bar(labels, download_means, width, yerr=download_std, bottom=[a + b for (a, b) in zip(upload_means, enc_means)], label='Download')
-ax.bar(labels, dec_means, width, yerr=dec_std, bottom=[a + b + c for (a, b, c) in zip(upload_means, enc_means, download_means)], label='Decrypt')
+ax.bar([int(x) - 0.125 for x in markers], enc_means, width, yerr=enc_std, capsize=4, label='Encrypt')
+ax.bar([int(x) - 0.125 for x in markers], upload_means, width, yerr=upload_std, bottom=enc_means, capsize=4, label='Upload')
+ax.bar([int(x) + 0.125 for x in markers], download_means, width, yerr=download_std, capsize=4, label='Download')
+ax.bar([int(x) + 0.125 for x in markers], dec_means, width, yerr=dec_std, bottom=download_means, capsize=4, label='Decrypt')
 
 ax.set_ylabel('Milliseconds')
-ax.set_title('Performance of crypto and IPFS')
+ax.set_title('Performance of Crypto and IPFS')
+ax.set_xticks(markers)
+ax.set_xticklabels(labels)
 ax.legend()
 
-plt.savefig("measurement.png")
+plt.savefig("measurement.pdf", bbox_inches="tight")
