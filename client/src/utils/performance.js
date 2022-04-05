@@ -55,33 +55,32 @@ const measureOneRound = async (orderInfo) => {
 };
 
 const measurePerformance = async () => {
-    const orderInfo = {
-        "deliveryAddress": {
-          "street": "The Street Address",
-          "hnr": "1234",
-          "hnr_add": "AB",
-          "zip": "0000 AA"
-        }
-    };
-
     console.log('Starting the measurements');
     const measurements = {};
     for (const orderSize of [1, 5, 25, 100, 500]) {
         console.log(`Measuring orderSize = ${orderSize}`);
-        orderInfo["cart"] = Array(orderSize).fill({
-            "id": "cc919e21-ae5b-5e1f-d023-c4ach669520c",
-            "name": "TNO burger",
-            "img": "https://assets.biggreenegg.eu/app/uploads/2019/03/28145521/topimage-classic-hamburger-2019m04-800x534.jpg",
-            "price": 1000.50,
-            "quantity": 100
-        });
         measurements[orderSize] = [];
         for (let i = 0; i < 10; ++i) {
             try {
+                const orderInfo = {
+                    "deliveryAddress": {
+                      "street": "The Street Address",
+                      "hnr": "1234",
+                      "hnr_add": "AB",
+                      "zip": "0000 AA"
+                    },
+                    "cart": Array(orderSize).fill({
+                        "id": "cc919e21-ae5b-5e1f-d023-c4ach669520c",
+                        "name": "TNO burger",
+                        "img": "https://assets.biggreenegg.eu/app/uploads/2019/03/28145521/topimage-classic-hamburger-2019m04-800x534.jpg",
+                        "price": 1000.50,
+                        "quantity": 100
+                    }),
+                };
                 const result = await measureOneRound(orderInfo);
                 measurements[orderSize].push(result);
                 console.log(result);
-                await sleep(5000);    
+                await sleep(5000);
             } catch (_) {
                 console.log(_);  // Too many requests
                 await sleep(10000);
