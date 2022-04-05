@@ -5,6 +5,7 @@ import Client from "@/views/Client.vue"
 import Seller from "@/views/Seller.vue"
 import Delivery from "@/views/Delivery.vue"
 import Styles from "@/views/Styles.vue"
+import Performance from "@/views/Performance.vue"
 
 const publicPath = process.env.NODE_ENV === 'production' ? '/tno-eats' : '';
 
@@ -55,6 +56,14 @@ const routes = [
     component: Styles,
     meta: { 
       title: 'Styles',
+    },
+  },
+  {
+    path: `${publicPath}/performance`,
+    name: "Performance",
+    component: Performance,
+    meta: { 
+      title: 'Performance',
     },
   }
 ]
