@@ -37,9 +37,9 @@ export default {
     const orders = reactive([]);
     let address = ref("");
 
-    const onOrderStatusChanged = async (id, amount, deliveryFee, collateral, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode) => {
+    const onOrderStatusChanged = async (id, amount, deliveryFee, collateral, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode, waitOnReady) => {
       const orderId = parseInt(id._hex, 16);
-      const data = {id, amount, deliveryFee, collateral, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode};
+      const data = {id, amount, deliveryFee, collateral, status, client, seller, deliveryService, orderContentsUrl, originZipCode, destinationZipCode, waitOnReady};
       const userKeys = await getCurrentKeysAsync();
       if (orders.every(order => order.id !== orderId)) {
         const order = await orderFromData(data, 'seller', userKeys.private);

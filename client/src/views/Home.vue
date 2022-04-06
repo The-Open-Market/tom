@@ -15,6 +15,8 @@
   </ul>
   <br/>
   <p>Payments and collateral are using an ERC20 token (EURTno Token). The EURTno tokens are distributed to the pre-defined accounts for development, and can additionally be minted by any address for usage of the web-application, using the dashboard in the application.</p>
+  <br/>
+  <p><b>Disclaimer:</b> Due to limitations in GitHub Pages, text rendering might not always be updated on new events, refresh the page to fix it.</p>
 </template>
 
 <script>

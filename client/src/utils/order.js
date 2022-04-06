@@ -74,7 +74,8 @@ const orderFromData = async (data, party = null, key = null) => {
     await attachOrderCounts(order);
     return order;
   } catch (error) {
-    console.log(error);
+    // console.log(error);
+    return null;
   }
 }
 
