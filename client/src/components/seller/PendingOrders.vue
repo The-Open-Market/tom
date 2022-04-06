@@ -48,7 +48,7 @@ export default {
       const index = props.orders.findIndex(order => order.id === orderId);
       props.orders[index].loading = true;
       try {
-        const seller = getSellers().filter(s => s.etherAddress !== props.orders[index].seller).pop();
+        const seller = getSellers().filter(s => s.etherAddress === props.orders[index].seller).pop();
         const origin = seller.address.zipCode;
         const destination = props.orders[index].orderInformation.deliveryAddress.zip;
         const success = await approveOrder(orderId, props.orders[index].deliveryFee, props.orders[index].collateral, origin, destination, props.orders[index].waitOnReady);
