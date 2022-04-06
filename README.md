@@ -1,6 +1,6 @@
 # TOM: The Open Market
 
-![Smart Contract Test](https://github.com/neat-monte/tom/actions/workflows/main.yml/badge.svg)
+![Smart Contract Test](https://github.com/The-Open-Market/tom/actions/workflows/main.yml/badge.svg)
 ![Test Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/neat-monte/38e17eaacdbbcd485a265bb6f916c704/raw/coverage.badge.json)
 
 TOM implements a city distribution framework for supply-chain management over an Ethereum smart contract, without any intermediate parties. We additionally provide a prototype web-application to demonstrate interacting with the smart contract. The contract allows connecting client, seller, and delivery service and providing the following functions:
