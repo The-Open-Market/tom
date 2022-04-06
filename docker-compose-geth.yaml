@@ -1,9 +1,9 @@
 version: '3.2'
 services:
-  tno-eats:
-    container_name: tno-eats
+  tom:
+    container_name: tom
     image: node:16.14
-    working_dir: /home/tno-eats
+    working_dir: /home/tom
     entrypoint: /entrypoint.sh
     stdin_open: true
     tty: true
@@ -11,7 +11,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./:/home/tno-eats
+      - ./:/home/tom
       - ./geth/entrypoint.sh:/entrypoint.sh
 
   geth-bootnode:

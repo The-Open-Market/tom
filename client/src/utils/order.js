@@ -79,8 +79,8 @@ const orderFromData = async (data, party = null, key = null) => {
 }
 
 const attachOrderCounts = async (order) => {
-  const { tnoEats } = await getSmartContract();
-  const orderCount = await tnoEats.getClientOrderCount(order.client);
+  const { tom } = await getSmartContract();
+  const orderCount = await tom.getClientOrderCount(order.client);
   order.completedOrders = parseInt(orderCount[0]._hex, 16);
   order.cancelledOrders = parseInt(orderCount[1]._hex, 16);
 } 

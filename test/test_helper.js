@@ -1,5 +1,5 @@
 const EurTno = artifacts.require('EurTno')
-const TnoEats = artifacts.require('TnoEats');
+const TOM = artifacts.require('TOM');
 const { SELLER_A_ZIP, CLIENT_A_ZIP, AMOUNT, DELIVERY_FEE, COLLATERAL } = require('./utils/constants');
 
 contract("Test helper", accounts => {
@@ -11,7 +11,7 @@ contract("Test helper", accounts => {
 
     beforeEach(async () => {
         euroContract = await EurTno.deployed();
-        contract = await TnoEats.new(euroContract.address);
+        contract = await TOM.new(euroContract.address);
     });
     
     async function approveOrder(client, seller=seller_a) {

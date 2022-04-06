@@ -84,7 +84,6 @@ const encryptOrderInfo = async (sellerPublicKey, clientPublicKey, clientSecretKe
       orderInfo['deliveryAddress']['hnr_add'] +
       orderInfo['deliveryAddress']['zip'];
 
-    // TODO: make hashing bruteforce resistant
     const salt = Uint8Array.from(randomBytes(10));
     const hashInput = Uint8Array.from(decodeUTF8(fullAddress) + salt);
     const hashedAddress = Buffer.from(hash(hashInput)).toString('hex');

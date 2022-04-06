@@ -19,13 +19,13 @@ else
   npm install -g yarn
 fi
 
-cd /home/tno-eats
+cd /home/tom
 yarn
 ganache -h 0.0.0.0 -m "intact satisfy device divert math audit pitch coffee secret skill prefer brass" -l 10000000 &
 truffle migrate --reset
 
-cd /home/tno-eats/client
+cd /home/tom/client
 npm install --save
-chown -R node:node /home/tno-eats
+chown -R node:node /home/tom
 
 npm run serve

@@ -6,7 +6,7 @@ import Seller from "@/views/Seller.vue"
 import Delivery from "@/views/Delivery.vue"
 import Styles from "@/views/Styles.vue"
 
-const publicPath = process.env.NODE_ENV === 'production' ? '/tno-eats' : '';
+const publicPath = process.env.NODE_ENV === 'production' ? '/tom' : '';
 
 const routes = [
   {

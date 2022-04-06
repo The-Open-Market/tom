@@ -4,9 +4,9 @@ import { getSmartContract } from '@/services/ethereum';
 
 const approveTransaction = async (amount) => {
     try {
-        const { eurTno, tnoEats } = await getSmartContract();
+        const { eurTno, tom } = await getSmartContract();
         const etherAmount = ethers.utils.parseEther(amount.toString());
-        const tx = await eurTno.approve(tnoEats.address, etherAmount);
+        const tx = await eurTno.approve(tom.address, etherAmount);
         await tx.wait();
         return true;
     } catch (error) {
@@ -17,8 +17,8 @@ const approveTransaction = async (amount) => {
 
 const checkAllowance = async (address) => {
     try {
-        const { eurTno, tnoEats } = await getSmartContract();
-        const response = await eurTno.allowance(address, tnoEats.address);
+        const { eurTno, tom } = await getSmartContract();
+        const response = await eurTno.allowance(address, tom.address);
         return parseFloat(ethers.utils.formatEther(response));
     } catch (error) {
         console.log(error);

@@ -67,15 +67,15 @@ export default {
       const approvedOrders = await getApprovedOrders();
       orders.push(...approvedOrders);
 
-      const { tnoEats } = await getSmartContract();
+      const { tom } = await getSmartContract();
 
-      tnoEats.removeAllListeners();
+      tom.removeAllListeners();
 
-      const filteredEventListener = tnoEats.filters.OrderStatusChanged(null, null, null, null, null, null, null, address.value, null, null, null);
-      tnoEats.on(filteredEventListener, onOrderStatusChanged);
+      const filteredEventListener = tom.filters.OrderStatusChanged(null, null, null, null, null, null, null, address.value, null, null, null);
+      tom.on(filteredEventListener, onOrderStatusChanged);
 
-      const approvedEventListener = tnoEats.filters.ApprovedOrder(null, null, null, null, OrderStatus.Approved.value, null, null, null, null, null, null);
-      tnoEats.on(approvedEventListener, onOrderStatusChanged);
+      const approvedEventListener = tom.filters.ApprovedOrder(null, null, null, null, OrderStatus.Approved.value, null, null, null, null, null, null);
+      tom.on(approvedEventListener, onOrderStatusChanged);
     }
 
     onMounted(onAccountChanged);
