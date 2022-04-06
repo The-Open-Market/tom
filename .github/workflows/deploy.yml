@@ -22,6 +22,6 @@ jobs:
         working-directory: client
         run: npm run deploy
         env:
-          REMOTE_ACTOR: 'neat-monte'
+          REMOTE_ACTOR: 'The-Open-Market'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: 'tom'

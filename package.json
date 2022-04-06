@@ -11,15 +11,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/neat-monte/tom.git"
+    "url": "git+https://github.com/The-Open-Market/tom.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/neat-monte/tom/issues"
+    "url": "https://github.com/The-Open-Market/tom/issues"
   },
-  "homepage": "https://github.com/neat-monte/tom#readme",
+  "homepage": "https://github.com/The-Open-Market/tom#readme",
   "devDependencies": {
     "ganache-cli": "^6.12.2",
     "solidity-coverage": "^0.7.20",
