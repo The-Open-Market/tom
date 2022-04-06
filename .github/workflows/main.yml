@@ -26,9 +26,6 @@ jobs:
         run: ganache -h 0.0.0.0 &
 
       - name: Running Smart Contract Test
-        run: CI=true truffle test
-
-      - name: Coverage Smart Contract Test
         run: CI=true truffle run coverage
 
       - name: Deploying Smart Contract
