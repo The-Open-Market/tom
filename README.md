@@ -1,9 +1,9 @@
-# tno-eats
+# TOM: The Open Market
 
-![Smart Contract Test](https://github.com/neat-monte/tno-eats/actions/workflows/main.yml/badge.svg)
+![Smart Contract Test](https://github.com/neat-monte/tom/actions/workflows/main.yml/badge.svg)
 ![Test Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/neat-monte/38e17eaacdbbcd485a265bb6f916c704/raw/coverage.badge.json)
 
-TNO-Eats implements a city distribution framework for supply-chain management over an Ethereum smart contract, without any intermediate parties. We additionally provide a prototype web-application to demonstrate interacting with the smart contract. The contract allows connecting client, seller, and delivery service and providing the following functions:
+TOM implements a city distribution framework for supply-chain management over an Ethereum smart contract, without any intermediate parties. We additionally provide a prototype web-application to demonstrate interacting with the smart contract. The contract allows connecting client, seller, and delivery service and providing the following functions:
 
 - Clients can select a seller and place an order
 - Sellers can accept orders from a client and set a delivery reward and collateral required from the delivery service
@@ -12,11 +12,11 @@ TNO-Eats implements a city distribution framework for supply-chain management ov
 - Delivery Service delivers the order to the Client and Client receives the order from the Delivery Service
 - Additionally, the Client can tip the Delivery Service
 
-Payments and collateral are using an ERC20 token (EURTno Token). The EURTno tokens are distributed to the pre-defined accounts for development, and can additionally be minted by any address for usage of the web-application, using the dashboard in the application.
+Payments and collateral are using an ERC20 token (EURTno Token). The EURT tokens are distributed to the pre-defined accounts for development, and can additionally be minted by any address for usage of the web-application, using the dashboard in the application.
 
 ## Usage
 
-The contract is deployed on the Kovan testnet, and the web-application is deployed at [neat-monte.github.io/tno-eats](https://neat-monte.github.io/tno-eats), and serves the views of all involved parties. Namely, the client, the delivery service, and the seller view. For any transaction, Kovan Ether are required and can be requested from a [Kovan Faucet](https://faucets.chain.link/).
+The contract is deployed on the Kovan testnet, and the web-application is deployed at [neat-monte.github.io/tom](https://neat-monte.github.io/tom), and serves the views of all involved parties. Namely, the client, the delivery service, and the seller view. For any transaction, Kovan Ether are required and can be requested from a [Kovan Faucet](https://faucets.chain.link/).
 
 To use the application, metamask is required and should be set to use the Kovan testnet (chainId: 42). The application can be run with any Ethereum addresses, however it requires EURT tokens, which can be requested in the dashboard. To use custom addresses for sellers, simply change the Ethereum address for the seller in the dashboard or add a new seller with the custom address. Additionally, when changing views (e.g. from client to seller view) change the active account in the web3 client such as metamask, and the view will refresh to depict that accounts' orders. Accounts require to be connected to the application (metamask will ask to connect the account on startup) and the connected address should then be shown in the NavBar.
 
@@ -42,7 +42,7 @@ You can attach to any of the containers. To detach run `exit`, however this also
 
 ```bash
 # Attach to the truffle container
-$ docker exec -ti tno-eats bash
+$ docker exec -ti tom bash
 ```
 
 Then you can run any truffle commands in the truffle container.

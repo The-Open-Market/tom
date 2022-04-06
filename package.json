@@ -1,7 +1,7 @@
 {
-  "name": "tno-eats",
-  "version": "1.0.0",
-  "description": "## Development setup",
+  "name": "tom",
+  "version": "0.4.0",
+  "description": "TOM: The Open Market",
   "main": "index.js",
   "directories": {
     "test": "test"
@@ -11,15 +11,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/neat-monte/tno-eats.git"
+    "url": "git+https://github.com/neat-monte/tom.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/neat-monte/tno-eats/issues"
+    "url": "https://github.com/neat-monte/tom/issues"
   },
-  "homepage": "https://github.com/neat-monte/tno-eats#readme",
+  "homepage": "https://github.com/neat-monte/tom#readme",
   "devDependencies": {
     "ganache-cli": "^6.12.2",
     "solidity-coverage": "^0.7.20",

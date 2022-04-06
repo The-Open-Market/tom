@@ -96,7 +96,7 @@ export default {
   name: "NavBar",
 
   setup() {
-    const publicPath = process.env.NODE_ENV === 'production' ? '/tno-eats' : '';
+    const publicPath = process.env.NODE_ENV === 'production' ? '/tom' : '';
 
     const address = ref("");
     const updateAddress = async () => {

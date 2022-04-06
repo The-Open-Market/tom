@@ -1,16 +1,16 @@
 const EurTno = artifacts.require('EurTno')
-const TnoEats = artifacts.require('TnoEats');
+const TOM = artifacts.require('TOM');
 const truffleAssert = require('truffle-assertions');
 const { SELLER_A_ZIP, CLIENT_A_ZIP, NULL_ADDRESS, AMOUNT, DELIVERY_FEE, COLLATERAL } = require('./utils/constants');
 
-contract("TnoEats token test", accounts => {
+contract("TOM token test", accounts => {
     // This is copied from the smart contract, enums are returned as integer
     const [seller_a, seller_b, delivery_a, delivery_b, client_a, client_b] = accounts;
     let contract;
     let euroContract;
 
     beforeEach(async () => {
-        contract = await TnoEats.deployed();
+        contract = await TOM.deployed();
         euroContract = await EurTno.deployed();
     });
     

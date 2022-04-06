@@ -70,12 +70,12 @@ export default {
       const myOrders = await getOrdersBySeller(address.value, userKeys.private);
       orders.push(...myOrders);
 
-      const { tnoEats } = await getSmartContract();
+      const { tom } = await getSmartContract();
 
-      tnoEats.removeAllListeners();
+      tom.removeAllListeners();
 
-      const filteredEventListener = tnoEats.filters.OrderStatusChanged(null, null, null, null, null, null, address.value, null, null, null, null);
-      tnoEats.on(filteredEventListener, onOrderStatusChanged);
+      const filteredEventListener = tom.filters.OrderStatusChanged(null, null, null, null, null, null, address.value, null, null, null, null);
+      tom.on(filteredEventListener, onOrderStatusChanged);
     }
 
     onMounted(onAccountChanged);

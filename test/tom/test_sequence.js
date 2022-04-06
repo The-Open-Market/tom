@@ -1,15 +1,15 @@
 const EurTno = artifacts.require('EurTno')
-const TnoEats = artifacts.require('TnoEats');
+const TOM = artifacts.require('TOM');
 const truffleAssert = require('truffle-assertions');
 const { ORDER_STATUSES, SELLER_A_ZIP, CLIENT_A_ZIP, AMOUNT, DELIVERY_FEE, COLLATERAL } = require('../utils/constants');
 
-contract("TnoEats status sequence", accounts => {
+contract("TOM status sequence", accounts => {
     const [seller_a, seller_b, delivery_a, delivery_b, client_a, client_b] = accounts;
     let contract;
     let euroContract;
 
     beforeEach(async () => {
-        contract = await TnoEats.deployed();
+        contract = await TOM.deployed();
         euroContract = await EurTno.deployed();
     });
     

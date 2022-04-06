@@ -7,11 +7,11 @@ else
   npm install -g truffle
 fi
 
-cd /home/tno-eats
+cd /home/tom
 truffle migrate --network geth
 
-cd /home/tno-eats/client
+cd /home/tom/client
 npm install --save
-chown -R node:node /home/tno-eats
+chown -R node:node /home/tom
 
 npm run serve

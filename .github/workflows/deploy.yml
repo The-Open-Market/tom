@@ -24,4 +24,4 @@ jobs:
         env:
           REMOTE_ACTOR: 'neat-monte'
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPOSITORY: 'tno-eats'
+          REPOSITORY: 'tom'

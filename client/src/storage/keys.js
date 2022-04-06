@@ -1,5 +1,5 @@
 import { reactive, readonly } from "vue";
-import { secretbox, box, randomBytes } from 'tweetnacl';
+import { box } from 'tweetnacl';
 import { encodeBase64 } from 'tweetnacl-util';
 import { getSignerAddress } from '@/services/ethereum';
 import { ethers } from 'ethers';

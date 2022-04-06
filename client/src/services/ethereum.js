@@ -1,6 +1,6 @@
 import detectEthereumProvider from '@metamask/detect-provider';
 import { ethers, Contract } from 'ethers';
-import TnoEats from '@/../../build/contracts/TnoEats.json';
+import TOM from '@/../../build/contracts/TOM.json';
 import EurTno from '@/../../build/contracts/EurTno.json';
 
 const getSmartContract = async () => {
@@ -11,9 +11,9 @@ const getSmartContract = async () => {
     provider = new ethers.providers.Web3Provider(provider);
     const signer = provider.getSigner();
 
-    const tnoEats = new Contract(
-      TnoEats.networks[networkId].address,
-      TnoEats.abi,
+    const tom = new Contract(
+      TOM.networks[networkId].address,
+      TOM.abi,
       signer
     );
     const eurTno = new Contract(
@@ -21,7 +21,7 @@ const getSmartContract = async () => {
       EurTno.abi,
       signer
     );
-    return { tnoEats, eurTno };
+    return { tom, eurTno };
   }
 };
 
