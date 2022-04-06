@@ -1,37 +1,13 @@
 const EurTno = artifacts.require('EurTno')
 const TnoEats = artifacts.require('TnoEats');
-const truffleAssert = require('truffle-assertions');
+const { SELLER_A_ZIP, CLIENT_A_ZIP, AMOUNT, DELIVERY_FEE, COLLATERAL } = require('./utils/constants');
 
 contract("Test helper", accounts => {
-    // This is copied from the smart contract, enums are returned as integer
-    const ORDER_STATUSES = [
-        'Pending',     /* 0  order is submitted by a client                       */
-        'Approved',    /* 1  order is approved by a seller                        */
-        'Accepted',    /* 2  (optional) order is accepted by a delivery service   */
-        'Ready',       /* 3  order is ready for pickup                            */
-        'PickedUp',    /* 4  order is picked up by a delivery service             */
-        'Transferred', /* 5  order is transferred by a seller to delivery service */
-        'InTransit',   /* 6  order is being delivered by the delivery service     */
-        'Received',    /* 7  order is received by a client                        */
-        'Delivered',   /* 8  order is delivered by a delivery service             */
-        'Completed',   /* 9  order is sucessfully completed                       */
-        'Cancelled',   /* 10 order is cancelled before reaching Processing status */
-        'Rejected'     /* 11  order is rejected by a seller                       */
-    ];
-
-    const SELLER_ZIP = "AAAA11";
-    const CLIENT_ZIP = "BBBB22";
-
     const [seller_a, seller_b, delivery_a, delivery_b, client_a, client_b] = accounts;
-    const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
-    let contract;
-    let euroContract;
-    const amount = 1000;
-    const deliveryFee = 200;
-    const collateral = 300;
-    
     const COMPLETED = '0';
     const CANCELLED = '1';
+    let contract;
+    let euroContract;
 
     beforeEach(async () => {
         euroContract = await EurTno.deployed();
@@ -39,27 +15,27 @@ contract("Test helper", accounts => {
     });
     
     async function approveOrder(client, seller=seller_a) {
-        await euroContract.approve(contract.address, amount, { from: client });
-        const result = await contract.placeOrder(seller, "IPFS_LINK", amount, { from: client });
+        await euroContract.approve(contract.address, AMOUNT, { from: client });
+        const result = await contract.placeOrder(seller, "IPFS_LINK", AMOUNT, { from: client });
         const orderId =  result.logs[0].args.id.toNumber();
         
-        await contract.approveOrder(orderId, SELLER_ZIP, CLIENT_ZIP, deliveryFee, collateral, false, { from: seller });
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, DELIVERY_FEE, COLLATERAL, false, { from: seller });
         return orderId;
     }
     
     async function acceptOrder(orderId, deliverer=delivery_a) {
-        await euroContract.approve(contract.address, collateral, { from: deliverer });
+        await euroContract.approve(contract.address, COLLATERAL, { from: deliverer });
         await contract.acceptOrder(orderId, { from: deliverer });
     }
     
     async function completeOrder(client, seller=seller_a, deliverer=delivery_a) {
-        await euroContract.approve(contract.address, amount, { from: client });
-        const result = await contract.placeOrder(seller, "IPFS_LINK", amount, { from: client });
+        await euroContract.approve(contract.address, AMOUNT, { from: client });
+        const result = await contract.placeOrder(seller, "IPFS_LINK", AMOUNT, { from: client });
         const orderId =  result.logs[0].args.id.toNumber();
         
-        await contract.approveOrder(orderId, SELLER_ZIP, CLIENT_ZIP, deliveryFee, collateral, false, { from: seller });
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, DELIVERY_FEE, COLLATERAL, false, { from: seller });
         
-        await euroContract.approve(contract.address, collateral, { from: deliverer });
+        await euroContract.approve(contract.address, COLLATERAL, { from: deliverer });
         await contract.acceptOrder(orderId, { from: deliverer });
 
         await contract.transferOrder(orderId, { from: deliverer });
@@ -71,8 +47,8 @@ contract("Test helper", accounts => {
     }
     
     async function cancelOrder(client, seller=seller_a) {
-        await euroContract.approve(contract.address, amount, { from: client });
-        const result = await contract.placeOrder(seller, "IPFS_LINK", amount, { from: client });
+        await euroContract.approve(contract.address, AMOUNT, { from: client });
+        const result = await contract.placeOrder(seller, "IPFS_LINK", AMOUNT, { from: client });
         const orderId =  result.logs[0].args.id.toNumber();
 
         await contract.cancelOrder(orderId, { from: client });

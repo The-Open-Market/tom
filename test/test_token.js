@@ -1,47 +1,13 @@
 const EurTno = artifacts.require('EurTno')
 const TnoEats = artifacts.require('TnoEats');
 const truffleAssert = require('truffle-assertions');
+const { SELLER_A_ZIP, CLIENT_A_ZIP, NULL_ADDRESS, AMOUNT, DELIVERY_FEE, COLLATERAL } = require('./utils/constants');
 
 contract("TnoEats token test", accounts => {
     // This is copied from the smart contract, enums are returned as integer
-    const ORDER_STATUSES = [
-        'Pending',     /* 0  order is submitted by a client                       */
-        'Approved',    /* 1  order is approved by a seller                        */
-        'Accepted',    /* 2  (optional) order is accepted by a delivery service   */
-        'Ready',       /* 3  order is ready for pickup                            */
-        'PickedUp',    /* 4  order is picked up by a delivery service             */
-        'Transferred', /* 5  order is transferred by a seller to delivery service */
-        'InTransit',   /* 6  order is being delivered by the delivery service     */
-        'Received',    /* 7  order is received by a client                        */
-        'Delivered',   /* 8  order is delivered by a delivery service             */
-        'Completed',   /* 9  order is sucessfully completed                       */
-        'Cancelled',   /* 10 order is cancelled before reaching Processing status */
-        'Rejected'     /* 11  order is rejected by a seller                       */
-    ];
-
-    const [
-        SELLER_A_ZIP,
-        SELLER_B_ZIP,
-        DELIVERY_A_ZIP,
-        DELIVERY_B_ZIP,
-        CLIENT_A_ZIP,
-        CLIENT_B_ZIP,
-    ] = [
-        "AAAA11",
-        "BBBB11",
-        "AAAA22",
-        "BBBB22",
-        "AAAA33",
-        "BBBB33",
-    ];
-
     const [seller_a, seller_b, delivery_a, delivery_b, client_a, client_b] = accounts;
-    const NULL_ADDRESS = '0x0000000000000000000000000000000000000000';
     let contract;
     let euroContract;
-    const amount = 1000;
-    const deliveryFee = 200;
-    const collateral = 300;
 
     beforeEach(async () => {
         contract = await TnoEats.deployed();
@@ -49,20 +15,20 @@ contract("TnoEats token test", accounts => {
     });
     
     async function placeOrder() {
-        await euroContract.approve(contract.address, amount, { from: client_a });
-        const result = await contract.placeOrder(seller_a, "IPFS_LINK", amount, { from: client_a });
+        await euroContract.approve(contract.address, AMOUNT, { from: client_a });
+        const result = await contract.placeOrder(seller_a, "IPFS_LINK", AMOUNT, { from: client_a });
         return result.logs[0].args.id.toNumber();
     }
     
     async function approveOrder() {
         const orderId = await placeOrder();
-        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, deliveryFee, collateral, false, { from: seller_a });
+        await contract.approveOrder(orderId, SELLER_A_ZIP, CLIENT_A_ZIP, DELIVERY_FEE, COLLATERAL, false, { from: seller_a });
         return orderId;
     }
     
     async function acceptOrder() {
         const orderId = await approveOrder();
-        await euroContract.approve(contract.address, collateral, { from: delivery_a });
+        await euroContract.approve(contract.address, COLLATERAL, { from: delivery_a });
         await contract.acceptOrder(orderId, { from: delivery_a });
         return orderId;
     }
@@ -86,7 +52,7 @@ contract("TnoEats token test", accounts => {
         truffleAssert.fails(contract.placeOrder(seller_a, "IPFS_LINK", 20, { from: client_a }));
     });
     
-    it("approving the exact amount of funds should succeed", async () => {
+    it("approving the exact AMOUNT of funds should succeed", async () => {
         await euroContract.approve(contract.address, 20, { from: client_a });
         const result = await contract.placeOrder(seller_a, "IPFS_LINK", 20, { from: client_a });
         truffleAssert.eventEmitted(result, 'OrderStatusChanged');
@@ -99,7 +65,7 @@ contract("TnoEats token test", accounts => {
     });
 
     it("accepting with little funds should fail", async () => {
-        await euroContract.approve(contract.address, collateral - 1, { from: client_a });
+        await euroContract.approve(contract.address, COLLATERAL - 1, { from: client_a });
         const orderId = await approveOrder();
         truffleAssert.fails(contract.acceptOrder(orderId, { from: delivery_a }))
     });
@@ -107,10 +73,10 @@ contract("TnoEats token test", accounts => {
     it("cancelling an order should reimburse the client", async () => {
         const balanceStart = await euroContract.balanceOf(client_a);
 
-        await euroContract.approve(contract.address, amount, { from: client_a });
+        await euroContract.approve(contract.address, AMOUNT, { from: client_a });
         orderId = await placeOrder();
         const balance2 = await euroContract.balanceOf(client_a);
-        // assert.equal(balanceStart + 0, balance2 + amount);
+        // assert.equal(balanceStart + 0, balance2 + AMOUNT);
         assert.ok(!balanceStart.eq(balance2));
 
         await contract.cancelOrder(orderId, { from: client_a });
@@ -121,10 +87,10 @@ contract("TnoEats token test", accounts => {
     it("rejecting an order shoudl reimburse the client", async () => {
         const balanceStart = await euroContract.balanceOf(client_a);
 
-        await euroContract.approve(contract.address, amount, { from: client_a });
+        await euroContract.approve(contract.address, AMOUNT, { from: client_a });
         orderId = await placeOrder();
         const balance2 = await euroContract.balanceOf(client_a);
-        // assert.equal(balanceStart + 0, balance2 + amount);
+        // assert.equal(balanceStart + 0, balance2 + AMOUNT);
         assert.ok(!balanceStart.eq(balance2));
 
         await contract.rejectOrder(orderId, { from: seller_a });
@@ -137,9 +103,9 @@ contract("TnoEats token test", accounts => {
         const sellerBalance = await euroContract.balanceOf(seller_a);
         const deliveryBalance = await euroContract.balanceOf(delivery_a);
 
-        const expClientBalance = clientBalance.subn(amount);
-        const expSellerBalance = sellerBalance.addn(amount - deliveryFee);
-        const expDeliveryBalance = deliveryBalance.addn(deliveryFee);
+        const expClientBalance = clientBalance.subn(AMOUNT);
+        const expSellerBalance = sellerBalance.addn(AMOUNT - DELIVERY_FEE);
+        const expDeliveryBalance = deliveryBalance.addn(DELIVERY_FEE);
 
         await completeOrder();
         const endClientBalance = await euroContract.balanceOf(client_a);
