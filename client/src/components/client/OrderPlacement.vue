@@ -18,7 +18,7 @@ import { ref, reactive, inject } from "vue";
 
 import { getSignerAddress } from '@/services/ethereum';
 
-import { approveTransaction, checkAllowance } from '@/endpoints/euroToken';
+import { approveTransaction, checkAllowance, checkBalance } from '@/endpoints/euroToken';
 import { placeOrder } from '@/endpoints/client';
 import { uploadDeliveryInfo } from '@/endpoints/ipfs';
 
@@ -92,8 +92,15 @@ export default {
         const encrypted = await encryptOrderInfo(props.seller.keys.public, userKeys.public, userKeys.private, userKeys.symmetric, orderInfo);
         const path = await uploadDeliveryInfo(encrypted);
         const total = orderInfo.cart.reduce((a, b) => a + (b.quantity * b.price), 0);
-        
-        const allowance = await checkAllowance(await getSignerAddress())
+
+        const selfAddress = await getSignerAddress();
+        const balance = await checkBalance(selfAddress);
+        if (balance < total) {
+          toast.error('Not enough EURT funds');
+          return;
+        }
+
+        const allowance = await checkAllowance(selfAddress);
         if (allowance < total) {
           if (!await approveTransaction(total)) {
             toast.error('Error approving euro transaction');

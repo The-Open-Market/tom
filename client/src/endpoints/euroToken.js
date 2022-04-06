@@ -38,5 +38,16 @@ const getEuroTokens = async (address, amount) => {
         return false;
     }
 }
+
+const checkBalance = async (address) => {
+    try {
+        const { eurTno } = await getSmartContract();
+        const response = await eurTno.balanceOf(address);
+        return parseFloat(ethers.utils.formatEther(response));
+    } catch (error) {
+        console.log(error);
+        return 0;
+    }
+}
   
-export { approveTransaction, checkAllowance, getEuroTokens }
+export { approveTransaction, checkAllowance, getEuroTokens, checkBalance };
