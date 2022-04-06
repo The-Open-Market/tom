@@ -16,7 +16,7 @@ Payments and collateral are using an ERC20 token (EURTno Token). The EURT tokens
 
 ## Usage
 
-The contract is deployed on the Kovan testnet, and the web-application is deployed at [neat-monte.github.io/tom](https://neat-monte.github.io/tom), and serves the views of all involved parties. Namely, the client, the delivery service, and the seller view. For any transaction, Kovan Ether are required and can be requested from a [Kovan Faucet](https://faucets.chain.link/).
+The contract is deployed on the Kovan testnet, and the web-application is deployed at [the-open-market.github.io/tom](https://the-open-market.github.io/tom), and serves the views of all involved parties. Namely, the client, the delivery service, and the seller view. For any transaction, Kovan Ether are required and can be requested from a [Kovan Faucet](https://faucets.chain.link/).
 
 To use the application, metamask is required and should be set to use the Kovan testnet (chainId: 42). The application can be run with any Ethereum addresses, however it requires EURT tokens, which can be requested in the dashboard. To use custom addresses for sellers, simply change the Ethereum address for the seller in the dashboard or add a new seller with the custom address. Additionally, when changing views (e.g. from client to seller view) change the active account in the web3 client such as metamask, and the view will refresh to depict that accounts' orders. Accounts require to be connected to the application (metamask will ask to connect the account on startup) and the connected address should then be shown in the NavBar.
 
