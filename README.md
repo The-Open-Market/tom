@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://github.com/The-Open-Market/tom/blob/main/client/public/Tom.png?sanitize=true" />
+</p>
+
 # TOM: The Open Market
 
 ![Smart Contract Test](https://github.com/The-Open-Market/tom/actions/workflows/main.yml/badge.svg)
