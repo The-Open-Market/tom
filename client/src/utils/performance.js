@@ -54,6 +54,20 @@ const measureOneRound = async (orderInfo) => {
     return measurement;
 };
 
+const measureBytes = async (orderInfo) => {
+    const sellerKeys = generateKeyPair();
+    const clientKeys = generateKeyPair();
+    const clientKey = generateKey();
+
+    const sellerPublicKey = encodeBase64(sellerKeys.publicKey);
+    const clientPublicKey = encodeBase64(clientKeys.publicKey);
+    const clientSecretKey = encodeBase64(clientKeys.secretKey);
+
+    const encrypted = await encryptOrderInfo(sellerPublicKey, clientPublicKey, clientSecretKey, clientKey, orderInfo);
+    const byteSize = str => new Blob([str]).size;
+    console.log(`Items size: ${byteSize(JSON.stringify(orderInfo))}, IPFS size: ${byteSize(encrypted)}`);
+};
+
 const measurePerformance = async () => {
     console.log('Starting the measurements');
     const measurements = {};
@@ -81,6 +95,7 @@ const measurePerformance = async () => {
                 measurements[orderSize].push(result);
                 console.log(result);
                 await sleep(5000);
+                await measureBytes(orderInfo);
             } catch (_) {
                 console.log(_);  // Too many requests
                 await sleep(10000);
