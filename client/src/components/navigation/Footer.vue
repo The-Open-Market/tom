@@ -6,7 +6,7 @@
     </span>
     <ul class="flex flex-wrap items-center mt-3 text-sm text-gray-500 sm:mt-0">
         <li>
-            <a :href="`${publicPath}/TOM The Open City Distribution Framework for Supply Chain Management on Ethereum.pdf`" class="mr-4 hover:underline md:mr-6 ">Read the paper here</a>
+            <a :href="`${publicPath}/TOM_The_Open_City_Distribution_Framework_for_Supply_Chain_Management_on_Ethereum.pdf`" class="mr-4 hover:underline md:mr-6 ">Read the paper here</a>
         </li>
     </ul>
 </footer>
