@@ -1,6 +1,12 @@
 @tailwind base;
 
 @layer base {
+  html, body, #app {
+    @apply min-h-screen;
+  }
+  #app {
+    @apply flex flex-col;
+  }
   h1 {
     @apply text-2xl;
   }
