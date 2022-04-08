@@ -22,7 +22,7 @@ import Button from '@/components/shared/Button.vue';
 
 import { inject } from "vue";
 import { acceptOrder } from '@/endpoints/deliveryService';
-import { approveTransaction, checkAllowance } from '@/endpoints/euroToken';
+import { approveTransaction, checkAllowance, checkBalance } from '@/endpoints/euroToken';
 
 export default {
   name: "AvailableOrders",
@@ -45,6 +45,12 @@ export default {
       const index = props.orders.findIndex(order => order.id === orderId);
       props.orders[index].loading = true;
       try {
+        const balance = await checkBalance(props.address);
+        if (balance < props.orders[index].collateral) {
+          toast.error('Not enough EURT funds');
+          return;
+        }
+
         const allowance = await checkAllowance(props.address);
         if (allowance < props.orders[index].collateral) {
           if (!await approveTransaction(props.orders[index].collateral)) {
