@@ -1,14 +1,16 @@
 <template>
-  <NavBar />
-  <main class="container max-w-6xl mx-auto px-4">
-    <router-view />
+  <NavBar/>
+  <main class="container max-w-6xl mx-auto px-4 grow">
+    <router-view/>
   </main>
+  <Footer/>
 </template>
 
 <script>
 import 'vue-toast-notification/dist/theme-sugar.css';
 
 import NavBar from "@/components/navigation/NavBar.vue";
+import Footer from "@/components/navigation/Footer.vue";
 
 import { onBeforeMount } from 'vue';
 
@@ -28,6 +30,7 @@ export default {
 
   components: {
     NavBar,
+    Footer
   }
 };
 </script>
