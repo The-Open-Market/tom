@@ -1,6 +1,6 @@
 <template>
   <div class="h-64">
-    <img src="/Tom.png" class="m-auto max-h-full"/>
+    <img :src="`${publicPath}/Tom.png`" class="m-auto max-h-full"/>
   </div>
   <div class="flex flex-col gap-4">
     <h1>Welcome to TOM: The Open Market</h1>
@@ -21,6 +21,14 @@
 
 <script>
 export default {
-  name: "Home"
+  name: "Home",
+
+  setup () {
+    const publicPath = process.env.NODE_ENV === 'production' ? '/tom' : '';
+
+    return {
+      publicPath
+    }
+  }
 }
 </script>
