@@ -2,17 +2,9 @@
   <nav class="bg-white shadow-lg">
     <div class="max-w-6xl mx-auto px-4">
       <div class="flex justify-between">
-        <div class="flex space-x-7">
-          <div>
-            <!-- Website Logo -->
-            <a :href="`${publicPath}/`" class="flex flex-col items-center py-1 px-2">
-              <span class="font-semibold text-yellow-600 text-lg">T.O.M.</span>
-              <span class="text-xs text-gray-500 text-lg">The Open Market</span>
-            </a>
-          </div>
-
-          <!-- Primary Navbar items -->
-          <div class="hidden md:flex items-center space-x-1">
+        <!-- Primary Navbar items -->
+        <div class="hidden md:flex space-x-7">
+          <div class="flex items-center space-x-1">
             <router-link :to="`${publicPath}/`" class="py-4 px-2 text-gray-700 font-semibold hover:text-yellow-600 transition duration-100">
               Home
             </router-link>
@@ -30,15 +22,13 @@
             </router-link>
           </div>
         </div>
-
         <!-- Secondary Navbar items -->
-        <div class="hidden md:flex items-center space-x-3 ">
-          <span v-if="address" class="text-black text-sm font-semibold">{{ address }}</span>
+        <div class="flex items-center space-x-3">
+          <span v-if="address" class="text-black text-sm font-semibold w-48 md:w-full truncate">{{ address }}</span>
           <a v-else class="font-semibold text-sm text-red-500 italic hover:underline" href="https://metamask.io/" target="_blank">Use a web3 enabled browser</a>
         </div>
-
         <!-- Mobile menu button -->
-        <div class="md:hidden flex items-center">
+        <div class="md:hidden flex items-center py-4">
           <button class="outline-none mobile-menu-button" @click="toggleMobileMenu()">
             <svg class=" w-6 h-6 hover:text-yellow-600 "
                  x-show="!showMenu"
@@ -58,27 +48,27 @@
     <div class="hidden mobile-menu">
       <ul class="">
         <li>
-          <router-link :to="`${publicPath}/`" class="block text-sm px-2 py-4 text-white bg-green-500 font-semibold">
+          <router-link :to="`${publicPath}/`" class="block text-sm px-2 py-4 text-gray-700 font-semibold hover:text-yellow-600 transition duration-100">
             Home
           </router-link>
         </li>
         <li>
-          <router-link :to="`${publicPath}/client`" class="block text-sm px-2 py-4 hover:bg-green-500 transition duration-100">
+          <router-link :to="`${publicPath}/client`" class="block text-sm px-2 py-4 text-gray-700 font-semibold hover:text-yellow-600 transition duration-100">
             Client POV
           </router-link>
         </li>
         <li>
-          <router-link :to="`${publicPath}/seller`" class="block text-sm px-2 py-4 hover:bg-green-500 transition duration-100">
+          <router-link :to="`${publicPath}/seller`" class="block text-sm px-2 py-4 text-gray-700 font-semibold hover:text-yellow-600 transition duration-100">
             Seller POV
           </router-link>
         </li>
         <li>
-          <router-link :to="`${publicPath}/delivery`" class="block text-sm px-2 py-4 hover:bg-green-500 transition duration-100">
+          <router-link :to="`${publicPath}/delivery`" class="block text-sm px-2 py-4 text-gray-700 font-semibold hover:text-yellow-600 transition duration-100">
             Delivery POV
           </router-link>
         </li>
         <li>
-          <router-link :to="`${publicPath}/dashboard`" class="block text-sm px-2 py-4 hover:bg-green-500 transition duration-100">
+          <router-link :to="`${publicPath}/dashboard`" class="block text-sm px-2 py-4 text-gray-700 font-semibold hover:text-yellow-600 transition duration-100">
             Dashboard
           </router-link>
         </li>
