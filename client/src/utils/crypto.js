@@ -79,10 +79,8 @@ export const symDecrypt = (key, messageWithNonce) => {
 };
 
 const encryptOrderInfo = async (sellerPublicKey, clientPublicKey, clientSecretKey, clientKey, orderInfo) => {
-    const fullAddress = orderInfo['deliveryAddress']['street'] + 
-      orderInfo['deliveryAddress']['hnr'] +
-      orderInfo['deliveryAddress']['hnr_add'] +
-      orderInfo['deliveryAddress']['zip'];
+    const address = orderInfo['deliveryAddress'];
+    const fullAddress = `${address.street} ${address.hnr} ${address.hnr_add || ''}, ${address.zip}`;
 
     const salt = Uint8Array.from(randomBytes(10));
     const hashInput = Uint8Array.from(decodeUTF8(fullAddress) + salt);
