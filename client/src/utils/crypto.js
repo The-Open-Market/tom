@@ -5,7 +5,7 @@ import { Buffer } from 'buffer';
 // Using: https://github.com/dchest/tweetnacl-js/wiki/Examples
 const newNonce = () => randomBytes(box.nonceLength);
 
-// const generateKeyPair = () => box.keyPair();
+const generateKeyPair = () => box.keyPair();
 
 const generateKey = () => encodeBase64(randomBytes(secretbox.keyLength));
 
@@ -124,4 +124,4 @@ const isValidHash = async (clientAddress, saltString, hashedAddress) => {
   }
 }
 
-export { encryptOrderInfo, decryptOrderInfo, decryptClientOrderInfo, isValidHash };
+export { encryptOrderInfo, decryptOrderInfo, decryptClientOrderInfo, isValidHash, generateKeyPair, generateKey };
